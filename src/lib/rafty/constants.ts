@@ -6,6 +6,7 @@ export const BUSINESS_TYPES: BusinessType[] = [
   "car_dealership",
   "restaurant",
   "retail",
+  "other",
 ];
 
 /** Canonical English names used in the data model. */
@@ -15,6 +16,7 @@ export const BUSINESS_TYPE_NAMES: Record<BusinessType, string> = {
   car_dealership: "Car Dealership",
   restaurant: "Restaurant",
   retail: "Retail",
+  other: "Other",
 };
 
 export const FONTS = [
@@ -103,6 +105,14 @@ export const TYPE_FIELDS: Record<BusinessType, { key: FieldKey; labelKey: string
     { key: "meta1", labelKey: "field.offer" },
     { key: "date", labelKey: "field.validUntil" },
   ],
+  other: [
+    { key: "title", labelKey: "field.offer" },
+    { key: "subject", labelKey: "field.subject" },
+    { key: "location", labelKey: "field.location" },
+    { key: "price", labelKey: "field.price" },
+    { key: "date", labelKey: "field.when" },
+    { key: "meta1", labelKey: "field.detail" },
+  ],
 };
 
 /** Editable suggestions only. Businesses own their final service list. */
@@ -156,6 +166,14 @@ export const SERVICE_SUGGESTIONS: Record<BusinessType, string[]> = {
     "Limited stock",
     "New arrival",
     "Members price",
+  ],
+  other: [
+    "Fast delivery",
+    "Free consultation",
+    "Flexible hours",
+    "Custom order",
+    "Warranty",
+    "Support",
   ],
 };
 

@@ -1,5 +1,5 @@
 /**
- * Rafty Content data model.
+ * Rafty data model.
  * Every business owned record carries businessId (tenant id) so the local
  * repository can be swapped for Supabase tables without UI changes.
  */
@@ -9,7 +9,8 @@ export type BusinessType =
   | "real_estate"
   | "car_dealership"
   | "restaurant"
-  | "retail";
+  | "retail"
+  | "other";
 
 export type LanguageCode = "en" | "de" | "sq";
 
@@ -31,6 +32,7 @@ export type Business = {
   id: string;
   name: string;
   type: BusinessType;
+  customType: string | null;
   status: BusinessStatus;
   ownerUserId: string;
   onboarded: boolean;
@@ -46,6 +48,9 @@ export type BusinessMembership = {
 
 export type BrandProfile = {
   businessId: string;
+  /** Private storage object path. Never a public url. */
+  logoPath?: string | null;
+  /** Short lived signed url used for rendering only. */
   logoDataUrl: string | null;
   primary: string;
   secondary: string;
@@ -120,6 +125,7 @@ export type Post = {
   id: string;
   businessId: string;
   templateId: string;
+  imagePath?: string | null;
   content: PostContent;
   createdAt: string;
 };

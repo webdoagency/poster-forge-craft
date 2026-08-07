@@ -14,16 +14,393 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      brand_profiles: {
+        Row: {
+          business_id: string
+          created_at: string
+          currency: string
+          font_family: string
+          language: string
+          logo_path: string | null
+          primary_color: string
+          secondary_color: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          currency?: string
+          font_family?: string
+          language?: string
+          logo_path?: string | null
+          primary_color?: string
+          secondary_color?: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          currency?: string
+          font_family?: string
+          language?: string
+          logo_path?: string | null
+          primary_color?: string
+          secondary_color?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_profiles_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_members: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_members_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_services: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_services_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      businesses: {
+        Row: {
+          created_at: string
+          custom_type: string | null
+          id: string
+          name: string
+          onboarded: boolean
+          owner_id: string
+          status: Database["public"]["Enums"]["business_status"]
+          type: Database["public"]["Enums"]["business_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_type?: string | null
+          id?: string
+          name: string
+          onboarded?: boolean
+          owner_id: string
+          status?: Database["public"]["Enums"]["business_status"]
+          type?: Database["public"]["Enums"]["business_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_type?: string | null
+          id?: string
+          name?: string
+          onboarded?: boolean
+          owner_id?: string
+          status?: Database["public"]["Enums"]["business_status"]
+          type?: Database["public"]["Enums"]["business_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      custom_template_requests: {
+        Row: {
+          business_id: string
+          created_at: string
+          file_name: string
+          file_path: string | null
+          file_type: string | null
+          id: string
+          status: Database["public"]["Enums"]["template_request_status"]
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          file_name: string
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["template_request_status"]
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          file_name?: string
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["template_request_status"]
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_template_requests_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_template_requests_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "custom_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_templates: {
+        Row: {
+          archived: boolean
+          business_id: string
+          created_at: string
+          engine: string
+          id: string
+          name: string
+          updated_at: string
+          variant: Json
+        }
+        Insert: {
+          archived?: boolean
+          business_id: string
+          created_at?: string
+          engine: string
+          id?: string
+          name: string
+          updated_at?: string
+          variant?: Json
+        }
+        Update: {
+          archived?: boolean
+          business_id?: string
+          created_at?: string
+          engine?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          variant?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_templates_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          business_id: string
+          content: Json
+          created_at: string
+          id: string
+          image_path: string | null
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          content?: Json
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      trial_usage: {
+        Row: {
+          business_id: string
+          created_at: string
+          free_post_limit: number
+          posts_created: number
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          free_post_limit?: number
+          posts_created?: number
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          free_post_limit?: number
+          posts_created?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trial_usage_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_my_business: {
+        Args: {
+          _custom_type?: string
+          _name: string
+          _type: Database["public"]["Enums"]["business_type"]
+        }
+        Returns: string
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_business_member: { Args: { _business_id: string }; Returns: boolean }
+      is_super_admin: { Args: never; Returns: boolean }
+      my_business_id: { Args: never; Returns: string }
+      register_post_usage: {
+        Args: { _business_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "business_user"
+      business_status: "pending" | "approved" | "rejected" | "suspended"
+      business_type:
+        | "travel_agency"
+        | "real_estate"
+        | "car_dealership"
+        | "restaurant"
+        | "retail"
+        | "other"
+      template_request_status: "processing" | "ready" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +527,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "business_user"],
+      business_status: ["pending", "approved", "rejected", "suspended"],
+      business_type: [
+        "travel_agency",
+        "real_estate",
+        "car_dealership",
+        "restaurant",
+        "retail",
+        "other",
+      ],
+      template_request_status: ["processing", "ready", "rejected"],
+    },
   },
 } as const

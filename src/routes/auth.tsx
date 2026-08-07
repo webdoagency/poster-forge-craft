@@ -9,12 +9,12 @@ import { useRafty } from "@/lib/rafty/store";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in | Rafty Content" },
+      { title: "Sign in | Rafty" },
       {
         name: "description",
-        content: "Sign in or create your Rafty Content account and set up your business.",
+        content: "Sign in or create your Rafty account and set up your business.",
       },
-      { property: "og:title", content: "Sign in | Rafty Content" },
+      { property: "og:title", content: "Sign in | Rafty" },
       { property: "og:description", content: "Sign in to create branded posts in seconds." },
     ],
   }),
@@ -29,6 +29,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!ready || !user) return;
@@ -37,11 +38,13 @@ function AuthPage() {
     else navigate({ to: "/onboarding", replace: true });
   }, [ready, user, business, navigate]);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setBusy(true);
     const res =
-      mode === "signup" ? signUp({ name, email, password }) : signIn(email, password);
+      mode === "signup" ? await signUp({ name, email, password }) : await signIn(email, password);
+    setBusy(false);
     if (!res.ok) setError(res.error ?? "Something went wrong.");
   }
 
@@ -53,7 +56,7 @@ function AuthPage() {
         </Link>
       </header>
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-16">
-        <form onSubmit={submit} className="card-soft flex flex-col gap-4 p-6">
+        <form onSubmit={(e) => void submit(e)} className="card-soft flex flex-col gap-4 p-6">
           <h1 className="font-display text-xl font-extrabold">
             {mode === "signup" ? t("auth.signUp") : t("auth.signIn")}
           </h1>
@@ -86,7 +89,7 @@ function AuthPage() {
             />
           </div>
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          <Button type="submit" size="lg" className="rounded-xl">
+          <Button type="submit" size="lg" disabled={busy} className="rounded-xl">
             {mode === "signup" ? t("auth.signUp") : t("auth.signIn")}
           </Button>
           <button

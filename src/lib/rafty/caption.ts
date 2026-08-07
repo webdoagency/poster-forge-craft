@@ -13,6 +13,7 @@ const OPENERS: Record<BusinessType, string[]> = {
   car_dealership: ["Ready to drive today.", "Just arrived on the lot.", "Keys are waiting."],
   restaurant: ["On the menu now.", "Fresh out of the kitchen.", "Tonight tastes good."],
   retail: ["New in stock.", "Small drop, big favourite.", "Back by request."],
+  other: ["Something new from us.", "Now available.", "Worth a closer look."],
 };
 
 const CLOSERS: Record<BusinessType, string> = {
@@ -21,6 +22,7 @@ const CLOSERS: Record<BusinessType, string> = {
   car_dealership: "Message us for a test drive.",
   restaurant: "Reserve your table today.",
   retail: "Message us to order.",
+  other: "Message us to learn more.",
 };
 
 export function generateCaption(
@@ -54,5 +56,5 @@ export function generateCaption(
     .filter(Boolean)
     .map((v) => `#${v}`);
 
-  return [parts.join(" "), [...tags, "#raftycontent"].join(" ")].filter(Boolean).join("\n\n");
+  return [parts.join(" "), [...tags, "#rafty"].join(" ")].filter(Boolean).join("\n\n");
 }

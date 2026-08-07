@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Images, LayoutTemplate, Palette, Sparkles, LogOut } from "lucide-react";
 import { useRafty } from "@/lib/rafty/store";
 import { Logo } from "@/components/rafty/Logo";
@@ -14,14 +15,23 @@ const nav = [
 
 /** Business chrome. One account, one business, so there is no switcher. */
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { ready, user, business, t, signOut } = useRafty();
+  const { ready, user, business, isAdmin, t, signOut } = useRafty();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
+  // The route gate already requires a session. Onboarding must be finished
+  // before any business surface is usable.
   useEffect(() => {
-    if (!ready) return;
-    if (!user) navigate({ to: "/auth", replace: true });
-    else if (!business || !business.onboarded) navigate({ to: "/onboarding", replace: true });
+    if (!ready || !user) return;
+    if (!business || !business.onboarded) navigate({ to: "/onboarding", replace: true });
   }, [ready, user, business, navigate]);
+
+  async function handleSignOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await signOut();
+    navigate({ to: "/auth", replace: true });
+  }
 
   if (!ready || !user || !business || !business.onboarded) {
     return <div className="page-bg min-h-screen" />;
@@ -48,6 +58,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
           <div className="ml-auto flex min-w-0 items-center gap-3">
+            {isAdmin ? (
+              <Link
+                to="/admin"
+                className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground sm:block"
+              >
+                Admin
+              </Link>
+            ) : null}
             <div className="hidden min-w-0 text-right sm:block">
               <p className="truncate text-sm font-bold">{business.name}</p>
               <p className="truncate text-[11px] text-muted-foreground">{statusLabel}</p>
@@ -57,10 +75,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               size="icon"
               className="rounded-xl"
               aria-label={t("nav.signOut")}
-              onClick={() => {
-                signOut();
-                navigate({ to: "/", replace: true });
-              }}
+              onClick={() => void handleSignOut()}
             >
               <LogOut className="size-4" />
             </Button>

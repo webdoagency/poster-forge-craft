@@ -23,19 +23,19 @@ import { TYPE_FIELDS } from "@/lib/rafty/constants";
 import { emptyContent, type Post, type PostContent } from "@/lib/rafty/types";
 import { id as newId } from "@/lib/rafty/repo";
 
-export const Route = createFileRoute("/create")({
+export const Route = createFileRoute("/_authenticated/create")({
   validateSearch: (search: Record<string, unknown>) => ({
     post: typeof search["post"] === "string" ? (search["post"] as string) : undefined,
     template: typeof search["template"] === "string" ? (search["template"] as string) : undefined,
   }),
   head: () => ({
     meta: [
-      { title: "Create a post | Rafty Content" },
+      { title: "Create a post | Rafty" },
       {
         name: "description",
         content: "Upload one image, add a few details and generate a branded post in seconds.",
       },
-      { property: "og:title", content: "Create a post | Rafty Content" },
+      { property: "og:title", content: "Create a post | Rafty" },
       { property: "og:description", content: "One image in, a finished branded post out." },
     ],
   }),

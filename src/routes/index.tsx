@@ -108,7 +108,7 @@ function CreatePage() {
     <AppShell>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)] lg:items-start">
         {/* Form */}
-        <section className="card-soft order-2 space-y-5 p-5 lg:order-1 lg:sticky lg:top-24">
+        <section className="card-soft order-2 min-w-0 space-y-5 p-5 lg:order-1 lg:sticky lg:top-24">
           <div>
             <h1 className="font-display text-xl font-extrabold">Create post</h1>
             <p className="text-sm text-muted-foreground">One image, a few details.</p>
@@ -237,8 +237,8 @@ function CreatePage() {
         </section>
 
         {/* Preview */}
-        <section className="order-1 space-y-4 lg:order-2">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1">
+        <section className="order-1 min-w-0 space-y-4 lg:order-2">
+          <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1">
             {templates.map((t) => (
               <button
                 key={t.id}

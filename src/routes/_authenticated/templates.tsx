@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,12 @@ import { readFileAsDataUrl } from "@/lib/rafty/file";
 import * as repo from "@/lib/rafty/repo";
 import { BUSINESS_TYPES, BUSINESS_TYPE_NAMES } from "@/lib/rafty/constants";
 import demoBeach from "@/assets/demo-beach.jpg";
-import { emptyContent, type BusinessType, type PostContent } from "@/lib/rafty/types";
+import {
+  emptyContent,
+  type BusinessType,
+  type CustomTemplateRequest,
+  type PostContent,
+} from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/_authenticated/templates")({
   head: () => ({

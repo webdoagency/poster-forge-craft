@@ -38,9 +38,10 @@ function LandingPage() {
         <Logo height={28} />
         <span className="hidden text-sm text-muted-foreground sm:inline">@raftycontent</span>
         <div className="ml-auto flex items-center gap-2">
-          <Button asChild variant="ghost" className="rounded-xl">
+          <Button asChild variant="ghost" className="hidden rounded-xl sm:inline-flex">
             <Link to="/templates">{t("landing.cta2")}</Link>
           </Button>
+
           <Button asChild className="rounded-xl">
             <Link to={appHref}>{t("landing.cta")}</Link>
           </Button>

@@ -20,7 +20,7 @@ import { BUSINESS_TYPES, BUSINESS_TYPE_NAMES } from "@/lib/rafty/constants";
 import demoBeach from "@/assets/demo-beach.jpg";
 import { emptyContent, type BusinessType, type PostContent } from "@/lib/rafty/types";
 
-export const Route = createFileRoute("/templates")({
+export const Route = createFileRoute("/_authenticated/templates")({
   head: () => ({
     meta: [
       { title: "Templates | Rafty Content" },

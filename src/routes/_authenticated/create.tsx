@@ -23,7 +23,7 @@ import { TYPE_FIELDS } from "@/lib/rafty/constants";
 import { emptyContent, type Post, type PostContent } from "@/lib/rafty/types";
 import { id as newId } from "@/lib/rafty/repo";
 
-export const Route = createFileRoute("/create")({
+export const Route = createFileRoute("/_authenticated/create")({
   validateSearch: (search: Record<string, unknown>) => ({
     post: typeof search["post"] === "string" ? (search["post"] as string) : undefined,
     template: typeof search["template"] === "string" ? (search["template"] as string) : undefined,

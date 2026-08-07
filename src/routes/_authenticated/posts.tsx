@@ -5,7 +5,7 @@ import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
 import { useRafty } from "@/lib/rafty/store";
 
-export const Route = createFileRoute("/posts")({
+export const Route = createFileRoute("/_authenticated/posts")({
   head: () => ({
     meta: [
       { title: "Your posts | Rafty Content" },

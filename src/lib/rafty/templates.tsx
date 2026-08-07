@@ -710,6 +710,18 @@ const variants: TemplateVariant[] = [
 ];
 
 const NAME_PREFIX: Record<BusinessType, string[]> = {
+  other: [
+    "Signal",
+    "Studio",
+    "Format",
+    "Motion",
+    "Layer",
+    "Frame",
+    "Accent",
+    "Prism",
+    "Vertex",
+    "Onyx",
+  ],
   travel_agency: [
     "Escape",
     "Horizon",

@@ -183,7 +183,7 @@ export async function updateBusiness(businessId: string, patch: Partial<Business
   if (patch.onboarded !== undefined) row["onboarded"] = patch.onboarded;
   if (patch.status !== undefined) row["status"] = patch.status;
   if (Object.keys(row).length === 0) return;
-  await supabase.from("businesses").update(row).eq("id", businessId);
+  await supabase.from("businesses").update(row as never).eq("id", businessId);
 }
 
 /* ---------------------------------- brand --------------------------------- */
@@ -248,7 +248,7 @@ export async function saveBrand(businessId: string, patch: Partial<BrandProfile>
   if (Object.keys(row).length === 0) return;
   await supabase
     .from("brand_profiles")
-    .upsert({ business_id: businessId, ...row }, { onConflict: "business_id" });
+    .upsert({ business_id: businessId, ...row } as never, { onConflict: "business_id" });
 }
 
 /* -------------------------------- services -------------------------------- */
@@ -421,7 +421,7 @@ export async function updateRequest(
   if (patch.status !== undefined) row["status"] = patch.status;
   if (patch.templateId !== undefined) row["template_id"] = patch.templateId;
   if (Object.keys(row).length === 0) return;
-  await supabase.from("custom_template_requests").update(row).eq("id", requestId);
+  await supabase.from("custom_template_requests").update(row as never).eq("id", requestId);
 }
 
 /* ---------------------------------- posts --------------------------------- */

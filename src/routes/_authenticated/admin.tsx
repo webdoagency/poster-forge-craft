@@ -23,7 +23,7 @@ import {
 import { globalTemplates } from "@/lib/rafty/templates";
 import type { Business, BusinessStatus, BusinessType } from "@/lib/rafty/types";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "Admin | Rafty Content" },

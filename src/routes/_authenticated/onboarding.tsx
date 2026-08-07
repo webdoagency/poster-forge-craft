@@ -25,7 +25,7 @@ import {
 } from "@/lib/rafty/constants";
 import type { BusinessType, CurrencyCode, LanguageCode } from "@/lib/rafty/types";
 
-export const Route = createFileRoute("/onboarding")({
+export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
       { title: "Set up your business | Rafty Content" },

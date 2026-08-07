@@ -18,7 +18,7 @@ import { readFileAsDataUrl } from "@/lib/rafty/file";
 import { BUSINESS_TYPE_NAMES, CURRENCIES, FONTS, LANGUAGES } from "@/lib/rafty/constants";
 import type { CurrencyCode, LanguageCode } from "@/lib/rafty/types";
 
-export const Route = createFileRoute("/brand")({
+export const Route = createFileRoute("/_authenticated/brand")({
   head: () => ({
     meta: [
       { title: "Brand settings | Rafty Content" },

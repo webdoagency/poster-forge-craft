@@ -1,231 +1,318 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import type { Brand, Post, Tenant } from "./types";
-import demoBeach from "@/assets/demo-beach.jpg";
-import demoCoffee from "@/assets/demo-coffee.jpg";
-import demoCity from "@/assets/demo-city.jpg";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import * as repo from "./repo";
+import { DEFAULT_BRAND } from "./constants";
+import { makeT, type Translator } from "./i18n";
+import { globalTemplates } from "./templates";
+import type {
+  BrandProfile,
+  Business,
+  BusinessService,
+  BusinessType,
+  LanguageCode,
+  Post,
+  Template,
+  TrialUsage,
+  User,
+} from "./types";
 
 /**
- * Local persistence layer with tenant isolation.
- * Every record is namespaced by tenant id, mirroring the future
- * Supabase schema: tenants(id) -> brands(tenant_id), posts(tenant_id).
- * Swapping this module for Supabase queries requires no UI changes.
+ * Session and single business context.
+ * One account owns exactly one business, so there is no business switcher.
+ * Nothing in here ever falls back to another business's data.
  */
 
-const TENANTS_KEY = "rafty:tenants";
-const ACTIVE_KEY = "rafty:active-tenant";
-const brandKey = (t: string) => `rafty:${t}:brand`;
-const postsKey = (t: string) => `rafty:${t}:posts`;
-
-export const defaultTenants: Tenant[] = [
-  { id: "t_wanderlux", name: "Wanderlux Travel", slug: "wanderlux" },
-  { id: "t_beanpress", name: "Beanpress Coffee", slug: "beanpress" },
-];
-
-/** V1 service/feature options (hospitality & travel). */
-export const SERVICE_OPTIONS = [
-  "Akomodimi",
-  "Mëngjesi",
-  "Dreka",
-  "Darka",
-  "Pije",
-  "Pishina",
-  "Transport",
-  "Spa",
-  "Jacuzzi",
-  "Plazh",
-  "Fitness",
-];
-
-const defaultBrands: Record<string, Brand> = {
-  t_wanderlux: {
-    businessName: "Wanderlux Travel",
-    logoDataUrl: null,
-    primary: "#7c3aed",
-    secondary: "#c026d3",
-    fontFamily: "Sora",
-    services: SERVICE_OPTIONS,
-  },
-  t_beanpress: {
-    businessName: "Beanpress Coffee",
-    logoDataUrl: null,
-    primary: "#6d28d9",
-    secondary: "#0ea5e9",
-    fontFamily: "Plus Jakarta Sans",
-    services: SERVICE_OPTIONS,
-  },
+type OnboardingInput = {
+  type: BusinessType;
+  name: string;
+  logoDataUrl: string | null;
+  primary: string;
+  secondary: string;
+  fontFamily: string;
+  currency: BrandProfile["currency"];
+  language: LanguageCode;
+  services: string[];
+  customTemplate: { fileName: string; fileType: string; previewDataUrl: string | null } | null;
 };
-
-const demoPosts: Record<string, Post[]> = {
-  t_wanderlux: [
-    {
-      id: "p_demo_1",
-      tenantId: "t_wanderlux",
-      templateId: "aurora",
-      createdAt: "2026-08-02T09:20:00.000Z",
-      fields: {
-        title: "7 Nights in Paradise",
-        destination: "Maldives",
-        business: "Wanderlux Travel",
-        price: "€1,290",
-        date: "September",
-        additionalText: "Limited seats — book before Friday",
-        services: ["Akomodimi", "Mëngjesi", "Transport"],
-        imageDataUrl: demoBeach,
-        caption:
-          "Turquoise water, zero to-do list. 7 nights in the Maldives from €1,290 — flights, hotel and transfers handled. September dates open now.",
-      },
-    },
-    {
-      id: "p_demo_2",
-      tenantId: "t_wanderlux",
-      templateId: "editorial",
-      createdAt: "2026-07-28T14:05:00.000Z",
-      fields: {
-        title: "City Break Weekend",
-        destination: "Lisbon",
-        business: "Wanderlux Travel",
-        price: "€349",
-        date: "Oct 10–13",
-        additionalText: "Boutique stay in Alfama",
-        services: ["Akomodimi", "Mëngjesi", "Plazh"],
-        imageDataUrl: demoCity,
-        caption:
-          "Tiled streets, pastéis and sunset viewpoints. Lisbon long weekend from €349, Oct 10–13.",
-      },
-    },
-  ],
-  t_beanpress: [
-    {
-      id: "p_demo_3",
-      tenantId: "t_beanpress",
-      templateId: "glass",
-      createdAt: "2026-08-04T07:45:00.000Z",
-      fields: {
-        title: "Single Origin Fridays",
-        destination: "Bergen Roastery",
-        business: "Beanpress Coffee",
-        price: "kr 49",
-        date: "Every Friday",
-        additionalText: "Filter brew, first cup free for members",
-        services: ["Pije", "Mëngjesi"],
-        imageDataUrl: demoCoffee,
-        caption:
-          "New single origin every Friday. Members get the first cup on us — filter only, while it lasts.",
-      },
-    },
-  ],
-};
-
-function read<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function write(key: string, value: unknown) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    /* quota — ignore */
-  }
-}
 
 type Ctx = {
   ready: boolean;
-  tenants: Tenant[];
-  tenant: Tenant;
-  setTenantId: (id: string) => void;
-  brand: Brand;
-  saveBrand: (patch: Partial<Brand>) => void;
+  user: User | null;
+  business: Business | null;
+  brand: BrandProfile | null;
+  services: BusinessService[];
   posts: Post[];
-  addPost: (post: Post) => void;
-  deletePost: (id: string) => void;
+  templates: Template[];
+  trial: TrialUsage | null;
+  language: LanguageCode;
+  t: Translator;
+  setLanguage: (lang: LanguageCode) => void;
+  signIn: (email: string, password: string) => { ok: boolean; error?: string };
+  signUp: (input: { name: string; email: string; password: string }) => { ok: boolean; error?: string };
+  signOut: () => void;
+  completeOnboarding: (input: OnboardingInput) => void;
+  saveBrand: (patch: Partial<BrandProfile>) => void;
+  renameBusiness: (name: string) => void;
+  addService: (name: string) => void;
+  renameService: (serviceId: string, name: string) => void;
+  removeService: (serviceId: string) => void;
+  createPost: (post: Post) => void;
+  removePost: (postId: string) => void;
+  canCreatePost: boolean;
+  refresh: () => void;
 };
 
 const RaftyContext = createContext<Ctx | null>(null);
 
 export function RaftyProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [tenantId, setTid] = useState(defaultTenants[0]!.id);
-  const [tenants, setTenants] = useState<Tenant[]>(defaultTenants);
-  const [brand, setBrand] = useState<Brand>(defaultBrands[defaultTenants[0]!.id]!);
+  const [tick, setTick] = useState(0);
+  const [user, setUser] = useState<User | null>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
+  const [brand, setBrand] = useState<BrandProfile | null>(null);
+  const [services, setServices] = useState<BusinessService[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [trial, setTrial] = useState<TrialUsage | null>(null);
+  const [guestLanguage, setGuestLanguage] = useState<LanguageCode>("en");
+
+  const refresh = useCallback(() => setTick((n) => n + 1), []);
 
   useEffect(() => {
-    const t = read<Tenant[]>(TENANTS_KEY, defaultTenants);
-    const active = read<string>(ACTIVE_KEY, defaultTenants[0]!.id);
-    setTenants(t);
-    setTid(active);
+    repo.seed();
+    const u = repo.currentUser();
+    setUser(u);
+    if (u) {
+      const b = repo.businessForUser(u.id);
+      setBusiness(b);
+      if (b) {
+        setBrand(repo.getBrand(b.id));
+        setServices(repo.listServices(b.id));
+        setPosts(repo.listPosts(b.id));
+        setTemplates(repo.templatesForBusiness(b.id, b.type));
+        setTrial(repo.getTrial(b.id));
+      } else {
+        setBrand(null);
+        setServices([]);
+        setPosts([]);
+        setTemplates(globalTemplates);
+        setTrial(null);
+      }
+    } else {
+      setBusiness(null);
+      setBrand(null);
+      setServices([]);
+      setPosts([]);
+      setTemplates(globalTemplates);
+      setTrial(null);
+    }
     setReady(true);
-  }, []);
+  }, [tick]);
 
-  useEffect(() => {
-    if (!ready) return;
-    setBrand(
-      read<Brand>(brandKey(tenantId), defaultBrands[tenantId] ?? defaultBrands["t_wanderlux"]!),
-    );
-    setPosts(read<Post[]>(postsKey(tenantId), demoPosts[tenantId] ?? []));
-    write(ACTIVE_KEY, tenantId);
-  }, [tenantId, ready]);
-
-  const setTenantId = useCallback((id: string) => setTid(id), []);
-
-  const saveBrand = useCallback(
-    (patch: Partial<Brand>) => {
-      setBrand((prev) => {
-        const next = { ...prev, ...patch };
-        write(brandKey(tenantId), next);
-        return next;
-      });
+  const signIn = useCallback(
+    (email: string, password: string) => {
+      const res = repo.signIn(email, password);
+      if (res.ok) refresh();
+      return res.ok ? { ok: true } : { ok: false, error: res.error };
     },
-    [tenantId],
+    [refresh],
   );
 
-  const addPost = useCallback(
+  const signUp = useCallback(
+    (input: { name: string; email: string; password: string }) => {
+      const res = repo.signUp(input);
+      if (res.ok) refresh();
+      return res.ok ? { ok: true } : { ok: false, error: res.error };
+    },
+    [refresh],
+  );
+
+  const signOutFn = useCallback(() => {
+    repo.signOut();
+    refresh();
+  }, [refresh]);
+
+  const completeOnboarding = useCallback(
+    (input: OnboardingInput) => {
+      if (!user) return;
+      const existing = repo.businessForUser(user.id);
+      const b =
+        existing ??
+        repo.createBusiness({ name: input.name, type: input.type, ownerUserId: user.id });
+      repo.updateBusiness(b.id, {
+        name: input.name,
+        type: input.type,
+        onboarded: true,
+        status: "pending",
+      });
+      repo.saveBrand(b.id, {
+        logoDataUrl: input.logoDataUrl,
+        primary: input.primary,
+        secondary: input.secondary,
+        fontFamily: input.fontFamily,
+        currency: input.currency,
+        language: input.language,
+      });
+      repo.listServices(b.id).forEach((s) => repo.removeService(s.id));
+      input.services.forEach((name) => repo.addService(b.id, name));
+      if (input.customTemplate) {
+        repo.createRequest({
+          businessId: b.id,
+          businessName: input.name,
+          fileName: input.customTemplate.fileName,
+          fileType: input.customTemplate.fileType,
+          previewDataUrl: input.customTemplate.previewDataUrl,
+          status: "processing",
+          templateId: null,
+        });
+      }
+      refresh();
+    },
+    [user, refresh],
+  );
+
+  const saveBrandFn = useCallback(
+    (patch: Partial<BrandProfile>) => {
+      if (!business) return;
+      repo.saveBrand(business.id, patch);
+      refresh();
+    },
+    [business, refresh],
+  );
+
+  const renameBusiness = useCallback(
+    (name: string) => {
+      if (!business) return;
+      repo.updateBusiness(business.id, { name });
+      refresh();
+    },
+    [business, refresh],
+  );
+
+  const addServiceFn = useCallback(
+    (name: string) => {
+      if (!business) return;
+      repo.addService(business.id, name);
+      refresh();
+    },
+    [business, refresh],
+  );
+
+  const renameServiceFn = useCallback(
+    (serviceId: string, name: string) => {
+      repo.renameService(serviceId, name);
+      refresh();
+    },
+    [refresh],
+  );
+
+  const removeServiceFn = useCallback(
+    (serviceId: string) => {
+      repo.removeService(serviceId);
+      refresh();
+    },
+    [refresh],
+  );
+
+  const createPost = useCallback(
     (post: Post) => {
-      setPosts((prev) => {
-        const next = [post, ...prev.filter((p) => p.id !== post.id)];
-        write(postsKey(tenantId), next);
-        return next;
-      });
+      if (!business || post.businessId !== business.id) return;
+      const isNew = !repo.listPosts(business.id).some((p) => p.id === post.id);
+      repo.savePost(post);
+      if (isNew && business.status !== "approved") repo.bumpTrial(business.id);
+      refresh();
     },
-    [tenantId],
+    [business, refresh],
   );
 
-  const deletePost = useCallback(
-    (id: string) => {
-      setPosts((prev) => {
-        const next = prev.filter((p) => p.id !== id);
-        write(postsKey(tenantId), next);
-        return next;
-      });
+  const removePost = useCallback(
+    (postId: string) => {
+      if (!business) return;
+      repo.deletePost(postId, business.id);
+      refresh();
     },
-    [tenantId],
+    [business, refresh],
   );
 
-  const tenant = useMemo(
-    () => tenants.find((t) => t.id === tenantId) ?? tenants[0]!,
-    [tenants, tenantId],
+  const language = brand?.language ?? guestLanguage;
+
+  const setLanguage = useCallback(
+    (lang: LanguageCode) => {
+      setGuestLanguage(lang);
+      if (business) {
+        repo.saveBrand(business.id, { language: lang });
+        refresh();
+      }
+    },
+    [business, refresh],
   );
+
+  const canCreatePost = useMemo(() => {
+    if (!business) return false;
+    if (business.status === "approved") return true;
+    if (business.status === "rejected" || business.status === "suspended") return false;
+    const used = trial?.postsCreated ?? 0;
+    return used < (trial?.freePostLimit ?? 1);
+  }, [business, trial]);
 
   const value = useMemo<Ctx>(
     () => ({
       ready,
-      tenants,
-      tenant,
-      setTenantId,
+      user,
+      business,
       brand,
-      saveBrand,
+      services,
       posts,
-      addPost,
-      deletePost,
+      templates,
+      trial,
+      language,
+      t: makeT(language),
+      setLanguage,
+      signIn,
+      signUp,
+      signOut: signOutFn,
+      completeOnboarding,
+      saveBrand: saveBrandFn,
+      renameBusiness,
+      addService: addServiceFn,
+      renameService: renameServiceFn,
+      removeService: removeServiceFn,
+      createPost,
+      removePost,
+      canCreatePost,
+      refresh,
     }),
-    [ready, tenants, tenant, setTenantId, brand, saveBrand, posts, addPost, deletePost],
+    [
+      ready,
+      user,
+      business,
+      brand,
+      services,
+      posts,
+      templates,
+      trial,
+      language,
+      setLanguage,
+      signIn,
+      signUp,
+      signOutFn,
+      completeOnboarding,
+      saveBrandFn,
+      renameBusiness,
+      addServiceFn,
+      renameServiceFn,
+      removeServiceFn,
+      createPost,
+      removePost,
+      canCreatePost,
+      refresh,
+    ],
   );
 
   return <RaftyContext.Provider value={value}>{children}</RaftyContext.Provider>;
@@ -236,3 +323,14 @@ export function useRafty() {
   if (!ctx) throw new Error("useRafty must be used inside RaftyProvider");
   return ctx;
 }
+
+/** Neutral brand used only for isolated previews such as the landing page. */
+export const previewBrand: BrandProfile = {
+  businessId: "preview",
+  logoDataUrl: null,
+  primary: DEFAULT_BRAND.primary,
+  secondary: DEFAULT_BRAND.secondary,
+  fontFamily: DEFAULT_BRAND.fontFamily,
+  currency: DEFAULT_BRAND.currency,
+  language: "en",
+};

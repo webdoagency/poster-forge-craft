@@ -1,36 +1,58 @@
-import type { PostFields } from "./types";
+import { formatPrice } from "./constants";
+import type { BusinessType, CurrencyCode, PostContent } from "./types";
 
 /**
- * Caption generation. AI writes TEXT ONLY — it never touches layout.
- * Deterministic local generator standing in for a model call, so the
- * output is reproducible and the template system stays authoritative.
+ * Caption writer. Text only, never layout.
+ * Deterministic local generator so output is reproducible and templates stay
+ * authoritative for the design.
  */
 
-const openers = [
-  "Say yes to this one.",
-  "Booked out fast last time.",
-  "Your next favourite story starts here.",
-  "Quietly the best deal we have right now.",
-];
+const OPENERS: Record<BusinessType, string[]> = {
+  travel_agency: ["Pack light, stay longer.", "This one books out fast.", "Your next trip, sorted."],
+  real_estate: ["Just listed.", "Room to breathe.", "A place worth seeing in person."],
+  car_dealership: ["Ready to drive today.", "Just arrived on the lot.", "Keys are waiting."],
+  restaurant: ["On the menu now.", "Fresh out of the kitchen.", "Tonight tastes good."],
+  retail: ["New in stock.", "Small drop, big favourite.", "Back by request."],
+};
 
-export function generateCaption(fields: PostFields, seed = 0): string {
-  const title = fields.title.trim() || "New offer";
+const CLOSERS: Record<BusinessType, string> = {
+  travel_agency: "Send us a message to reserve.",
+  real_estate: "Message us to book a viewing.",
+  car_dealership: "Message us for a test drive.",
+  restaurant: "Reserve your table today.",
+  retail: "Message us to order.",
+};
+
+export function generateCaption(
+  content: PostContent,
+  businessType: BusinessType,
+  businessName: string,
+  currency: CurrencyCode,
+  seed = 0,
+): string {
+  const title = content.title.trim() || "New offer";
+  const openers = OPENERS[businessType];
   const opener = openers[(title.length + seed) % openers.length]!;
   const parts: string[] = [opener];
 
-  const where = fields.destination.trim();
-  parts.push(where ? `${title} — ${where}.` : `${title}.`);
+  const subject = content.subject.trim();
+  parts.push(subject ? `${title} in ${subject}.` : `${title}.`);
 
-  if (fields.price.trim()) parts.push(`From ${fields.price.trim()}.`);
-  if (fields.date.trim()) parts.push(`${fields.date.trim()}.`);
-  if (fields.services.length) parts.push(`Included: ${fields.services.join(", ")}.`);
-  if (fields.additionalText.trim()) parts.push(fields.additionalText.trim().replace(/\.$/, "") + ".");
-  if (fields.business.trim()) parts.push(`DM ${fields.business.trim()} to reserve.`);
+  const price = formatPrice(content.price, currency);
+  if (price) parts.push(`From ${price}.`);
+  [content.meta1, content.meta2, content.location, content.date]
+    .map((v) => v.trim())
+    .filter(Boolean)
+    .forEach((v) => parts.push(`${v}.`));
+  if (content.services.length) parts.push(`Includes: ${content.services.join(", ")}.`);
+  if (content.additionalText.trim())
+    parts.push(content.additionalText.trim().replace(/\.$/, "") + ".");
+  parts.push(CLOSERS[businessType]);
 
-  const tags = [where, fields.business]
+  const tags = [subject, businessName]
     .map((v) => v.replace(/[^a-zA-Z0-9]/g, ""))
     .filter(Boolean)
     .map((v) => `#${v}`);
 
-  return [parts.join(" "), tags.join(" ")].filter(Boolean).join("\n\n");
+  return [parts.join(" "), [...tags, "#raftycontent"].join(" ")].filter(Boolean).join("\n\n");
 }

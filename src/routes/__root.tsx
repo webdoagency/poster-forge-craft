@@ -79,13 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "RAFTY — Branded social posts in seconds" },
+      { title: "Rafty Content | Branded posts in seconds" },
       {
         name: "description",
         content:
-          "RAFTY turns one image and a few details into a polished, on-brand social post. Templates control the design.",
+          "Rafty Content turns one image and a few details into a finished branded social post. Templates control the design.",
       },
-      { property: "og:title", content: "RAFTY — Branded social posts in seconds" },
+      { property: "og:title", content: "Rafty Content | Branded posts in seconds" },
+
       {
         property: "og:description",
         content: "One image, a few details, an on-brand post. Templates control the design.",

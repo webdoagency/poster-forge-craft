@@ -24,10 +24,14 @@ import { emptyContent, type Post, type PostContent } from "@/lib/rafty/types";
 import { id as newId } from "@/lib/rafty/repo";
 
 export const Route = createFileRoute("/_authenticated/create")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    post: typeof search["post"] === "string" ? (search["post"] as string) : undefined,
-    template: typeof search["template"] === "string" ? (search["template"] as string) : undefined,
-  }),
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { post?: string; template?: string } => {
+    const out: { post?: string; template?: string } = {};
+    if (typeof search["post"] === "string") out.post = search["post"];
+    if (typeof search["template"] === "string") out.template = search["template"];
+    return out;
+  },
   head: () => ({
     meta: [
       { title: "Create a post | Rafty" },

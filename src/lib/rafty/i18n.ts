@@ -136,6 +136,8 @@ const en: Record<string, string> = {
   "type.restaurant": "Restaurant",
   "type.retail": "Retail",
   "type.other": "Other",
+  "onb.customType": "What does your business do?",
+  "onb.customTypeHint": "For example bakery, gym, clinic",
   "field.subject": "Subject",
   "field.detail": "Detail",
 };
@@ -273,6 +275,8 @@ const de: Record<string, string> = {
   "type.restaurant": "Restaurant",
   "type.retail": "Einzelhandel",
   "type.other": "Andere",
+  "onb.customType": "Was macht Ihr Unternehmen?",
+  "onb.customTypeHint": "Zum Beispiel Bäckerei, Fitness, Klinik",
   "field.subject": "Thema",
   "field.detail": "Detail",
 };
@@ -409,6 +413,8 @@ const sq: Record<string, string> = {
   "type.restaurant": "Restorant",
   "type.retail": "Shitje me pakicë",
   "type.other": "Tjetër",
+  "onb.customType": "Çfarë bën biznesi juaj?",
+  "onb.customTypeHint": "Për shembull furrë, palestër, klinikë",
   "field.subject": "Tema",
   "field.detail": "Detaj",
 };

@@ -28,12 +28,12 @@ import type { BusinessType, CurrencyCode, LanguageCode } from "@/lib/rafty/types
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
-      { title: "Set up your business | Rafty Content" },
+      { title: "Set up your business | Rafty" },
       {
         name: "description",
-        content: "Tell Rafty Content about your business, brand colors, font, currency and services.",
+        content: "Tell Rafty about your business, brand colors, font, currency and services.",
       },
-      { property: "og:title", content: "Set up your business | Rafty Content" },
+      { property: "og:title", content: "Set up your business | Rafty" },
       { property: "og:description", content: "A short setup and your first free post is ready." },
     ],
   }),
@@ -58,6 +58,7 @@ function OnboardingPage() {
 
   const [step, setStep] = useState(0);
   const [type, setType] = useState<BusinessType>("travel_agency");
+  const [customType, setCustomType] = useState("");
   const [name, setName] = useState("");
   const [logoDataUrl, setLogo] = useState<string | null>(null);
   const [primary, setPrimary] = useState(DEFAULT_BRAND.primary);
@@ -77,11 +78,17 @@ function OnboardingPage() {
   }, [ready, user, business, navigate]);
 
   const suggestions = useMemo(() => SERVICE_SUGGESTIONS[type], [type]);
-  const canNext = step === 0 ? true : step === 1 ? name.trim().length > 1 : true;
+  const canNext =
+    step === 0
+      ? type !== "other" || customType.trim().length > 1
+      : step === 1
+        ? name.trim().length > 1
+        : true;
 
-  function submit() {
-    completeOnboarding({
+  async function submit() {
+    await completeOnboarding({
       type,
+      customType: type === "other" ? customType.trim() : null,
       name: name.trim(),
       logoDataUrl,
       primary,
@@ -136,6 +143,20 @@ function OnboardingPage() {
                   {type === bt ? <Check className="size-4 text-primary" /> : null}
                 </button>
               ))}
+              {type === "other" ? (
+                <div className="sm:col-span-2">
+                  <Label className="mb-2 block" htmlFor="customType">
+                    {t("onb.customType")}
+                  </Label>
+                  <Input
+                    id="customType"
+                    value={customType}
+                    onChange={(e) => setCustomType(e.target.value)}
+                    placeholder={t("onb.customTypeHint")}
+                    className="h-11 rounded-xl bg-card"
+                  />
+                </div>
+              ) : null}
               <div className="sm:col-span-2">
                 <Label className="mb-2 block">{t("onb.language")}</Label>
                 <Select value={language} onValueChange={(v) => setLanguage(v as LanguageCode)}>
@@ -376,7 +397,7 @@ function OnboardingPage() {
                 {t("onb.next")}
               </Button>
             ) : (
-              <Button className="h-12 flex-1 rounded-xl" onClick={submit} disabled={!name.trim()}>
+              <Button className="h-12 flex-1 rounded-xl" onClick={() => void submit()} disabled={!name.trim()}>
                 {t("onb.submit")}
               </Button>
             )}

@@ -151,7 +151,9 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!ready) return;
-    setBrand(read<Brand>(brandKey(tenantId), defaultBrands[tenantId] ?? defaultBrands.t_wanderlux!));
+    setBrand(
+      read<Brand>(brandKey(tenantId), defaultBrands[tenantId] ?? defaultBrands["t_wanderlux"]!),
+    );
     setPosts(read<Post[]>(postsKey(tenantId), demoPosts[tenantId] ?? []));
     write(ACTIVE_KEY, tenantId);
   }, [tenantId, ready]);

@@ -1,11 +1,39 @@
 import { toPng } from "html-to-image";
 
-/** Export a rendered post node as a 1080x1350 PNG. */
+const FONT_CSS =
+  "https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap";
+
+let fontCssCache: string | null = null;
+
+/** Inline the brand webfonts as base64 so exported PNGs keep the typography. */
+async function getFontEmbedCss(): Promise<string> {
+  if (fontCssCache !== null) return fontCssCache;
+  try {
+    const css = await (await fetch(FONT_CSS)).text();
+    const urls = [...new Set(css.match(/https:\/\/[^)]+\.woff2/g) ?? [])];
+    let out = css;
+    await Promise.all(
+      urls.map(async (url) => {
+        const buf = await (await fetch(url)).arrayBuffer();
+        let binary = "";
+        new Uint8Array(buf).forEach((b) => (binary += String.fromCharCode(b)));
+        out = out.split(url).join(`data:font/woff2;base64,${btoa(binary)}`);
+      }),
+    );
+    fontCssCache = out;
+  } catch {
+    fontCssCache = "";
+  }
+  return fontCssCache;
+}
+
+/** Export a rendered post node as a ~1080x1350 PNG. */
 export async function downloadNode(node: HTMLElement, filename: string) {
   const width = node.offsetWidth || 1;
   const dataUrl = await toPng(node, {
     pixelRatio: Math.min(4, Math.max(1, 1080 / width)),
     cacheBust: true,
+    fontEmbedCSS: await getFontEmbedCss(),
   });
   const a = document.createElement("a");
   a.href = dataUrl;

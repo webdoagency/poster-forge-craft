@@ -30,10 +30,11 @@ async function getFontEmbedCss(): Promise<string> {
 /** Export a rendered post node as a ~1080x1350 PNG. */
 export async function downloadNode(node: HTMLElement, filename: string) {
   const width = node.offsetWidth || 1;
+  const fontEmbedCSS = await getFontEmbedCss();
   const dataUrl = await toPng(node, {
     pixelRatio: Math.min(4, Math.max(1, 1080 / width)),
     cacheBust: true,
-    fontEmbedCSS: await getFontEmbedCss(),
+    ...(fontEmbedCSS ? { fontEmbedCSS } : { skipFonts: true }),
   });
   const a = document.createElement("a");
   a.href = dataUrl;

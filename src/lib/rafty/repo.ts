@@ -476,7 +476,10 @@ export async function savePost(post: Post): Promise<Post | null> {
     content: text,
     image_path: imagePath,
   };
-  const existing = post.id
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    post.id ?? "",
+  );
+  const existing = isUuid
     ? await supabase.from("posts").select("id").eq("id", post.id).maybeSingle()
     : { data: null };
   const query = existing.data

@@ -23,12 +23,12 @@ import { emptyContent, type BusinessType, type PostContent } from "@/lib/rafty/t
 export const Route = createFileRoute("/_authenticated/templates")({
   head: () => ({
     meta: [
-      { title: "Templates | Rafty Content" },
+      { title: "Templates | Rafty" },
       {
         name: "description",
         content: "Fifty deterministic post templates across five business types, plus your own uploads.",
       },
-      { property: "og:title", content: "Templates | Rafty Content" },
+      { property: "og:title", content: "Templates | Rafty" },
       { property: "og:description", content: "Layout is fixed by design. You only bring the content." },
     ],
   }),
@@ -40,6 +40,17 @@ export const Route = createFileRoute("/_authenticated/templates")({
 });
 
 const samples: Record<BusinessType, PostContent> = {
+  other: {
+    ...emptyContent,
+    title: "Now open for bookings",
+    subject: "Studio session",
+    location: "City centre",
+    price: "89",
+    date: "This week",
+    additionalText: "Limited places available",
+    services: ["Free consultation", "Support"],
+    imageDataUrl: demoBeach,
+  },
   travel_agency: {
     ...emptyContent,
     title: "7 nights in paradise",
@@ -105,10 +116,18 @@ function TemplatesPage() {
   const [filter, setFilter] = useState<BusinessType | "all">(business?.type ?? "all");
   const [uploading, setUploading] = useState(false);
 
-  const requests = useMemo(
-    () => (business ? repo.listRequests(business.id) : []),
-    [business, uploading],
-  );
+  const [requests, setRequests] = useState<CustomTemplateRequest[]>([]);
+
+  useEffect(() => {
+    if (!business) return;
+    let cancelled = false;
+    void repo.listRequests(business.id).then((rows) => {
+      if (!cancelled) setRequests(rows);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [business, uploading]);
 
   if (!business || !brand) return null;
 
@@ -118,27 +137,23 @@ function TemplatesPage() {
   async function upload(file: File) {
     setUploading(true);
     const preview = file.type.startsWith("image/") ? await readFileAsDataUrl(file) : null;
-    const request = repo.createRequest({
+    const requestId = await repo.createRequest({
       businessId: business!.id,
-      businessName: business!.name,
       fileName: file.name,
       fileType: file.type || "application/octet-stream",
       previewDataUrl: preview,
-      status: "processing",
-      templateId: null,
     });
     // Deterministic recreation: the reference is mapped onto a base engine and
     // saved as a private template owned by this business only.
-    const base = globalTemplates.find((x) => x.businessType === business!.type) ?? globalTemplates[0]!;
-    const template = {
-      ...base,
-      id: repo.id("tpl"),
-      name: `${business!.name} custom`,
-      scope: "custom" as const,
+    const base =
+      globalTemplates.find((x) => x.businessType === business!.type) ?? globalTemplates[0]!;
+    const templateId = await repo.saveCustomTemplate({
       businessId: business!.id,
-    };
-    repo.saveCustomTemplate(template);
-    repo.updateRequest(request.id, { status: "ready", templateId: template.id });
+      name: `${business!.name} custom`,
+      engine: base.engine,
+      variant: base.variant,
+    });
+    if (requestId) await repo.updateRequest(requestId, { status: "ready", templateId });
     setUploading(false);
     refresh();
     toast.success(t("tpl.ready"));

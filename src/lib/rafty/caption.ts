@@ -56,5 +56,5 @@ export function generateCaption(
     .filter(Boolean)
     .map((v) => `#${v}`);
 
-  return [parts.join(" "), [...tags, "#raftycontent"].join(" ")].filter(Boolean).join("\n\n");
+  return [parts.join(" "), [...tags, "#rafty"].join(" ")].filter(Boolean).join("\n\n");
 }

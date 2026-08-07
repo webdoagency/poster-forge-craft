@@ -3,7 +3,7 @@ import logoAsset from "@/assets/rafty-logo.png.asset.json";
 import iconAsset from "@/assets/rafty-icon.png.asset.json";
 
 /**
- * Official Rafty Content logo.
+ * Official Rafty logo.
  * showWordmark renders the full lockup, otherwise the icon mark alone.
  */
 export function Logo({
@@ -19,7 +19,7 @@ export function Logo({
     <span className={cn("flex items-center gap-2", className)}>
       <img
         src={showWordmark ? logoAsset.url : iconAsset.url}
-        alt="Rafty Content"
+        alt="Rafty"
         style={{ height, width: "auto", objectFit: "contain" }}
       />
     </span>

@@ -21,12 +21,12 @@ import type { CurrencyCode, LanguageCode } from "@/lib/rafty/types";
 export const Route = createFileRoute("/_authenticated/brand")({
   head: () => ({
     meta: [
-      { title: "Brand settings | Rafty Content" },
+      { title: "Brand settings | Rafty" },
       {
         name: "description",
         content: "Logo, colors, font, currency, language and services for your business.",
       },
-      { property: "og:title", content: "Brand settings | Rafty Content" },
+      { property: "og:title", content: "Brand settings | Rafty" },
       { property: "og:description", content: "Everything your templates use to stay on brand." },
     ],
   }),

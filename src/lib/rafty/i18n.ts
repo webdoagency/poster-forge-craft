@@ -3,7 +3,7 @@ import type { LanguageCode } from "./types";
 /** UI copy for English, German and Albanian. English is the fallback. */
 const en: Record<string, string> = {
   "brand.product": "Rafty",
-  "brand.handle": "@raftycontent",
+  "brand.handle": "@rafty",
 
   "nav.create": "Create",
   "nav.posts": "Posts",

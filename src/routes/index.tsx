@@ -72,8 +72,14 @@ function CreatePage() {
   };
 
   const generate = () => {
-    if (!fields.imageDataUrl) return toast.error("Add one image first");
-    if (!fields.title.trim()) return toast.error("Add a title");
+    if (!fields.imageDataUrl) {
+      toast.error("Add one image first");
+      return;
+    }
+    if (!fields.title.trim()) {
+      toast.error("Add a title");
+      return;
+    }
     setGenerated(true);
     toast.success("Post generated");
   };

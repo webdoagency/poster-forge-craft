@@ -2,7 +2,7 @@ import type { LanguageCode } from "./types";
 
 /** UI copy for English, German and Albanian. English is the fallback. */
 const en: Record<string, string> = {
-  "brand.product": "Rafty Content",
+  "brand.product": "Rafty",
   "brand.handle": "@raftycontent",
 
   "nav.create": "Create",
@@ -19,7 +19,7 @@ const en: Record<string, string> = {
   "landing.trial":
     "Free trial: after onboarding, while your approval is pending, your business can create one post for free.",
   "landing.typesTitle": "Built for five business types",
-  "landing.examples": "Made with Rafty Content",
+  "landing.examples": "Made with Rafty",
   "landing.finalTitle": "Your next post is one image away.",
   "landing.finalCta": "Try for free",
 
@@ -29,7 +29,7 @@ const en: Record<string, string> = {
   "auth.name": "Your name",
   "auth.password": "Password",
   "auth.haveAccount": "Already have an account?",
-  "auth.noAccount": "New to Rafty Content?",
+  "auth.noAccount": "New to Rafty?",
 
   "onb.title": "Set up your business",
   "onb.step": "Step",
@@ -135,6 +135,9 @@ const en: Record<string, string> = {
   "type.car_dealership": "Car Dealership",
   "type.restaurant": "Restaurant",
   "type.retail": "Retail",
+  "type.other": "Other",
+  "field.subject": "Subject",
+  "field.detail": "Detail",
 };
 
 const de: Record<string, string> = {
@@ -152,7 +155,7 @@ const de: Record<string, string> = {
   "landing.trial":
     "Kostenlos testen: nach dem Onboarding kann dein Unternehmen während der Prüfung einen Beitrag gratis erstellen.",
   "landing.typesTitle": "Für fünf Branchen gemacht",
-  "landing.examples": "Erstellt mit Rafty Content",
+  "landing.examples": "Erstellt mit Rafty",
   "landing.finalTitle": "Dein nächster Beitrag ist ein Bild entfernt.",
   "landing.finalCta": "Kostenlos testen",
 
@@ -162,7 +165,7 @@ const de: Record<string, string> = {
   "auth.name": "Dein Name",
   "auth.password": "Passwort",
   "auth.haveAccount": "Schon ein Konto?",
-  "auth.noAccount": "Neu bei Rafty Content?",
+  "auth.noAccount": "Neu bei Rafty?",
 
   "onb.title": "Unternehmen einrichten",
   "onb.step": "Schritt",
@@ -269,6 +272,9 @@ const de: Record<string, string> = {
   "type.car_dealership": "Autohaus",
   "type.restaurant": "Restaurant",
   "type.retail": "Einzelhandel",
+  "type.other": "Andere",
+  "field.subject": "Thema",
+  "field.detail": "Detail",
 };
 
 const sq: Record<string, string> = {
@@ -286,7 +292,7 @@ const sq: Record<string, string> = {
   "landing.trial":
     "Provo falas: pas regjistrimit, ndërsa aprovimi është në pritje, biznesi mund të krijojë një postim falas.",
   "landing.typesTitle": "Ndërtuar për pesë tipe biznesi",
-  "landing.examples": "Krijuar me Rafty Content",
+  "landing.examples": "Krijuar me Rafty",
   "landing.finalTitle": "Postimi i radhës është një foto larg.",
   "landing.finalCta": "Provo falas",
 
@@ -296,7 +302,7 @@ const sq: Record<string, string> = {
   "auth.name": "Emri i juaj",
   "auth.password": "Fjalëkalimi",
   "auth.haveAccount": "Ke llogari?",
-  "auth.noAccount": "I ri në Rafty Content?",
+  "auth.noAccount": "I ri në Rafty?",
 
   "onb.title": "Konfiguro biznesin",
   "onb.step": "Hapi",
@@ -402,6 +408,9 @@ const sq: Record<string, string> = {
   "type.car_dealership": "Autosallon",
   "type.restaurant": "Restorant",
   "type.retail": "Shitje me pakicë",
+  "type.other": "Tjetër",
+  "field.subject": "Tema",
+  "field.detail": "Detaj",
 };
 
 const dicts: Record<LanguageCode, Record<string, string>> = { en, de, sq };

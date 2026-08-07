@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
 import { useRafty } from "@/lib/rafty/store";
@@ -28,7 +29,7 @@ const sample: PostFields = {
   price: "€1,290",
   date: "September",
   additionalText: "Limited seats — book before Friday",
-  services: ["Flights", "Hotel", "Transfers"],
+  services: ["Akomodimi", "Mëngjesi", "Plazh"],
   imageDataUrl: demoBeach,
   caption: "",
 };
@@ -55,9 +56,16 @@ function TemplatesPage() {
                 className="rounded-xl"
               />
             </div>
-            <div className="px-4 pb-4 pt-1">
-              <p className="text-sm font-bold">{t.name}</p>
-              <p className="text-xs text-muted-foreground">{t.vibe}</p>
+            <div className="flex items-center gap-3 px-4 pb-4 pt-1">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold">{t.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{t.vibe}</p>
+              </div>
+              <Button asChild size="sm" variant="outline" className="ml-auto shrink-0 rounded-xl">
+                <Link to="/" search={{ template: t.id }}>
+                  Select
+                </Link>
+              </Button>
             </div>
           </article>
         ))}

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Download, ImagePlus, Save, Sparkles, Wand2, X } from "lucide-react";
+import { Download, ImagePlus, Pencil, Sparkles, Wand2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
@@ -12,7 +12,21 @@ import { generateCaption } from "@/lib/rafty/caption";
 import { downloadNode, slugify } from "@/lib/rafty/download";
 import { useRafty } from "@/lib/rafty/store";
 import { templates } from "@/lib/rafty/templates";
-import { emptyFields, type PostFields } from "@/lib/rafty/types";
+import { type PostFields } from "@/lib/rafty/types";
+import demoBeach from "@/assets/demo-beach.jpg";
+
+/** Realistic starting content so the workspace looks useful immediately. */
+const demoFields: PostFields = {
+  title: "7 Netë në Paradise",
+  destination: "Ksamil, Albania",
+  business: "Wanderlux Travel",
+  price: "€1,290",
+  date: "Shtator",
+  additionalText: "Vende të limituara — rezervo para të premtes",
+  services: ["Akomodimi", "Mëngjesi", "Plazh"],
+  imageDataUrl: demoBeach,
+  caption: "",
+};
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,14 +44,33 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    post: typeof search["post"] === "string" ? (search["post"] as string) : undefined,
+    template: typeof search["template"] === "string" ? (search["template"] as string) : undefined,
+  }),
   component: CreatePage,
 });
 
 function CreatePage() {
-  const { brand, addPost, tenant } = useRafty();
-  const [fields, setFields] = useState<PostFields>({ ...emptyFields, business: brand.businessName });
-  const [templateId, setTemplateId] = useState(templates[0]!.id);
+  const { brand, addPost, tenant, posts } = useRafty();
+  const { post: postId, template: templateParam } = Route.useSearch();
+  const openedPost = postId ? posts.find((p) => p.id === postId) : undefined;
+
+  const [fields, setFields] = useState<PostFields>({
+    ...demoFields,
+    business: demoFields.business || brand.businessName,
+  });
+  const [templateId, setTemplateId] = useState(templateParam ?? templates[0]!.id);
   const [generated, setGenerated] = useState(false);
+  const [loadedId, setLoadedId] = useState<string | null>(null);
+
+  // Reopen a saved post into the editor.
+  if (openedPost && loadedId !== openedPost.id) {
+    setLoadedId(openedPost.id);
+    setFields(openedPost.fields);
+    setTemplateId(openedPost.templateId);
+    setGenerated(true);
+  }
   const [captionSeed, setCaptionSeed] = useState(0);
   const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -80,11 +113,12 @@ function CreatePage() {
       toast.error("Add a title");
       return;
     }
+    savePost();
     setGenerated(true);
-    toast.success("Post generated");
+    toast.success("Post generated & saved");
   };
 
-  const save = () => {
+  const savePost = () => {
     addPost({
       id: `p_${Date.now()}`,
       tenantId: tenant.id,
@@ -232,7 +266,7 @@ function CreatePage() {
           </div>
 
           <Button onClick={generate} className="brand-gradient w-full gap-2 rounded-xl py-6 text-base font-bold shadow-[var(--shadow-lift)]">
-            <Sparkles className="size-4" /> Generate post
+            <Sparkles className="size-4" /> {generated ? "Update post" : "Generate post"}
           </Button>
         </section>
 
@@ -267,10 +301,10 @@ function CreatePage() {
 
           <div className="mx-auto flex w-full max-w-[520px] flex-col gap-3 lg:max-w-[560px]">
             <div className="grid grid-cols-2 gap-3">
-              <Button variant="outline" onClick={save} disabled={!generated} className="gap-2 rounded-xl">
-                <Save className="size-4" /> Save
+              <Button variant="outline" onClick={() => setGenerated(false)} className="gap-2 rounded-xl">
+                <Pencil className="size-4" /> Edit
               </Button>
-              <Button variant="outline" onClick={download} disabled={!generated} className="gap-2 rounded-xl">
+              <Button variant="outline" onClick={download} className="gap-2 rounded-xl">
                 <Download className="size-4" /> Download
               </Button>
             </div>
@@ -281,11 +315,9 @@ function CreatePage() {
                 </p>
               </div>
             ) : null}
-            {!generated ? (
-              <p className="text-center text-xs text-muted-foreground">
-                Generate to save or download. Templates control the layout.
-              </p>
-            ) : null}
+            <p className="text-center text-xs text-muted-foreground">
+              Templates control the layout.
+            </p>
           </div>
         </section>
       </div>

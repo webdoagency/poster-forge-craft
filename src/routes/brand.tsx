@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, X } from "lucide-react";
+import { useState } from "react";
+import { Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/rafty/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,113 +12,161 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AppShell } from "@/components/rafty/AppShell";
 import { useRafty } from "@/lib/rafty/store";
+import { readFileAsDataUrl } from "@/lib/rafty/file";
+import { BUSINESS_TYPE_NAMES, CURRENCIES, FONTS, LANGUAGES } from "@/lib/rafty/constants";
+import type { CurrencyCode, LanguageCode } from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/brand")({
   head: () => ({
     meta: [
-      { title: "Brand kit — RAFTY" },
+      { title: "Brand settings | Rafty Content" },
       {
         name: "description",
-        content: "Logo, brand colors, font and included services applied to every generated post.",
+        content: "Logo, colors, font, currency, language and services for your business.",
       },
-      { property: "og:title", content: "Brand kit — RAFTY" },
-      { property: "og:description", content: "Keep every post on brand: logo, colors, font, services." },
+      { property: "og:title", content: "Brand settings | Rafty Content" },
+      { property: "og:description", content: "Everything your templates use to stay on brand." },
     ],
   }),
-  component: BrandPage,
+  component: () => (
+    <AppShell>
+      <BrandPage />
+    </AppShell>
+  ),
 });
 
-const fonts = ["Sora", "Plus Jakarta Sans"];
-
 function BrandPage() {
-  const { brand, saveBrand } = useRafty();
-  const [service, setService] = useState("");
+  const {
+    business,
+    brand,
+    services,
+    trial,
+    saveBrand,
+    renameBusiness,
+    addService,
+    renameService,
+    removeService,
+    setLanguage,
+    t,
+  } = useRafty();
 
-  const onLogo = (file: File | undefined) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      saveBrand({ logoDataUrl: String(reader.result) });
-      toast.success("Logo updated");
-    };
-    reader.readAsDataURL(file);
-  };
+  const [name, setName] = useState(business?.name ?? "");
+  const [newService, setNewService] = useState("");
 
-  const addService = () => {
-    const value = service.trim();
-    if (!value || brand.services.includes(value)) return;
-    saveBrand({ services: [...brand.services, value] });
-    setService("");
-  };
+  if (!business || !brand) return null;
+
+  const trialLeft = Math.max(0, (trial?.freePostLimit ?? 1) - (trial?.postsCreated ?? 0));
 
   return (
-    <AppShell>
-      <div className="mb-6">
-        <h1 className="font-display text-2xl font-extrabold">Brand</h1>
-        <p className="text-sm text-muted-foreground">Applied to every template automatically.</p>
+    <div className="mx-auto grid max-w-3xl gap-5">
+      <div>
+        <h1 className="font-display text-2xl font-extrabold">{t("brand.title")}</h1>
+        <p className="text-sm text-muted-foreground">
+          {t("brand.status")}: {t(`status.${business.status}`)}
+          {business.status !== "approved" ? ` | ${t("trial.remaining")}: ${trialLeft}` : ""}
+        </p>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <section className="card-soft space-y-5 p-5">
-          <div className="space-y-1.5">
-            <Label>Business name</Label>
-            <Input
-              value={brand.businessName}
-              onChange={(e) => saveBrand({ businessName: e.target.value })}
-            />
-          </div>
+      <div className="card-soft grid gap-4 p-4">
+        <div className="grid gap-1.5">
+          <Label htmlFor="bname">{t("brand.business")}</Label>
+          <Input
+            id="bname"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onBlur={() => {
+              if (name.trim() && name.trim() !== business.name) {
+                renameBusiness(name.trim());
+                toast.success(t("brand.saved"));
+              }
+            }}
+            className="h-11 rounded-xl"
+          />
+        </div>
 
-          <div className="space-y-2">
-            <Label>Logo</Label>
-            <div className="flex items-center gap-3">
-              <div className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl border bg-secondary">
-                {brand.logoDataUrl ? (
-                  <img src={brand.logoDataUrl} alt="" className="h-full w-full object-contain p-1" />
-                ) : (
-                  <span className="text-sm font-black text-muted-foreground">
-                    {brand.businessName.slice(0, 1).toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <label className="cursor-pointer rounded-xl border bg-card px-3 py-2 text-sm font-semibold hover:bg-accent">
-                Upload logo
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => onLogo(e.target.files?.[0])}
-                />
-              </label>
+        <div className="grid gap-1.5">
+          <Label>{t("brand.type")}</Label>
+          <Input
+            value={BUSINESS_TYPE_NAMES[business.type]}
+            readOnly
+            className="h-11 rounded-xl bg-muted"
+          />
+        </div>
+
+        <div className="grid gap-2">
+          <Label>{t("brand.logo")}</Label>
+          <div className="flex items-center gap-3">
+            <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-xl border bg-card">
               {brand.logoDataUrl ? (
-                <Button variant="ghost" size="sm" onClick={() => saveBrand({ logoDataUrl: null })}>
-                  Remove
-                </Button>
-              ) : null}
+                <img src={brand.logoDataUrl} alt="" className="size-full object-contain p-1" />
+              ) : (
+                <span className="text-xs text-muted-foreground">Logo</span>
+              )}
             </div>
+            <label className="inline-flex">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  saveBrand({ logoDataUrl: await readFileAsDataUrl(file) });
+                  toast.success(t("brand.saved"));
+                }}
+              />
+              <span className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-xl border px-4 text-sm font-semibold">
+                <Upload className="size-4" />
+                {t("onb.uploadLogo")}
+              </span>
+            </label>
+            {brand.logoDataUrl ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-xl"
+                onClick={() => saveBrand({ logoDataUrl: null })}
+              >
+                {t("posts.delete")}
+              </Button>
+            ) : null}
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <ColorField
-              label="Primary"
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="primary">{t("onb.primary")}</Label>
+            <input
+              id="primary"
+              type="color"
               value={brand.primary}
-              onChange={(v) => saveBrand({ primary: v })}
-            />
-            <ColorField
-              label="Secondary"
-              value={brand.secondary}
-              onChange={(v) => saveBrand({ secondary: v })}
+              onChange={(e) => saveBrand({ primary: e.target.value })}
+              className="h-11 w-full cursor-pointer rounded-xl border bg-card px-2"
             />
           </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="secondary">{t("onb.secondary")}</Label>
+            <input
+              id="secondary"
+              type="color"
+              value={brand.secondary}
+              onChange={(e) => saveBrand({ secondary: e.target.value })}
+              className="h-11 w-full cursor-pointer rounded-xl border bg-card px-2"
+            />
+          </div>
+        </div>
 
-          <div className="space-y-1.5">
-            <Label>Font</Label>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid gap-1.5">
+            <Label>{t("brand.font")}</Label>
             <Select value={brand.fontFamily} onValueChange={(v) => saveBrand({ fontFamily: v })}>
-              <SelectTrigger className="rounded-xl">
+              <SelectTrigger className="h-11 rounded-xl bg-card">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {fonts.map((f) => (
+                {FONTS.map((f) => (
                   <SelectItem key={f} value={f}>
                     {f}
                   </SelectItem>
@@ -127,81 +174,90 @@ function BrandPage() {
               </SelectContent>
             </Select>
           </div>
-        </section>
-
-        <section className="card-soft space-y-4 p-5">
-          <div>
-            <Label>Included services</Label>
-            <p className="text-xs text-muted-foreground">Selectable when creating a post.</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {brand.services.map((s) => (
-              <span
-                key={s}
-                className="flex items-center gap-1.5 rounded-full border bg-primary-soft px-3 py-1.5 text-xs font-semibold text-accent-foreground"
-              >
-                {s}
-                <button
-                  onClick={() => saveBrand({ services: brand.services.filter((x) => x !== s) })}
-                  aria-label={`Remove ${s}`}
-                >
-                  <X className="size-3.5" />
-                </button>
-              </span>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Input
-              value={service}
-              onChange={(e) => setService(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addService()}
-              placeholder="Add a service"
-            />
-            <Button onClick={addService} variant="outline" className="shrink-0 gap-1.5 rounded-xl">
-              <Plus className="size-4" /> Add
-            </Button>
-          </div>
-
-          <div className="rounded-xl border p-4">
-            <p className="mb-3 text-xs font-semibold text-muted-foreground">Preview</p>
-            <div
-              className="rounded-xl p-5 text-primary-foreground"
-              style={{
-                backgroundImage: `linear-gradient(135deg, ${brand.primary}, ${brand.secondary})`,
-                fontFamily: `"${brand.fontFamily}", sans-serif`,
-              }}
+          <div className="grid gap-1.5">
+            <Label>{t("brand.currency")}</Label>
+            <Select
+              value={brand.currency}
+              onValueChange={(v) => saveBrand({ currency: v as CurrencyCode })}
             >
-              <p className="text-lg font-extrabold">{brand.businessName}</p>
-              <p className="text-sm opacity-85">Aa — headline &amp; body preview</p>
-            </div>
+              <SelectTrigger className="h-11 rounded-xl bg-card">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CURRENCIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </section>
+          <div className="grid gap-1.5">
+            <Label>{t("brand.language")}</Label>
+            <Select
+              value={brand.language}
+              onValueChange={(v) => setLanguage(v as LanguageCode)}
+            >
+              <SelectTrigger className="h-11 rounded-xl bg-card">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map((l) => (
+                  <SelectItem key={l.code} value={l.code}>
+                    {l.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
-    </AppShell>
-  );
-}
 
-function ColorField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label>{label}</Label>
-      <div className="flex items-center gap-2 rounded-xl border bg-card px-2 py-1.5">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="size-8 shrink-0 cursor-pointer rounded-lg border-0 bg-transparent p-0"
-          aria-label={`${label} color`}
-        />
-        <span className="text-sm font-semibold uppercase">{value}</span>
+      <div className="card-soft grid gap-3 p-4">
+        <Label>{t("brand.services")}</Label>
+        <div className="grid gap-2">
+          {services.map((s) => (
+            <div key={s.id} className="flex items-center gap-2">
+              <Input
+                defaultValue={s.name}
+                onBlur={(e) => {
+                  const v = e.target.value.trim();
+                  if (v && v !== s.name) renameService(s.id, v);
+                }}
+                className="h-10 rounded-xl"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-10 shrink-0 rounded-xl"
+                aria-label={t("posts.delete")}
+                onClick={() => removeService(s.id)}
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Input
+            value={newService}
+            onChange={(e) => setNewService(e.target.value)}
+            placeholder={t("create.addService")}
+            className="h-10 rounded-xl"
+          />
+          <Button
+            variant="outline"
+            className="h-10 shrink-0 rounded-xl"
+            onClick={() => {
+              const v = newService.trim();
+              if (!v) return;
+              addService(v);
+              setNewService("");
+            }}
+          >
+            {t("onb.addService")}
+          </Button>
+        </div>
       </div>
     </div>
   );

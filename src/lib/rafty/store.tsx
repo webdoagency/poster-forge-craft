@@ -21,6 +21,21 @@ export const defaultTenants: Tenant[] = [
   { id: "t_beanpress", name: "Beanpress Coffee", slug: "beanpress" },
 ];
 
+/** V1 service/feature options (hospitality & travel). */
+export const SERVICE_OPTIONS = [
+  "Akomodimi",
+  "Mëngjesi",
+  "Dreka",
+  "Darka",
+  "Pije",
+  "Pishina",
+  "Transport",
+  "Spa",
+  "Jacuzzi",
+  "Plazh",
+  "Fitness",
+];
+
 const defaultBrands: Record<string, Brand> = {
   t_wanderlux: {
     businessName: "Wanderlux Travel",
@@ -28,7 +43,7 @@ const defaultBrands: Record<string, Brand> = {
     primary: "#7c3aed",
     secondary: "#c026d3",
     fontFamily: "Sora",
-    services: ["Flights", "Hotel", "Transfers", "Guide", "Insurance", "Visa support"],
+    services: SERVICE_OPTIONS,
   },
   t_beanpress: {
     businessName: "Beanpress Coffee",
@@ -36,7 +51,7 @@ const defaultBrands: Record<string, Brand> = {
     primary: "#6d28d9",
     secondary: "#0ea5e9",
     fontFamily: "Plus Jakarta Sans",
-    services: ["Dine-in", "Takeaway", "Delivery", "Catering"],
+    services: SERVICE_OPTIONS,
   },
 };
 
@@ -54,7 +69,7 @@ const demoPosts: Record<string, Post[]> = {
         price: "€1,290",
         date: "September",
         additionalText: "Limited seats — book before Friday",
-        services: ["Flights", "Hotel", "Transfers"],
+        services: ["Akomodimi", "Mëngjesi", "Transport"],
         imageDataUrl: demoBeach,
         caption:
           "Turquoise water, zero to-do list. 7 nights in the Maldives from €1,290 — flights, hotel and transfers handled. September dates open now.",
@@ -72,7 +87,7 @@ const demoPosts: Record<string, Post[]> = {
         price: "€349",
         date: "Oct 10–13",
         additionalText: "Boutique stay in Alfama",
-        services: ["Flights", "Hotel", "Guide"],
+        services: ["Akomodimi", "Mëngjesi", "Plazh"],
         imageDataUrl: demoCity,
         caption:
           "Tiled streets, pastéis and sunset viewpoints. Lisbon long weekend from €349, Oct 10–13.",
@@ -92,7 +107,7 @@ const demoPosts: Record<string, Post[]> = {
         price: "kr 49",
         date: "Every Friday",
         additionalText: "Filter brew, first cup free for members",
-        services: ["Dine-in", "Takeaway"],
+        services: ["Pije", "Mëngjesi"],
         imageDataUrl: demoCoffee,
         caption:
           "New single origin every Friday. Members get the first cup on us — filter only, while it lasts.",

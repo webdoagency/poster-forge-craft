@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Download, Trash2 } from "lucide-react";
+import { Download, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
@@ -77,6 +77,11 @@ function PostsPage() {
                   </p>
                 </div>
                 <div className="ml-auto flex shrink-0 gap-1">
+                  <Button asChild size="icon" variant="ghost" aria-label="Open">
+                    <Link to="/" search={{ post: post.id }}>
+                      <Pencil className="size-4" />
+                    </Link>
+                  </Button>
                   <Button
                     size="icon"
                     variant="ghost"

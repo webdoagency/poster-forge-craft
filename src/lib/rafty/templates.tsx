@@ -784,16 +784,18 @@ const NAME_PREFIX: Record<BusinessType, string[]> = {
   ],
 };
 
-/** Exactly 10 templates per business type, 50 total. */
+/** Exactly 10 templates per quick start business type, 50 total. */
+const QUICK_START_TYPES = BUSINESS_TYPES.filter((t) => t !== "other");
+
 function buildGlobalTemplates(): Template[] {
   const out: Template[] = [];
-  BUSINESS_TYPES.forEach((type, typeIndex) => {
+  QUICK_START_TYPES.forEach((type, typeIndex) => {
     for (let i = 0; i < 10; i++) {
       const engine = engines[(i + typeIndex * 3) % engines.length]!;
       const variant = variants[(i + typeIndex) % variants.length]!;
       out.push({
         id: `${type}_${i + 1}`,
-        name: `${NAME_PREFIX[type][i]} ${engine.label}`,
+        name: `${NAME_PREFIX[type]![i]} ${engine.label}`,
         businessType: type,
         engine: engine.id,
         variant,

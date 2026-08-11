@@ -12,7 +12,9 @@ import { DEFAULT_BRAND } from "./constants";
 import { makeT, type Translator } from "./i18n";
 import { globalTemplates } from "./templates";
 import { supabase } from "@/integrations/supabase/client";
+import { emptyInstructions } from "./types";
 import type {
+  AccountPlan,
   BrandProfile,
   Business,
   BusinessService,
@@ -37,7 +39,9 @@ type OnboardingInput = {
   logoDataUrl: string | null;
   primary: string;
   secondary: string;
+  accent: string;
   fontFamily: string;
+  fontSecondary: string | null;
   currency: BrandProfile["currency"];
   language: LanguageCode;
   services: string[];
@@ -56,6 +60,9 @@ type Ctx = {
   posts: Post[];
   templates: Template[];
   trial: TrialUsage | null;
+  plan: AccountPlan | null;
+  brands: Business[];
+  brandSlotsLeft: number;
   language: LanguageCode;
   t: Translator;
   setLanguage: (lang: LanguageCode) => void;
@@ -68,6 +75,9 @@ type Ctx = {
   addService: (name: string) => Promise<void>;
   renameService: (serviceId: string, name: string) => Promise<void>;
   removeService: (serviceId: string) => Promise<void>;
+  reorderServices: (serviceIds: string[]) => Promise<void>;
+  createBrand: (input: { name: string; type: BusinessType; customType?: string | null }) => Promise<Result>;
+  selectBrand: (businessId: string) => void;
   createPost: (post: Post) => Promise<Post | null>;
   removePost: (postId: string) => Promise<void>;
   canCreatePost: boolean;
@@ -86,6 +96,9 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [trial, setTrial] = useState<TrialUsage | null>(null);
+  const [plan, setPlan] = useState<AccountPlan | null>(null);
+  const [brands, setBrands] = useState<Business[]>([]);
+  const [activeBrandId, setActiveBrandId] = useState<string | null>(null);
   const [guestLanguage, setGuestLanguage] = useState<LanguageCode>("en");
   const loading = useRef(false);
 
@@ -118,8 +131,11 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const b = await repo.myBusiness();
+      const [nextPlan, nextBrands] = await Promise.all([repo.getMyPlan(), repo.myBrands()]);
       if (cancelled) return;
+      setPlan(nextPlan);
+      setBrands(nextBrands);
+      const b = nextBrands.find((x) => x.id === activeBrandId) ?? nextBrands[0] ?? null;
       setBusiness(b);
 
       if (!b) {
@@ -136,7 +152,7 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
         repo.getBrand(b.id),
         repo.listServices(b.id),
         repo.listPosts(b.id),
-        repo.templatesForBusiness(b.id, b.type),
+        repo.templatesForBusiness(b.id),
         repo.getTrial(b.id),
       ]);
       if (cancelled) return;
@@ -151,7 +167,7 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [tick]);
+  }, [tick, activeBrandId]);
 
   const signIn = useCallback(
     async (email: string, password: string) => {
@@ -199,7 +215,9 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
         logoDataUrl: input.logoDataUrl,
         primary: input.primary,
         secondary: input.secondary,
+        accent: input.accent,
         fontFamily: input.fontFamily,
+        fontSecondary: input.fontSecondary,
         currency: input.currency,
         language: input.language,
       });
@@ -262,6 +280,33 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
     [refresh],
   );
 
+  const reorderServicesFn = useCallback(
+    async (serviceIds: string[]) => {
+      await repo.reorderServices(serviceIds);
+      refresh();
+    },
+    [refresh],
+  );
+
+  const createBrandFn = useCallback(
+    async (input: { name: string; type: BusinessType; customType?: string | null }) => {
+      const res = await repo.createBrand(input);
+      if (!res.id) return { ok: false, error: res.error ?? "Could not create the brand" };
+      setActiveBrandId(res.id);
+      refresh();
+      return { ok: true };
+    },
+    [refresh],
+  );
+
+  const selectBrand = useCallback(
+    (businessId: string) => {
+      setActiveBrandId(businessId);
+      refresh();
+    },
+    [refresh],
+  );
+
   const createPost = useCallback(
     async (post: Post) => {
       if (!business || post.businessId !== business.id) return null;
@@ -310,6 +355,9 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
       posts,
       templates,
       trial,
+      plan,
+      brands,
+      brandSlotsLeft: Math.max(0, (plan?.brandLimit ?? 1) - brands.length),
       language,
       t: makeT(language),
       setLanguage,
@@ -322,6 +370,9 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
       addService: addServiceFn,
       renameService: renameServiceFn,
       removeService: removeServiceFn,
+      reorderServices: reorderServicesFn,
+      createBrand: createBrandFn,
+      selectBrand,
       createPost,
       removePost,
       canCreatePost,
@@ -336,6 +387,8 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
       posts,
       templates,
       trial,
+      plan,
+      brands,
       language,
       setLanguage,
       signIn,
@@ -347,6 +400,9 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
       addServiceFn,
       renameServiceFn,
       removeServiceFn,
+      reorderServicesFn,
+      createBrandFn,
+      selectBrand,
       createPost,
       removePost,
       canCreatePost,
@@ -367,6 +423,12 @@ export function useRafty() {
 export const previewBrand: BrandProfile = {
   businessId: "preview",
   logoDataUrl: null,
+  logoLocked: false,
+  accent: DEFAULT_BRAND.accent,
+  background: null,
+  fontSecondary: null,
+  showBrandName: false,
+  instructions: emptyInstructions,
   primary: DEFAULT_BRAND.primary,
   secondary: DEFAULT_BRAND.secondary,
   fontFamily: DEFAULT_BRAND.fontFamily,

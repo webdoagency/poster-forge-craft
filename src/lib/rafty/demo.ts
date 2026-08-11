@@ -2,7 +2,7 @@ import demoBeach from "@/assets/demo-beach.jpg";
 import demoCity from "@/assets/demo-city.jpg";
 import demoCoffee from "@/assets/demo-coffee.jpg";
 import { globalTemplates } from "./templates";
-import { emptyContent, type BrandProfile, type BusinessType, type PostContent, type Template } from "./types";
+import { emptyContent, emptyInstructions, type BrandProfile, type BusinessType, type PostContent, type Template } from "./types";
 
 /**
  * Isolated preview content for the public landing page and template previews.
@@ -20,9 +20,15 @@ export type DemoPost = {
 const brand = (primary: string, secondary: string, fontFamily: string): BrandProfile => ({
   businessId: "preview",
   logoDataUrl: null,
+  logoLocked: false,
   primary,
   secondary,
+  accent: "#ff7a59",
+  background: null,
   fontFamily,
+  fontSecondary: null,
+  showBrandName: false,
+  instructions: emptyInstructions,
   currency: "EUR",
   language: "en",
 });

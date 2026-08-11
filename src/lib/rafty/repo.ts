@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_BRAND } from "./constants";
+import { DEFAULT_BRAND, PLANS } from "./constants";
 import { globalTemplates } from "./templates";
 import {
   emptyContent,
@@ -706,6 +706,42 @@ export async function adminListCustomTemplates(): Promise<
 
 export async function adminSetStatus(businessId: string, status: BusinessStatus) {
   await supabase.from("businesses").update({ status }).eq("id", businessId);
+}
+
+export async function adminListPlans(): Promise<AccountPlan[]> {
+  const { data } = await supabase.from("account_plans").select("*");
+  return (data ?? []).map((row) => {
+    const r = row as {
+      user_id: string;
+      plan: PlanTier;
+      brand_limit: number;
+      billing_cycle: string;
+      partnership_posts_used: number;
+      partnership_posts_limit: number;
+    };
+    return {
+      userId: r.user_id,
+      plan: r.plan,
+      brandLimit: r.brand_limit,
+      billingCycle: r.billing_cycle,
+      partnershipPostsUsed: r.partnership_posts_used,
+      partnershipPostsLimit: r.partnership_posts_limit,
+    };
+  });
+}
+
+/** Sets the tier and derives the brand and partnership limits from the plan catalog. */
+export async function adminSetPlan(ownerUserId: string, tier: PlanTier) {
+  const preset = PLANS.find((p) => p.tier === tier);
+  await supabase.from("account_plans").upsert(
+    {
+      user_id: ownerUserId,
+      plan: tier,
+      brand_limit: preset?.brands ?? 1,
+      partnership_posts_limit: preset?.partnershipPosts ?? 0,
+    } as never,
+    { onConflict: "user_id" },
+  );
 }
 
 export const DEFAULTS = DEFAULT_BRAND;

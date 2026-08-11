@@ -56,7 +56,7 @@ export async function signedUrl(path: string | null): Promise<string | null> {
 
 async function uploadDataUrl(
   businessId: string,
-  kind: "logos" | "posts" | "requests",
+  kind: "logos" | "posts" | "requests" | "templates",
   dataUrl: string,
 ): Promise<string | null> {
   const blob = await (await fetch(dataUrl)).blob();

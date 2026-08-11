@@ -14,38 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_plans: {
+        Row: {
+          billing_cycle: string
+          brand_limit: number
+          created_at: string
+          partnership_posts_limit: number
+          partnership_posts_used: number
+          plan: Database["public"]["Enums"]["plan_tier"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_cycle?: string
+          brand_limit?: number
+          created_at?: string
+          partnership_posts_limit?: number
+          partnership_posts_used?: number
+          plan?: Database["public"]["Enums"]["plan_tier"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_cycle?: string
+          brand_limit?: number
+          created_at?: string
+          partnership_posts_limit?: number
+          partnership_posts_used?: number
+          plan?: Database["public"]["Enums"]["plan_tier"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       brand_profiles: {
         Row: {
+          accent_color: string
+          background_color: string | null
           business_id: string
+          content_instructions: Json
           created_at: string
           currency: string
           font_family: string
+          font_secondary: string | null
           language: string
+          logo_locked: boolean
           logo_path: string | null
           primary_color: string
           secondary_color: string
+          show_brand_name: boolean
           updated_at: string
         }
         Insert: {
+          accent_color?: string
+          background_color?: string | null
           business_id: string
+          content_instructions?: Json
           created_at?: string
           currency?: string
           font_family?: string
+          font_secondary?: string | null
           language?: string
+          logo_locked?: boolean
           logo_path?: string | null
           primary_color?: string
           secondary_color?: string
+          show_brand_name?: boolean
           updated_at?: string
         }
         Update: {
+          accent_color?: string
+          background_color?: string | null
           business_id?: string
+          content_instructions?: Json
           created_at?: string
           currency?: string
           font_family?: string
+          font_secondary?: string | null
           language?: string
+          logo_locked?: boolean
           logo_path?: string | null
           primary_color?: string
           secondary_color?: string
+          show_brand_name?: boolean
           updated_at?: string
         }
         Relationships: [
@@ -96,18 +147,21 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          position: number
         }
         Insert: {
           business_id: string
           created_at?: string
           id?: string
           name: string
+          position?: number
         }
         Update: {
           business_id?: string
           created_at?: string
           id?: string
           name?: string
+          position?: number
         }
         Relationships: [
           {
@@ -209,33 +263,45 @@ export type Database = {
       custom_templates: {
         Row: {
           archived: boolean
+          background_path: string | null
           business_id: string
           created_at: string
           engine: string
           id: string
+          locked_design: boolean
           name: string
+          requirements: string | null
           updated_at: string
           variant: Json
+          zones: Json
         }
         Insert: {
           archived?: boolean
+          background_path?: string | null
           business_id: string
           created_at?: string
           engine: string
           id?: string
+          locked_design?: boolean
           name: string
+          requirements?: string | null
           updated_at?: string
           variant?: Json
+          zones?: Json
         }
         Update: {
           archived?: boolean
+          background_path?: string | null
           business_id?: string
           created_at?: string
           engine?: string
           id?: string
+          locked_design?: boolean
           name?: string
+          requirements?: string | null
           updated_at?: string
           variant?: Json
+          zones?: Json
         }
         Relationships: [
           {
@@ -249,29 +315,41 @@ export type Database = {
       }
       posts: {
         Row: {
+          adjustments: Json
           business_id: string
+          caption: string
           content: Json
           created_at: string
           id: string
           image_path: string | null
+          share_status: Json
+          show_brand_name: boolean
           template_id: string
           updated_at: string
         }
         Insert: {
+          adjustments?: Json
           business_id: string
+          caption?: string
           content?: Json
           created_at?: string
           id?: string
           image_path?: string | null
+          share_status?: Json
+          show_brand_name?: boolean
           template_id: string
           updated_at?: string
         }
         Update: {
+          adjustments?: Json
           business_id?: string
+          caption?: string
           content?: Json
           created_at?: string
           id?: string
           image_path?: string | null
+          share_status?: Json
+          show_brand_name?: boolean
           template_id?: string
           updated_at?: string
         }
@@ -367,6 +445,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_brand: {
+        Args: {
+          _custom_type?: string
+          _name: string
+          _type: Database["public"]["Enums"]["business_type"]
+        }
+        Returns: string
+      }
       create_my_business: {
         Args: {
           _custom_type?: string
@@ -384,6 +470,7 @@ export type Database = {
       }
       is_business_member: { Args: { _business_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
+      my_brand_limit: { Args: never; Returns: number }
       my_business_id: { Args: never; Returns: string }
       register_post_usage: {
         Args: { _business_id: string }
@@ -400,6 +487,7 @@ export type Database = {
         | "restaurant"
         | "retail"
         | "other"
+      plan_tier: "starter" | "growth" | "partnership"
       template_request_status: "processing" | "ready" | "rejected"
     }
     CompositeTypes: {
@@ -538,6 +626,7 @@ export const Constants = {
         "retail",
         "other",
       ],
+      plan_tier: ["starter", "growth", "partnership"],
       template_request_status: ["processing", "ready", "rejected"],
     },
   },

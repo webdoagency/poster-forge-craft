@@ -89,7 +89,7 @@ function Hero() {
           initial={{ opacity: 0, y: reduced ? 0 : 28, rotate: reduced ? 0 : -2 }}
           animate={{ opacity: 1, y: 0, rotate: 0 }}
           transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          whileHover={reduced ? undefined : { rotate: 1, scale: 1.01 }}
+          {...(reduced ? {} : { whileHover: { rotate: 1, scale: 1.01 } })}
         >
           <PostCanvas
             template={hero.template}

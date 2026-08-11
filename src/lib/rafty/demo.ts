@@ -2,7 +2,7 @@ import demoBeach from "@/assets/demo-beach.jpg";
 import demoCity from "@/assets/demo-city.jpg";
 import demoCoffee from "@/assets/demo-coffee.jpg";
 import { globalTemplates } from "./templates";
-import { emptyContent, type BrandProfile, type BusinessType, type PostContent, type Template } from "./types";
+import { emptyContent, emptyInstructions, type BrandProfile, type BusinessType, type PostContent, type Template } from "./types";
 
 /**
  * Isolated preview content for the public landing page and template previews.
@@ -20,9 +20,15 @@ export type DemoPost = {
 const brand = (primary: string, secondary: string, fontFamily: string): BrandProfile => ({
   businessId: "preview",
   logoDataUrl: null,
+  logoLocked: false,
   primary,
   secondary,
+  accent: "#ff7a59",
+  background: null,
   fontFamily,
+  fontSecondary: null,
+  showBrandName: false,
+  instructions: emptyInstructions,
   currency: "EUR",
   language: "en",
 });
@@ -31,7 +37,7 @@ const pick = (id: string) => globalTemplates.find((t) => t.id === id) ?? globalT
 
 export const demoPosts: DemoPost[] = [
   {
-    template: pick("travel_agency_1"),
+    template: pick("global_1"),
     businessName: "Aurora Voyages",
     businessType: "travel_agency",
     brand: brand("#5b4bff", "#c05cf6", "Sora"),
@@ -49,7 +55,7 @@ export const demoPosts: DemoPost[] = [
     },
   },
   {
-    template: pick("real_estate_4"),
+    template: pick("global_9"),
     businessName: "Nordhaus Living",
     businessType: "real_estate",
     brand: brand("#3f4fd8", "#7f6bf0", "Manrope"),
@@ -67,7 +73,7 @@ export const demoPosts: DemoPost[] = [
     },
   },
   {
-    template: pick("restaurant_7"),
+    template: pick("global_21"),
     businessName: "Ember Kitchen",
     businessType: "restaurant",
     brand: brand("#6d3df0", "#b06cf5", "Playfair Display"),

@@ -6,7 +6,7 @@ import { usePrefersReducedMotion } from "./usePrefersReducedMotion";
 const SESSION_KEY = "rafty-intro-shown";
 
 /**
- * Short, once-per-session brand intro shown before the marketing home
+ * Quick, once-per-session brand intro shown before the marketing home
  * finishes revealing. Skipped entirely under reduced motion or on repeat
  * visits within the same session.
  */
@@ -22,7 +22,7 @@ export function RaftyIntro() {
 
     setVisible(true);
     window.sessionStorage.setItem(SESSION_KEY, "1");
-    const timer = window.setTimeout(() => setVisible(false), 950);
+    const timer = window.setTimeout(() => setVisible(false), 620);
     return () => window.clearTimeout(timer);
   }, [reduced]);
 
@@ -34,15 +34,15 @@ export function RaftyIntro() {
           className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.35, ease: "easeInOut" }}
+          transition={{ duration: 0.28, ease: "easeInOut" }}
         >
           <motion.img
             src={iconAsset.url}
             alt="Rafty"
-            className="h-12 w-auto"
-            initial={{ opacity: 0, scale: 0.85 }}
+            className="h-10 w-auto"
+            initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
           />
         </motion.div>
       ) : null}

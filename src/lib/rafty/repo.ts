@@ -1,23 +1,31 @@
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_BRAND } from "./constants";
+import { DEFAULT_BRAND, PLANS } from "./constants";
 import { globalTemplates } from "./templates";
 import {
   emptyContent,
+  emptyInstructions,
+  type AccountPlan,
   type BrandProfile,
   type Business,
   type BusinessService,
   type BusinessStatus,
   type BusinessType,
+  type ContentInstructions,
   type CurrencyCode,
   type CustomTemplateRequest,
   type LanguageCode,
+  type PlanTier,
   type Post,
+  type PostAdjustments,
   type PostContent,
+  type ShareStatus,
   type Template,
   type TemplateVariant,
+  type TemplateZone,
   type TrialUsage,
   type User,
 } from "./types";
+
 
 /**
  * Supabase data access boundary.
@@ -48,7 +56,7 @@ export async function signedUrl(path: string | null): Promise<string | null> {
 
 async function uploadDataUrl(
   businessId: string,
-  kind: "logos" | "posts" | "requests",
+  kind: "logos" | "posts" | "requests" | "templates",
   dataUrl: string,
 ): Promise<string | null> {
   const blob = await (await fetch(dataUrl)).blob();
@@ -191,9 +199,15 @@ export async function updateBusiness(businessId: string, patch: Partial<Business
 type BrandRow = {
   business_id: string;
   logo_path: string | null;
+  logo_locked: boolean;
   primary_color: string;
   secondary_color: string;
+  accent_color: string;
+  background_color: string | null;
   font_family: string;
+  font_secondary: string | null;
+  show_brand_name: boolean;
+  content_instructions: Partial<ContentInstructions> | null;
   currency: string;
   language: string;
 };
@@ -205,14 +219,20 @@ export async function getBrand(businessId: string): Promise<BrandProfile | null>
     .eq("business_id", businessId)
     .maybeSingle();
   if (!data) return null;
-  const row = data as BrandRow;
+  const row = data as unknown as BrandRow;
   return {
     businessId: row.business_id,
     logoPath: row.logo_path,
     logoDataUrl: await signedUrl(row.logo_path),
+    logoLocked: !!row.logo_locked,
     primary: row.primary_color,
     secondary: row.secondary_color,
+    accent: row.accent_color ?? DEFAULT_BRAND.accent,
+    background: row.background_color ?? null,
     fontFamily: row.font_family,
+    fontSecondary: row.font_secondary ?? null,
+    showBrandName: !!row.show_brand_name,
+    instructions: { ...emptyInstructions, ...(row.content_instructions ?? {}) },
     currency: row.currency as CurrencyCode,
     language: row.language as LanguageCode,
   };
@@ -222,25 +242,34 @@ export async function saveBrand(businessId: string, patch: Partial<BrandProfile>
   const row: Record<string, any> = {};
   if (patch.primary !== undefined) row["primary_color"] = patch.primary;
   if (patch.secondary !== undefined) row["secondary_color"] = patch.secondary;
+  if (patch.accent !== undefined) row["accent_color"] = patch.accent;
+  if (patch.background !== undefined) row["background_color"] = patch.background;
   if (patch.fontFamily !== undefined) row["font_family"] = patch.fontFamily;
+  if (patch.fontSecondary !== undefined) row["font_secondary"] = patch.fontSecondary;
+  if (patch.showBrandName !== undefined) row["show_brand_name"] = patch.showBrandName;
+  if (patch.instructions !== undefined) row["content_instructions"] = patch.instructions;
   if (patch.currency !== undefined) row["currency"] = patch.currency;
   if (patch.language !== undefined) row["language"] = patch.language;
 
   if (patch.logoDataUrl !== undefined) {
     const current = await supabase
       .from("brand_profiles")
-      .select("logo_path")
+      .select("logo_path, logo_locked")
       .eq("business_id", businessId)
       .maybeSingle();
-    const oldPath = (current.data as { logo_path: string | null } | null)?.logo_path ?? null;
-    if (patch.logoDataUrl === null) {
-      await removeFile(oldPath);
-      row["logo_path"] = null;
-    } else if (isDataUrl(patch.logoDataUrl)) {
-      const path = await uploadDataUrl(businessId, "logos", patch.logoDataUrl);
-      if (path) {
+    const currentRow = current.data as { logo_path: string | null; logo_locked: boolean } | null;
+    const oldPath = currentRow?.logo_path ?? null;
+    // The database also blocks this. A locked logo can only be changed by an admin.
+    if (!currentRow?.logo_locked) {
+      if (patch.logoDataUrl === null) {
         await removeFile(oldPath);
-        row["logo_path"] = path;
+        row["logo_path"] = null;
+      } else if (isDataUrl(patch.logoDataUrl)) {
+        const path = await uploadDataUrl(businessId, "logos", patch.logoDataUrl);
+        if (path) {
+          await removeFile(oldPath);
+          row["logo_path"] = path;
+        }
       }
     }
   }
@@ -251,6 +280,58 @@ export async function saveBrand(businessId: string, patch: Partial<BrandProfile>
     .upsert({ business_id: businessId, ...row } as never, { onConflict: "business_id" });
 }
 
+/* ---------------------------------- plan ---------------------------------- */
+
+export async function getMyPlan(): Promise<AccountPlan | null> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) return null;
+  const { data } = await supabase
+    .from("account_plans")
+    .select("*")
+    .eq("user_id", uid)
+    .maybeSingle();
+  if (!data) return { userId: uid, plan: "starter", brandLimit: 1, billingCycle: "monthly", partnershipPostsUsed: 0, partnershipPostsLimit: 0 };
+  const row = data as unknown as {
+    user_id: string;
+    plan: PlanTier;
+    brand_limit: number;
+    billing_cycle: string;
+    partnership_posts_used: number;
+    partnership_posts_limit: number;
+  };
+  return {
+    userId: row.user_id,
+    plan: row.plan,
+    brandLimit: row.brand_limit,
+    billingCycle: row.billing_cycle,
+    partnershipPostsUsed: row.partnership_posts_used,
+    partnershipPostsLimit: row.partnership_posts_limit,
+  };
+}
+
+/** Brands the caller is a member of. RLS decides what comes back. */
+export async function myBrands(): Promise<Business[]> {
+  const { data } = await supabase.from("businesses").select("*").order("created_at");
+  return (data ?? []).map((row) => toBusiness(row as BusinessRow));
+}
+
+/** Extra brand slots are enforced by the database against the account plan. */
+export async function createBrand(input: {
+  name: string;
+  type: BusinessType;
+  customType?: string | null;
+}): Promise<{ id: string | null; error?: string }> {
+  const { data, error } = await supabase.rpc("create_brand", {
+    _name: input.name,
+    _type: input.type,
+    ...(input.customType ? { _custom_type: input.customType } : {}),
+  });
+  if (error) return { id: null, error: error.message };
+  return { id: data as string };
+}
+
+
 /* -------------------------------- services -------------------------------- */
 
 export async function listServices(businessId: string): Promise<BusinessService[]> {
@@ -258,18 +339,23 @@ export async function listServices(businessId: string): Promise<BusinessService[
     .from("business_services")
     .select("*")
     .eq("business_id", businessId)
+    .order("position")
     .order("created_at");
   return (data ?? []).map((s) => ({
     id: s.id as string,
     businessId: s.business_id as string,
     name: s.name as string,
+    position: ((s as { position?: number }).position ?? 0) as number,
   }));
 }
 
 export async function addService(businessId: string, name: string) {
   const value = name.trim();
   if (!value) return;
-  await supabase.from("business_services").insert({ business_id: businessId, name: value });
+  const existing = await listServices(businessId);
+  await supabase
+    .from("business_services")
+    .insert({ business_id: businessId, name: value, position: existing.length } as never);
 }
 
 export async function renameService(serviceId: string, name: string) {
@@ -282,6 +368,18 @@ export async function removeService(serviceId: string) {
   await supabase.from("business_services").delete().eq("id", serviceId);
 }
 
+/** Persists a new order. RLS still scopes every row to the caller's brand. */
+export async function reorderServices(serviceIds: string[]) {
+  await Promise.all(
+    serviceIds.map((serviceId, index) =>
+      supabase
+        .from("business_services")
+        .update({ position: index } as never)
+        .eq("id", serviceId),
+    ),
+  );
+}
+
 /* -------------------------------- templates ------------------------------- */
 
 type CustomTemplateRow = {
@@ -291,30 +389,38 @@ type CustomTemplateRow = {
   engine: string;
   variant: TemplateVariant;
   archived: boolean;
+  background_path: string | null;
+  requirements: string | null;
+  zones: TemplateZone[] | null;
+  locked_design: boolean;
 };
 
-const toTemplate = (row: CustomTemplateRow, type: BusinessType): Template => ({
-  id: row.id,
-  name: row.name,
-  businessType: type,
-  engine: row.engine,
-  variant: row.variant,
-  scope: "custom",
-  businessId: row.business_id,
-  archived: row.archived,
-});
+async function toTemplate(row: CustomTemplateRow): Promise<Template> {
+  return {
+    id: row.id,
+    name: row.name,
+    engine: row.engine,
+    tags: ["image_first"],
+    variant: row.variant,
+    scope: "custom",
+    businessId: row.business_id,
+    archived: row.archived,
+    backgroundPath: row.background_path,
+    backgroundUrl: await signedUrl(row.background_path),
+    requirements: row.requirements,
+    zones: row.zones ?? [],
+    lockedDesign: row.locked_design ?? true,
+  };
+}
 
-export async function listCustomTemplates(
-  businessId: string,
-  type: BusinessType,
-): Promise<Template[]> {
+export async function listCustomTemplates(businessId: string): Promise<Template[]> {
   const { data } = await supabase
     .from("custom_templates")
     .select("*")
     .eq("business_id", businessId)
     .eq("archived", false)
     .order("created_at", { ascending: false });
-  return (data ?? []).map((row) => toTemplate(row as unknown as CustomTemplateRow, type));
+  return Promise.all((data ?? []).map((row) => toTemplate(row as unknown as CustomTemplateRow)));
 }
 
 export async function saveCustomTemplate(input: {
@@ -322,7 +428,14 @@ export async function saveCustomTemplate(input: {
   name: string;
   engine: string;
   variant: TemplateVariant;
+  backgroundDataUrl?: string | null;
+  requirements?: string | null;
+  zones?: TemplateZone[];
+  lockedDesign?: boolean;
 }): Promise<string | null> {
+  const backgroundPath = isDataUrl(input.backgroundDataUrl ?? null)
+    ? await uploadDataUrl(input.businessId, "templates", input.backgroundDataUrl as string)
+    : null;
   const { data } = await supabase
     .from("custom_templates")
     .insert({
@@ -330,28 +443,36 @@ export async function saveCustomTemplate(input: {
       name: input.name,
       engine: input.engine,
       variant: input.variant,
-    })
+      background_path: backgroundPath,
+      requirements: input.requirements ?? null,
+      zones: input.zones ?? [],
+      locked_design: input.lockedDesign ?? true,
+    } as never)
     .select("id")
     .maybeSingle();
   return (data?.id as string) ?? null;
+}
+
+export async function updateCustomTemplateZones(templateId: string, zones: TemplateZone[]) {
+  await supabase
+    .from("custom_templates")
+    .update({ zones } as never)
+    .eq("id", templateId);
 }
 
 export async function archiveTemplate(templateId: string) {
   await supabase.from("custom_templates").update({ archived: true }).eq("id", templateId);
 }
 
-/** Global library plus templates owned by this business only. */
-export async function templatesForBusiness(
-  businessId: string,
-  type: BusinessType,
-): Promise<Template[]> {
-  const custom = await listCustomTemplates(businessId, type);
-  return [
-    ...custom,
-    ...globalTemplates.filter((t) => t.businessType === type),
-    ...globalTemplates.filter((t) => t.businessType !== type),
-  ];
+/**
+ * Global library plus templates owned by this business only. The library is not
+ * restricted by business type, a brand's own uploads simply come first.
+ */
+export async function templatesForBusiness(businessId: string): Promise<Template[]> {
+  const custom = await listCustomTemplates(businessId);
+  return [...custom, ...globalTemplates];
 }
+
 
 /* --------------------------- custom template flow ------------------------- */
 
@@ -431,6 +552,10 @@ type PostRow = {
   business_id: string;
   template_id: string;
   content: Partial<PostContent>;
+  caption: string | null;
+  adjustments: PostAdjustments | null;
+  show_brand_name: boolean | null;
+  share_status: ShareStatus | null;
   image_path: string | null;
   created_at: string;
   businesses?: { name: string } | null;
@@ -445,8 +570,12 @@ async function toPost(row: PostRow): Promise<Post> {
     content: {
       ...emptyContent,
       ...row.content,
+      caption: row.caption || row.content?.caption || "",
       imageDataUrl: await signedUrl(row.image_path),
     },
+    showBrandName: !!row.show_brand_name,
+    adjustments: row.adjustments ?? {},
+    shareStatus: row.share_status ?? {},
     createdAt: row.created_at,
   };
 }
@@ -474,6 +603,10 @@ export async function savePost(post: Post): Promise<Post | null> {
     business_id: post.businessId,
     template_id: post.templateId,
     content: text,
+    caption: post.content.caption ?? "",
+    adjustments: post.adjustments ?? {},
+    show_brand_name: post.showBrandName ?? false,
+    share_status: post.shareStatus ?? {},
     image_path: imagePath,
   };
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -483,14 +616,24 @@ export async function savePost(post: Post): Promise<Post | null> {
     ? await supabase.from("posts").select("id").eq("id", post.id).maybeSingle()
     : { data: null };
   const query = existing.data
-    ? supabase.from("posts").update(payload).eq("id", post.id).select("*").maybeSingle()
-    : supabase.from("posts").insert(payload).select("*").maybeSingle();
+    ? supabase
+        .from("posts")
+        .update(payload as never)
+        .eq("id", post.id)
+        .select("*")
+        .maybeSingle()
+    : supabase
+        .from("posts")
+        .insert(payload as never)
+        .select("*")
+        .maybeSingle();
   const { data } = await query;
   if (!data) return null;
   const saved = await toPost(data as PostRow);
   if (!existing.data) await supabase.rpc("register_post_usage", { _business_id: post.businessId });
   return saved;
 }
+
 
 export async function deletePost(postId: string) {
   const { data } = await supabase
@@ -563,6 +706,42 @@ export async function adminListCustomTemplates(): Promise<
 
 export async function adminSetStatus(businessId: string, status: BusinessStatus) {
   await supabase.from("businesses").update({ status }).eq("id", businessId);
+}
+
+export async function adminListPlans(): Promise<AccountPlan[]> {
+  const { data } = await supabase.from("account_plans").select("*");
+  return (data ?? []).map((row) => {
+    const r = row as {
+      user_id: string;
+      plan: PlanTier;
+      brand_limit: number;
+      billing_cycle: string;
+      partnership_posts_used: number;
+      partnership_posts_limit: number;
+    };
+    return {
+      userId: r.user_id,
+      plan: r.plan,
+      brandLimit: r.brand_limit,
+      billingCycle: r.billing_cycle,
+      partnershipPostsUsed: r.partnership_posts_used,
+      partnershipPostsLimit: r.partnership_posts_limit,
+    };
+  });
+}
+
+/** Sets the tier and derives the brand and partnership limits from the plan catalog. */
+export async function adminSetPlan(ownerUserId: string, tier: PlanTier) {
+  const preset = PLANS.find((p) => p.tier === tier);
+  await supabase.from("account_plans").upsert(
+    {
+      user_id: ownerUserId,
+      plan: tier,
+      brand_limit: preset?.brands ?? 1,
+      partnership_posts_limit: preset?.partnershipPosts ?? 0,
+    } as never,
+    { onConflict: "user_id" },
+  );
 }
 
 export const DEFAULTS = DEFAULT_BRAND;

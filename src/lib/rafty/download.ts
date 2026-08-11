@@ -27,19 +27,31 @@ async function getFontEmbedCss(): Promise<string> {
   return fontCssCache;
 }
 
-/** Export a rendered post node as a ~1080x1350 PNG. */
-export async function downloadNode(node: HTMLElement, filename: string) {
+/** Renders a node to a ~1080x1350 PNG data url. Shared by download and share. */
+async function renderNodeToDataUrl(node: HTMLElement): Promise<string> {
   const width = node.offsetWidth || 1;
   const fontEmbedCSS = await getFontEmbedCss();
-  const dataUrl = await toPng(node, {
+  return toPng(node, {
     pixelRatio: Math.min(4, Math.max(1, 1080 / width)),
     cacheBust: true,
     ...(fontEmbedCSS ? { fontEmbedCSS } : { skipFonts: true }),
   });
+}
+
+/** Export a rendered post node as a ~1080x1350 PNG. */
+export async function downloadNode(node: HTMLElement, filename: string) {
+  const dataUrl = await renderNodeToDataUrl(node);
   const a = document.createElement("a");
   a.href = dataUrl;
   a.download = `${filename}.png`;
   a.click();
+}
+
+/** Same export, returned as a File so it can be handed to the Web Share API. */
+export async function nodeToPngFile(node: HTMLElement, filename: string): Promise<File> {
+  const dataUrl = await renderNodeToDataUrl(node);
+  const blob = await (await fetch(dataUrl)).blob();
+  return new File([blob], `${filename}.png`, { type: "image/png" });
 }
 
 export function slugify(value: string) {

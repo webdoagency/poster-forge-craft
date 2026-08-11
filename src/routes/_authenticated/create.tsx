@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { Download, Image as ImageIcon, Plus, Sparkles, Wand2 } from "lucide-react";
+import { Image as ImageIcon, Plus, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -15,21 +16,23 @@ import {
 } from "@/components/ui/select";
 import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
+import { AdjustControls } from "@/components/rafty/AdjustControls";
+import { ShareActions } from "@/components/rafty/ShareActions";
 import { useRafty } from "@/lib/rafty/store";
 import { generateCaption } from "@/lib/rafty/caption";
-import { downloadNode, slugify } from "@/lib/rafty/download";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
-import { TYPE_FIELDS } from "@/lib/rafty/constants";
-import { emptyContent, type Post, type PostContent } from "@/lib/rafty/types";
+import { CTA_PRESETS, OCCASION_PRESETS, TYPE_FIELDS } from "@/lib/rafty/constants";
+import { emptyContent, type Post, type PostAdjustments, type PostContent } from "@/lib/rafty/types";
 import { id as newId } from "@/lib/rafty/repo";
 
 export const Route = createFileRoute("/_authenticated/create")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { post?: string; template?: string } => {
-    const out: { post?: string; template?: string } = {};
+  ): { post?: string; template?: string; duplicate?: boolean } => {
+    const out: { post?: string; template?: string; duplicate?: boolean } = {};
     if (typeof search["post"] === "string") out.post = search["post"];
     if (typeof search["template"] === "string") out.template = search["template"];
+    if (search["duplicate"] === "1" || search["duplicate"] === true) out.duplicate = true;
     return out;
   },
   head: () => ({
@@ -67,14 +70,23 @@ function CreatePage() {
   } = useRafty();
 
   const existing = search.post ? posts.find((p) => p.id === search.post) : undefined;
+  const isDuplicate = !!existing && !!search.duplicate;
 
   const [templateId, setTemplateId] = useState<string>(
     existing?.templateId ?? search.template ?? templates[0]?.id ?? "",
   );
   const [content, setContent] = useState<PostContent>(existing?.content ?? emptyContent);
-  const [postId, setPostId] = useState<string | null>(existing?.id ?? null);
-  const [generated, setGenerated] = useState(Boolean(existing));
+  const [showBrandName, setShowBrandName] = useState<boolean>(
+    isDuplicate ? existing!.showBrandName : existing?.showBrandName ?? brand?.showBrandName ?? false,
+  );
+  const [adjustments, setAdjustments] = useState<PostAdjustments>(
+    isDuplicate ? {} : existing?.adjustments ?? {},
+  );
+  const [postId, setPostId] = useState<string | null>(isDuplicate ? null : existing?.id ?? null);
+  const [generated, setGenerated] = useState(Boolean(existing) && !isDuplicate);
+  const [showAdjust, setShowAdjust] = useState(false);
   const [newService, setNewService] = useState("");
+  const [saving, setSaving] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
 
   const template = useMemo(
@@ -93,9 +105,26 @@ function CreatePage() {
     set({ imageDataUrl: await readFileAsDataUrl(file) });
   }
 
-  function writeCaption() {
+  function refreshCaption(seed = Date.now()) {
     set({
-      caption: generateCaption(content, business!.type, business!.name, brand!.currency, Date.now()),
+      caption: generateCaption({
+        content,
+        businessType: business!.type,
+        businessName: business!.name,
+        currency: brand!.currency,
+        instructions: brand!.instructions,
+        services: content.services,
+        seed,
+      }),
+    });
+  }
+
+  function applyOccasion(occasionId: string) {
+    const preset = OCCASION_PRESETS.find((o) => o.id === occasionId);
+    if (!preset) return;
+    set({
+      title: content.title || preset.title,
+      additionalText: content.additionalText || preset.extra,
     });
   }
 
@@ -104,31 +133,58 @@ function CreatePage() {
       toast.error(t("create.trialUsed"));
       return;
     }
-    const post: Post = {
-      id: postId ?? newId("post"),
-      businessId: business!.id,
-      templateId: template!.id,
+    const caption = generateCaption({
       content,
-      createdAt: new Date().toISOString(),
-    };
-    createPost(post);
-    setPostId(post.id);
+      businessType: business!.type,
+      businessName: business!.name,
+      currency: brand!.currency,
+      instructions: brand!.instructions,
+      services: content.services,
+      seed: Date.now(),
+    });
+    set({ caption });
     setGenerated(true);
-    toast.success(t("create.saved"));
+    setShowAdjust(false);
   }
 
-  async function download() {
-    if (!canvasRef.current) return;
+  async function persist() {
+    setSaving(true);
     try {
-      await downloadNode(canvasRef.current, slugify(content.title || business!.name));
-    } catch {
-      toast.error("Download failed. Please try again.");
+      const post: Post = {
+        id: postId ?? newId("post"),
+        businessId: business!.id,
+        templateId: template!.id,
+        content,
+        showBrandName,
+        adjustments,
+        shareStatus: {},
+        createdAt: new Date().toISOString(),
+      };
+      const saved = await createPost(post);
+      if (saved) {
+        setPostId(saved.id);
+        toast.success(t("create.saved"));
+      } else {
+        toast.error("Could not save the post. Please try again.");
+      }
+    } finally {
+      setSaving(false);
     }
+  }
+
+  function resetAll() {
+    setPostId(null);
+    setContent(emptyContent);
+    setShowBrandName(brand!.showBrandName);
+    setAdjustments({});
+    setGenerated(false);
+    setShowAdjust(false);
+    navigate({ to: "/create", search: {} });
   }
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
-      <section className="flex flex-col gap-4">
+      <section className={`flex flex-col gap-4 ${generated ? "order-2 lg:order-1" : ""}`}>
         <div>
           <h1 className="font-display text-2xl font-extrabold">{t("create.title")}</h1>
           <p className="text-sm text-muted-foreground">
@@ -169,6 +225,22 @@ function CreatePage() {
             )}
           </label>
 
+          <div className="grid gap-2">
+            <Label>Occasion</Label>
+            <div className="flex flex-wrap gap-2">
+              {OCCASION_PRESETS.map((o) => (
+                <button
+                  key={o.id}
+                  type="button"
+                  onClick={() => applyOccasion(o.id)}
+                  className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-primary hover:text-foreground"
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2">
             {fields.map((f) => (
               <div key={f.key} className="grid gap-1.5">
@@ -191,6 +263,33 @@ function CreatePage() {
               onChange={(e) => set({ additionalText: e.target.value })}
               className="h-11 rounded-xl"
             />
+          </div>
+
+          <div className="grid gap-1.5">
+            <Label htmlFor="cta">Call to action</Label>
+            <Input
+              id="cta"
+              value={content.cta}
+              onChange={(e) => set({ cta: e.target.value })}
+              placeholder="Send us a message"
+              className="h-11 rounded-xl"
+            />
+            <div className="flex flex-wrap gap-2">
+              {CTA_PRESETS.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => set({ cta: preset })}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                    content.cta === preset
+                      ? "border-primary bg-primary-soft text-accent-foreground"
+                      : "border-border bg-card text-muted-foreground"
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="grid gap-2">
@@ -244,32 +343,52 @@ function CreatePage() {
             </div>
           </div>
 
-          <div className="grid gap-1.5">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="caption">{t("create.caption")}</Label>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="ml-auto h-8 rounded-lg"
-                onClick={writeCaption}
-              >
-                <Wand2 className="mr-1 size-3.5" />
-                {t("create.write")}
-              </Button>
+          <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
+            <div>
+              <p className="text-sm font-semibold">Show brand name</p>
+              <p className="text-xs text-muted-foreground">Off by default on the generated post.</p>
             </div>
-            <Textarea
-              id="caption"
-              value={content.caption}
-              onChange={(e) => set({ caption: e.target.value })}
-              rows={5}
-              className="rounded-xl"
-            />
+            <Switch checked={showBrandName} onCheckedChange={setShowBrandName} />
           </div>
+
+          {generated ? (
+            <div className="grid gap-1.5">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="caption">{t("create.caption")}</Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="ml-auto h-8 rounded-lg"
+                  onClick={() => refreshCaption()}
+                >
+                  <Wand2 className="mr-1 size-3.5" />
+                  Regenerate
+                </Button>
+              </div>
+              <Textarea
+                id="caption"
+                value={content.caption}
+                onChange={(e) => set({ caption: e.target.value })}
+                rows={6}
+                className="rounded-xl"
+              />
+            </div>
+          ) : null}
         </div>
+
+        {generated ? (
+          <Button variant="outline" className="h-11 rounded-xl" onClick={() => setShowAdjust((v) => !v)}>
+            {showAdjust ? "Hide adjust" : "Adjust"}
+          </Button>
+        ) : null}
+
+        {generated && showAdjust ? (
+          <AdjustControls adjustments={adjustments} onChange={setAdjustments} />
+        ) : null}
       </section>
 
-      <section className="flex flex-col gap-4">
+      <section className={`flex flex-col gap-4 ${generated ? "order-1 lg:order-2" : ""}`}>
         <div className="flex items-center gap-3">
           <Label className="shrink-0">{t("create.template")}</Label>
           <Select value={template.id} onValueChange={setTemplateId}>
@@ -295,44 +414,36 @@ function CreatePage() {
             brand={brand}
             businessName={business.name}
             businessType={business.type}
+            showBrandName={showBrandName}
+            adjustments={adjustments}
             className="rounded-xl"
           />
         </div>
 
-        <div className="mx-auto flex w-full max-w-[520px] gap-2">
+        <div className="mx-auto w-full max-w-[520px]">
           {generated ? (
-            <>
-              <Button
-                variant="outline"
-                className="h-12 flex-1 rounded-xl"
-                onClick={() => setGenerated(false)}
-              >
-                {t("create.edit")}
-              </Button>
-              <Button className="h-12 flex-1 rounded-xl" onClick={download}>
-                <Download className="mr-1 size-4" />
-                {t("create.download")}
-              </Button>
-            </>
+            <ShareActions
+              canvasRef={canvasRef}
+              filename={content.title || business.name}
+              caption={content.caption}
+              onSave={persist}
+              saving={saving}
+              saveLabel={t("create.saved").includes("saved") ? "Save" : "Save"}
+            />
           ) : (
-            <Button className="h-12 flex-1 rounded-xl" onClick={generate} disabled={locked}>
+            <Button className="h-12 w-full rounded-xl" onClick={generate} disabled={locked}>
               <Sparkles className="mr-1 size-4" />
               {t("create.generate")}
             </Button>
           )}
         </div>
 
-        {postId ? (
+        {generated ? (
           <button
             className="mx-auto text-xs font-semibold text-muted-foreground underline-offset-4 hover:underline"
-            onClick={() => {
-              setPostId(null);
-              setContent(emptyContent);
-              setGenerated(false);
-              navigate({ to: "/create", search: {} });
-            }}
+            onClick={resetAll}
           >
-            {t("create.title")}
+            Create a new post
           </button>
         ) : null}
       </section>

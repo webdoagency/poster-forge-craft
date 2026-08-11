@@ -5,8 +5,7 @@ import { PostCanvas } from "@/components/rafty/PostCanvas";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { globalTemplates } from "@/lib/rafty/templates";
 import { demoPosts } from "@/lib/rafty/demo";
-import { BUSINESS_TYPES, BUSINESS_TYPE_NAMES } from "@/lib/rafty/constants";
-import type { BusinessType } from "@/lib/rafty/types";
+import type { TemplateTag } from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/gallery")({
   head: () => ({
@@ -15,12 +14,12 @@ export const Route = createFileRoute("/gallery")({
       {
         name: "description",
         content:
-          "Browse a curated selection of Rafty's global templates grouped by business type. There are many more inside the app.",
+          "Browse a curated selection of Rafty's global templates grouped by visual family. There are many more inside the app.",
       },
       { property: "og:title", content: "Rafty template gallery | A taste of the library" },
       {
         property: "og:description",
-        content: "A curated look at Rafty's global template library, grouped by business type.",
+        content: "A curated look at Rafty's global template library, grouped by visual family.",
       },
       { property: "og:url", content: "https://rafty.webdoagency.com/gallery" },
       { property: "og:type", content: "website" },
@@ -31,9 +30,14 @@ export const Route = createFileRoute("/gallery")({
   component: GalleryPage,
 });
 
-function demoForType(type: BusinessType) {
-  return demoPosts.find((d) => d.businessType === type) ?? demoPosts[0]!;
-}
+const FAMILIES: { tag: TemplateTag; label: string }[] = [
+  { tag: "editorial", label: "Editorial" },
+  { tag: "minimal", label: "Minimal" },
+  { tag: "bold", label: "Bold type" },
+  { tag: "luxury", label: "Luxury" },
+  { tag: "gradient", label: "Modern gradient" },
+  { tag: "offer", label: "Offer led" },
+];
 
 function GalleryPage() {
   return (
@@ -43,25 +47,24 @@ function GalleryPage() {
           A look inside the template library
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-          Rafty ships with 50 global templates across five quick-start
-          styles. Here is a curated sample from each, there are many more
-          waiting inside the app.
+          Rafty ships with 50 global templates built as visual families, not
+          industry boxes. Here is a curated sample from a few of them.
         </p>
       </section>
 
-      {BUSINESS_TYPES.map((type) => {
+      {FAMILIES.map((family, index) => {
         const templates = globalTemplates
-          .filter((tpl) => tpl.scope === "global" && tpl.businessType === type)
+          .filter((tpl) => tpl.tags.includes(family.tag))
           .slice(0, 3);
-        const demo = demoForType(type);
+        const demo = demoPosts[index % demoPosts.length]!;
 
         return (
-          <section key={type} className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+          <section key={family.tag} className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
             <div className="flex items-end justify-between gap-3">
-              <h2 className="font-display text-xl font-extrabold">
-                {BUSINESS_TYPE_NAMES[type]}
-              </h2>
-              <span className="text-xs font-medium text-muted-foreground">10 templates in Rafty</span>
+              <h2 className="font-display text-xl font-extrabold">{family.label}</h2>
+              <span className="text-xs font-medium text-muted-foreground">
+                {globalTemplates.filter((tpl) => tpl.tags.includes(family.tag)).length} templates in Rafty
+              </span>
             </div>
             <div className="mt-4 grid gap-5 sm:grid-cols-3">
               {templates.map((tpl) => (
@@ -71,7 +74,7 @@ function GalleryPage() {
                     content={demo.content}
                     brand={demo.brand}
                     businessName={demo.businessName}
-                    businessType={type}
+                    businessType={demo.businessType}
                     className="rounded-xl"
                   />
                   <p className="px-2 pb-1 pt-3 text-xs font-medium text-muted-foreground">

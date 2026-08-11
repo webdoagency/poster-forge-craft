@@ -1,4 +1,4 @@
-import type { BusinessType, CurrencyCode, LanguageCode } from "./types";
+import type { BusinessType, CurrencyCode, LanguageCode, PlanTier } from "./types";
 
 export const BUSINESS_TYPES: BusinessType[] = [
   "travel_agency",
@@ -16,21 +16,89 @@ export const BUSINESS_TYPE_NAMES: Record<BusinessType, string> = {
   car_dealership: "Car Dealership",
   restaurant: "Restaurant",
   retail: "Retail",
-  other: "Other",
+  other: "Other business",
 };
 
-export const FONTS = [
-  "Inter",
-  "DM Sans",
-  "Manrope",
-  "Plus Jakarta Sans",
-  "Sora",
-  "Poppins",
-  "Montserrat",
-  "Playfair Display",
-  "Lora",
-  "Space Grotesk",
-] as const;
+/**
+ * Suggestions for the custom category field. Rafty is not limited to the five
+ * quick start types, these simply help a business describe itself.
+ */
+export const CUSTOM_TYPE_SUGGESTIONS = [
+  "Hair salon",
+  "Beauty studio",
+  "Gym",
+  "Personal trainer",
+  "Dental clinic",
+  "Medical clinic",
+  "Hotel",
+  "Guesthouse",
+  "Construction",
+  "Trades and repairs",
+  "Cleaning company",
+  "Events and weddings",
+  "Education and courses",
+  "Professional services",
+  "Automotive service",
+  "Local shop",
+  "Online shop",
+  "Creator",
+];
+
+/* --------------------------------- fonts ---------------------------------- */
+
+export type FontCategory =
+  | "Modern Sans"
+  | "Editorial Serif"
+  | "Luxury"
+  | "Bold Display"
+  | "Clean Business";
+
+export type FontOption = { family: string; category: FontCategory; weights: string };
+
+/** Curated library. Every family is loaded in the root route so posts render it. */
+export const FONT_LIBRARY: FontOption[] = [
+  { family: "Inter", category: "Modern Sans", weights: "400;600;800" },
+  { family: "DM Sans", category: "Modern Sans", weights: "400;500;700" },
+  { family: "Manrope", category: "Modern Sans", weights: "400;600;800" },
+  { family: "Plus Jakarta Sans", category: "Modern Sans", weights: "400;600;800" },
+  { family: "Sora", category: "Modern Sans", weights: "400;600;800" },
+  { family: "Outfit", category: "Modern Sans", weights: "400;600;800" },
+  { family: "Space Grotesk", category: "Modern Sans", weights: "400;600;700" },
+  { family: "Playfair Display", category: "Editorial Serif", weights: "400;600;800" },
+  { family: "Lora", category: "Editorial Serif", weights: "400;600;700" },
+  { family: "Libre Baskerville", category: "Editorial Serif", weights: "400;700" },
+  { family: "Fraunces", category: "Editorial Serif", weights: "400;600;900" },
+  { family: "Cormorant Garamond", category: "Luxury", weights: "400;600;700" },
+  { family: "Marcellus", category: "Luxury", weights: "400" },
+  { family: "Italiana", category: "Luxury", weights: "400" },
+  { family: "Prata", category: "Luxury", weights: "400" },
+  { family: "Archivo Black", category: "Bold Display", weights: "400" },
+  { family: "Anton", category: "Bold Display", weights: "400" },
+  { family: "Bebas Neue", category: "Bold Display", weights: "400" },
+  { family: "Oswald", category: "Bold Display", weights: "400;600;700" },
+  { family: "Work Sans", category: "Clean Business", weights: "400;600;700" },
+  { family: "IBM Plex Sans", category: "Clean Business", weights: "400;600;700" },
+  { family: "Source Sans 3", category: "Clean Business", weights: "400;600;700" },
+  { family: "Figtree", category: "Clean Business", weights: "400;600;800" },
+  { family: "Public Sans", category: "Clean Business", weights: "400;600;700" },
+];
+
+export const FONT_CATEGORIES: FontCategory[] = [
+  "Modern Sans",
+  "Editorial Serif",
+  "Luxury",
+  "Bold Display",
+  "Clean Business",
+];
+
+export const FONTS = FONT_LIBRARY.map((f) => f.family);
+
+/** Google Fonts stylesheet covering the whole curated library. */
+export const FONT_STYLESHEET_HREF = `https://fonts.googleapis.com/css2?${FONT_LIBRARY.map(
+  (f) => `family=${f.family.replace(/ /g, "+")}:wght@${f.weights}`,
+).join("&")}&display=swap`;
+
+/* -------------------------------- currency -------------------------------- */
 
 export const CURRENCIES: CurrencyCode[] = ["EUR", "CHF", "GBP", "USD", "ALL", "SEK", "NOK", "DKK"];
 
@@ -45,27 +113,79 @@ export const CURRENCY_SYMBOLS: Record<CurrencyCode, string> = {
   DKK: "kr",
 };
 
+/** Amount first, symbol after, for example "299 €". */
+export function formatPrice(value: string, currency: CurrencyCode): string {
+  const raw = value.trim();
+  if (!raw) return "";
+  const numeric = raw.replace(/[^\d.,]/g, "");
+  if (!numeric) return raw;
+  return `${numeric} ${CURRENCY_SYMBOLS[currency]}`;
+}
+
 export const LANGUAGES: { code: LanguageCode; label: string }[] = [
   { code: "en", label: "English" },
   { code: "de", label: "Deutsch" },
   { code: "sq", label: "Shqip" },
 ];
 
-/** Price rendering always follows the business currency. */
-export function formatPrice(value: string, currency: CurrencyCode): string {
-  const raw = value.trim();
-  if (!raw) return "";
-  const symbol = CURRENCY_SYMBOLS[currency];
-  const numeric = raw.replace(/[^\d.,]/g, "");
-  if (!numeric) return raw;
-  const prefix = raw.toLowerCase().startsWith("from") ? "" : "";
-  const before = currency === "EUR" || currency === "GBP" || currency === "USD";
-  return prefix + (before ? `${symbol}${numeric}` : `${numeric} ${symbol}`);
-}
+/* ---------------------------------- plans --------------------------------- */
+
+export const PLANS: {
+  tier: PlanTier;
+  name: string;
+  monthly: number;
+  brands: number;
+  partnershipPosts: number;
+  features: string[];
+}[] = [
+  {
+    tier: "starter",
+    name: "Starter",
+    monthly: 50,
+    brands: 1,
+    partnershipPosts: 0,
+    features: ["1 brand", "Unlimited templates", "Your templates"],
+  },
+  {
+    tier: "growth",
+    name: "Growth",
+    monthly: 100,
+    brands: 2,
+    partnershipPosts: 0,
+    features: ["2 brands", "Unlimited templates", "Your templates"],
+  },
+  {
+    tier: "partnership",
+    name: "Partnership",
+    monthly: 200,
+    brands: 3,
+    partnershipPosts: 30,
+    features: [
+      "3 brands",
+      "Unlimited templates",
+      "Your templates",
+      "Rafty Partnership: we create up to 30 posts per month from your pictures and information",
+      "You still create unlimited posts yourself",
+    ],
+  },
+];
+
+export const PLAN_NAMES: Record<PlanTier, string> = {
+  starter: "Starter",
+  growth: "Growth",
+  partnership: "Partnership",
+};
+
+export const ANNUAL_DISCOUNT = 0.2;
+
+export const annualPerMonth = (monthly: number) =>
+  Math.round(monthly * (1 - ANNUAL_DISCOUNT) * 100) / 100;
+
+/* --------------------------------- fields --------------------------------- */
 
 export type FieldKey = "title" | "subject" | "location" | "price" | "date" | "meta1" | "meta2";
 
-/** Per business type field schema. Same creation architecture, typed fields. */
+/** Suggested fields per business type. Templates are never restricted by type. */
 export const TYPE_FIELDS: Record<BusinessType, { key: FieldKey; labelKey: string }[]> = {
   travel_agency: [
     { key: "title", labelKey: "field.offer" },
@@ -177,10 +297,33 @@ export const SERVICE_SUGGESTIONS: Record<BusinessType, string[]> = {
   ],
 };
 
+/** Simple CTA presets used on posts and in captions. */
+export const CTA_PRESETS = [
+  "Send us a message",
+  "Book now",
+  "Call us today",
+  "Visit us",
+  "Order online",
+  "Reserve your spot",
+  "Limited availability",
+];
+
+/** Light occasion presets that only add text, never layout. */
+export const OCCASION_PRESETS: { id: string; label: string; title: string; extra: string }[] = [
+  { id: "weekend", label: "Weekend offer", title: "Weekend offer", extra: "Valid this weekend only" },
+  { id: "new", label: "New arrival", title: "Just arrived", extra: "Available from today" },
+  { id: "summer", label: "Summer season", title: "Summer season", extra: "Book early for the best dates" },
+  { id: "holiday", label: "Holiday special", title: "Holiday special", extra: "Limited holiday availability" },
+  { id: "lastminute", label: "Last minute", title: "Last minute", extra: "Only a few places left" },
+];
+
 export const DEFAULT_BRAND = {
   primary: "#6d4dff",
   secondary: "#b06cf5",
+  accent: "#ff7a59",
+  background: null as string | null,
   fontFamily: "Sora",
+  fontSecondary: null as string | null,
   currency: "EUR" as CurrencyCode,
   language: "en" as LanguageCode,
 };

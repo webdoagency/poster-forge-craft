@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowRight, Building2, Image, LayoutTemplate, Sparkles, Download } from "lucide-react";
+import { ArrowRight, Image, LayoutTemplate, Sparkles, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PostCanvas } from "@/components/rafty/PostCanvas";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
-import { MiniDemo } from "@/components/marketing/MiniDemo";
 import { usePrefersReducedMotion } from "@/components/marketing/usePrefersReducedMotion";
+import { demoPosts } from "@/lib/rafty/demo";
 
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
@@ -13,12 +14,12 @@ export const Route = createFileRoute("/how-it-works")({
       {
         name: "description",
         content:
-          "See the five simple steps to go from your business details and one image to a finished, on-brand social post with Rafty.",
+          "See the real four step flow: pick a template, add your details and one image, generate your post and caption, then adjust and save, download or share it.",
       },
       { property: "og:title", content: "How Rafty works | From one image to a branded post" },
       {
         property: "og:description",
-        content: "Five steps, one finished branded post. No design skills needed.",
+        content: "Four steps, one finished branded post. No design skills needed.",
       },
       { property: "og:url", content: "https://rafty.webdoagency.com/how-it-works" },
       { property: "og:type", content: "website" },
@@ -31,29 +32,28 @@ export const Route = createFileRoute("/how-it-works")({
 
 const STEPS = [
   {
-    icon: Building2,
-    title: "Tell Rafty about your business",
-    body: "Name, business type and a few basics so Rafty understands how you present yourself.",
+    icon: LayoutTemplate,
+    title: "Pick a template",
+    body: "Choose from a curated library, tuned to how your kind of business sells.",
+    postIndex: 1,
   },
   {
     icon: Image,
-    title: "Upload one image and add your information",
-    body: "A single photo plus your offer details is all the content Rafty needs to start.",
-  },
-  {
-    icon: LayoutTemplate,
-    title: "Choose a template",
-    body: "Pick from a curated set of layouts tuned to your business type, or explore the full library.",
+    title: "Add a few details and one image",
+    body: "A headline, a price or a date, and a single photo. That is the whole brief.",
+    postIndex: 0,
   },
   {
     icon: Sparkles,
-    title: "Generate your branded post",
-    body: "Rafty lays out your image, text and brand colors into a finished design in seconds.",
+    title: "Generate your post and caption",
+    body: "Rafty lays out your image and text in your brand colors, and writes a caption to match.",
+    postIndex: 2,
   },
   {
-    icon: Download,
-    title: "Download and save",
-    body: "Export your post ready for any platform, and keep a record inside your account.",
+    icon: Share2,
+    title: "Adjust, then save, download or share",
+    body: "Make any small change you like, then keep it in your account, download the file, or share it straight to your device.",
+    postIndex: 1,
   },
 ];
 
@@ -62,67 +62,68 @@ function HowItWorksPage() {
 
   return (
     <MarketingLayout>
-      <section className="mx-auto max-w-4xl px-4 pb-8 pt-14 text-center sm:px-6">
-        <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
-          Five steps to your first post
+      <section className="mx-auto max-w-3xl px-4 pb-10 pt-16 sm:px-6 sm:pt-24">
+        <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
+          Four steps to your first post
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-          No design software, no learning curve. Rafty turns what you already
-          have into something you would pay a designer for.
+        <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
+          No design software, no learning curve. Just the parts of the process
+          that actually matter.
         </p>
       </section>
 
-      <section className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <div className="relative">
-          <div
-            aria-hidden
-            className="absolute left-6 top-2 bottom-2 hidden w-px bg-border sm:block"
-          />
-          <ol className="flex flex-col gap-6">
-            {STEPS.map((step, index) => (
-              <motion.li
+      <section className="mx-auto max-w-5xl px-4 pb-20 sm:px-6">
+        <div className="flex flex-col gap-20 sm:gap-28">
+          {STEPS.map((step, index) => {
+            const post = demoPosts[step.postIndex]!;
+            const reversed = index % 2 === 1;
+            return (
+              <motion.div
                 key={step.title}
-                className="relative flex gap-5"
-                initial={{ opacity: reduced ? 1 : 0, y: reduced ? 0 : 24 }}
+                className={`grid items-center gap-10 sm:grid-cols-2 ${reversed ? "sm:[&>*:first-child]:order-2" : ""}`}
+                initial={{ opacity: 0, y: reduced ? 0 : 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-80px" }}
-                transition={{ duration: reduced ? 0 : 0.45, delay: reduced ? 0 : index * 0.06 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
               >
-                <span className="relative z-10 flex size-12 shrink-0 items-center justify-center rounded-2xl border border-border bg-card text-primary shadow-soft">
-                  <step.icon className="size-5" />
-                </span>
-                <div className="card-soft flex-1 p-5">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <div>
+                  <span className="inline-flex size-11 items-center justify-center rounded-full border border-border text-foreground">
+                    <step.icon className="size-5" />
+                  </span>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Step {index + 1}
-                  </div>
-                  <h2 className="mt-1 font-display text-lg font-bold">{step.title}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{step.body}</p>
+                  </p>
+                  <h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">
+                    {step.title}
+                  </h2>
+                  <p className="mt-3 max-w-sm text-base text-muted-foreground">{step.body}</p>
                 </div>
-              </motion.li>
-            ))}
-          </ol>
+                <div className="mx-auto w-full max-w-xs">
+                  <PostCanvas
+                    template={post.template}
+                    content={post.content}
+                    brand={post.brand}
+                    businessName={post.businessName}
+                    businessType={post.businessType}
+                    className="rounded-2xl shadow-lift"
+                  />
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-        <div className="card-soft p-6 sm:p-9">
-          <h2 className="font-display text-2xl font-extrabold">See step four in action</h2>
-          <p className="mt-2 max-w-xl text-sm text-muted-foreground">
-            Change the headline and accent color below to feel how the
-            generate step works.
-          </p>
-          <div className="mt-7">
-            <MiniDemo />
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 pb-16 pt-4 sm:px-6">
-        <div className="brand-gradient flex flex-col items-start gap-4 rounded-3xl px-6 py-10 text-primary-foreground sm:px-10">
-          <h2 className="font-display text-2xl font-extrabold sm:text-3xl">
-            Ready to make your first post?
-          </h2>
-          <Button asChild size="lg" variant="secondary" className="rounded-xl">
+      <section className="mx-auto max-w-4xl px-4 pb-28 text-center sm:px-6">
+        <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+          That is the whole process.
+        </h2>
+        <p className="mx-auto mt-4 max-w-md text-base text-muted-foreground">
+          No scheduling, no automated publishing. Just a fast way to make
+          something worth posting yourself.
+        </p>
+        <div className="mt-8">
+          <Button asChild size="lg" className="rounded-full px-8">
             <Link to="/auth">
               Try for free
               <ArrowRight className="ml-1 size-4" />

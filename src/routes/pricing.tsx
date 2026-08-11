@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
+import { usePrefersReducedMotion } from "@/components/marketing/usePrefersReducedMotion";
+import { annualPerMonth, PLANS } from "@/lib/rafty/constants";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/pricing")({
@@ -13,7 +16,7 @@ export const Route = createFileRoute("/pricing")({
       {
         name: "description",
         content:
-          "Three straightforward Rafty plans built around post creation, templates, brand kit and support. Monthly or annual, save 20 percent yearly.",
+          "Three straightforward Rafty plans built around brands and templates, from 50 euro per month. Annual billing saves 20 percent. Checkout is not live yet, every plan starts a conversation.",
       },
       { property: "og:title", content: "Rafty pricing | Simple plans for branded content" },
       {
@@ -29,66 +32,26 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
 
-type Plan = {
-  name: string;
-  monthly: number;
-  tagline: string;
-  featured?: boolean;
-  features: string[];
-};
-
-const PLANS: Plan[] = [
-  {
-    name: "Starter",
-    monthly: 50,
-    tagline: "For a single business finding its rhythm.",
-    features: [
-      "Unlimited post creation",
-      "Access to global templates",
-      "One brand kit",
-      "Email support",
-    ],
-  },
-  {
-    name: "Studio",
-    monthly: 99,
-    tagline: "For teams publishing regularly across channels.",
-    featured: true,
-    features: [
-      "Everything in Starter",
-      "Priority template access",
-      "2 custom template requests / month",
-      "Priority support",
-    ],
-  },
-  {
-    name: "Agency",
-    monthly: 150,
-    tagline: "For agencies managing several brands.",
-    features: [
-      "Everything in Studio",
-      "Multiple brand kits",
-      "5 custom template requests / month",
-      "Dedicated support",
-    ],
-  },
-];
+function euro(value: number) {
+  return `${Number.isInteger(value) ? value : value.toFixed(2)} \u20ac`;
+}
 
 function PricingPage() {
   const [annual, setAnnual] = useState(false);
+  const reduced = usePrefersReducedMotion();
 
   return (
     <MarketingLayout>
-      <section className="mx-auto max-w-4xl px-4 pb-6 pt-14 text-center sm:px-6">
-        <h1 className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl">
+      <section className="mx-auto max-w-3xl px-4 pb-8 pt-16 text-center sm:px-6 sm:pt-24">
+        <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
           Simple pricing, no surprises
         </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-          Three plans built around what Rafty actually does: post creation,
-          templates, your brand kit and support.
+        <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
+          Three plans, built around how many brands you manage. Every plan
+          includes unlimited templates and the ability to build your own.
         </p>
 
-        <div className="mt-7 inline-flex items-center gap-3 rounded-full border border-border bg-card px-4 py-2">
+        <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-border px-4 py-2">
           <span className={cn("text-sm font-medium", !annual && "text-foreground", annual && "text-muted-foreground")}>
             Monthly
           </span>
@@ -102,64 +65,86 @@ function PricingPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <div className="grid gap-6 md:grid-cols-3">
-          {PLANS.map((plan) => {
-            const effectiveMonthly = annual ? Math.round(plan.monthly * 0.8) : plan.monthly;
+      <section className="mx-auto max-w-5xl px-4 py-14 sm:px-6">
+        <div className="grid gap-px overflow-hidden rounded-3xl border border-border bg-border md:grid-cols-3">
+          {PLANS.map((plan, i) => {
+            const isPartnership = plan.tier === "partnership";
+            const effective = annual ? annualPerMonth(plan.monthly) : plan.monthly;
             return (
-              <div
-                key={plan.name}
+              <motion.div
+                key={plan.tier}
                 className={cn(
-                  "card-soft flex flex-col gap-6 p-6",
-                  plan.featured && "border-2 border-primary shadow-lift",
+                  "flex flex-col gap-6 bg-background p-8",
+                  isPartnership && "bg-foreground text-background",
                 )}
+                initial={{ opacity: 0, y: reduced ? 0 : 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.45, delay: reduced ? 0 : i * 0.06 }}
               >
-                {plan.featured ? (
-                  <span className="w-fit rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                    Most popular
-                  </span>
-                ) : null}
                 <div>
-                  <h2 className="font-display text-xl font-extrabold">{plan.name}</h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{plan.tagline}</p>
+                  {isPartnership ? (
+                    <span className="mb-2 inline-block rounded-full border border-background/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
+                      Rafty Partnership
+                    </span>
+                  ) : null}
+                  <h2 className="font-display text-xl font-bold">{plan.name}</h2>
+                  <p
+                    className={cn(
+                      "mt-1 text-sm",
+                      isPartnership ? "text-background/70" : "text-muted-foreground",
+                    )}
+                  >
+                    {plan.brands} brand{plan.brands > 1 ? "s" : ""}
+                  </p>
                 </div>
+
                 <div>
-                  <span className="font-display text-4xl font-extrabold">
-                    &euro;{effectiveMonthly}
+                  <span className="font-display text-4xl font-bold">{euro(effective)}</span>
+                  <span className={cn("text-sm", isPartnership ? "text-background/70" : "text-muted-foreground")}>
+                    {" "}
+                    / month
                   </span>
-                  <span className="text-sm text-muted-foreground"> / month</span>
                   {annual ? (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Billed annually at &euro;{effectiveMonthly * 12}
+                    <p className={cn("mt-1 text-xs", isPartnership ? "text-background/60" : "text-muted-foreground")}>
+                      Billed annually
                     </p>
                   ) : null}
                 </div>
+
                 <ul className="flex flex-1 flex-col gap-2.5 text-sm">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
-                      <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                      <Check className="mt-0.5 size-4 shrink-0" />
                       <span>{f}</span>
                     </li>
                   ))}
                 </ul>
+
+                {isPartnership ? (
+                  <p className="text-xs text-background/70">
+                    Rafty creates up to {plan.partnershipPosts} posts a month
+                    from the pictures and information you send us, alongside
+                    the unlimited posts you can still make yourself.
+                  </p>
+                ) : null}
+
                 <Button
                   asChild
                   size="lg"
-                  variant={plan.featured ? "default" : "outline"}
-                  className="rounded-xl"
+                  variant={isPartnership ? "secondary" : "outline"}
+                  className="rounded-full"
                 >
-                  <Link to="/auth">Try for free</Link>
+                  <Link to="/contact">Talk to us about {plan.name}</Link>
                 </Button>
-              </div>
+              </motion.div>
             );
           })}
         </div>
-        <p className="mt-8 text-center text-sm text-muted-foreground">
-          Need something different?{" "}
-          <Link to="/contact" className="font-medium text-primary hover:underline">
-            Talk to us
-          </Link>
-          .
+
+        <p className="mx-auto mt-8 max-w-lg text-center text-sm text-muted-foreground">
+          Online checkout is not live yet. Choosing a plan starts a
+          conversation with us, it does not charge you anything.
         </p>
       </section>
     </MarketingLayout>

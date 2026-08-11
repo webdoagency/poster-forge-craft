@@ -5,6 +5,13 @@ import { Images, LayoutTemplate, Palette, Sparkles, LogOut } from "lucide-react"
 import { useRafty } from "@/lib/rafty/store";
 import { Logo } from "@/components/rafty/Logo";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const nav = [
   { to: "/create", labelKey: "nav.create", icon: Sparkles },
@@ -13,9 +20,10 @@ const nav = [
   { to: "/brand", labelKey: "nav.brand", icon: Palette },
 ] as const;
 
-/** Business chrome. One account, one business, so there is no switcher. */
+/** Business chrome. Most accounts have one brand, a switcher only appears
+ * once the plan grants more than one. */
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { ready, user, business, isAdmin, t, signOut } = useRafty();
+  const { ready, user, business, brands, selectBrand, isAdmin, t, signOut } = useRafty();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -38,6 +46,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const statusLabel = t(`status.${business.status}`);
+  const hasMultipleBrands = brands.length > 1;
 
   return (
     <div className="page-bg min-h-screen">
@@ -57,6 +66,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             ))}
           </nav>
+          {hasMultipleBrands ? (
+            <Select value={business.id} onValueChange={(id) => selectBrand(id)}>
+              <SelectTrigger className="ml-2 h-9 w-40 shrink-0 rounded-lg bg-card text-sm sm:w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {brands.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : null}
           <div className="ml-auto flex min-w-0 items-center gap-3">
             {isAdmin ? (
               <Link

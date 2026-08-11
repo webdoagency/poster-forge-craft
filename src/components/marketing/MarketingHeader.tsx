@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
+  { to: "/", label: "Home" },
   { to: "/how-it-works", label: "How it works" },
   { to: "/gallery", label: "Templates" },
   { to: "/pricing", label: "Pricing" },
+  { to: "/contact", label: "Book a demo" },
 ];
 
 export function MarketingHeader() {
@@ -18,27 +20,25 @@ export function MarketingHeader() {
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-4 sm:px-6">
         <Link to="/" className="flex items-center" aria-label="Rafty home">
-          <Logo height={26} />
+          <Logo height={24} />
         </Link>
 
-        <nav className="ml-8 hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
+        <nav className="ml-10 hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.to}
               to={link.to}
               className="transition-colors hover:text-foreground"
               activeProps={{ className: "text-foreground" }}
+              activeOptions={{ exact: link.to === "/" }}
             >
               {link.label}
             </Link>
           ))}
         </nav>
 
-        <div className="ml-auto hidden items-center gap-2 md:flex">
-          <Button asChild variant="ghost" className="rounded-xl">
-            <Link to="/contact">Book a demo</Link>
-          </Button>
-          <Button asChild className="rounded-xl">
+        <div className="ml-auto hidden md:flex">
+          <Button asChild size="sm" className="rounded-full px-5">
             <Link to="/auth">Try for free</Link>
           </Button>
         </div>
@@ -72,13 +72,6 @@ export function MarketingHeader() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              to="/contact"
-              onClick={() => setOpen(false)}
-              className="rounded-lg px-3 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
-            >
-              Book a demo
-            </Link>
             <Button asChild className="mt-2 rounded-xl">
               <Link to="/auth" onClick={() => setOpen(false)}>
                 Try for free

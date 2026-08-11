@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -18,8 +18,9 @@ import { readFileAsDataUrl } from "@/lib/rafty/file";
 import {
   BUSINESS_TYPES,
   CURRENCIES,
+  CUSTOM_TYPE_SUGGESTIONS,
   DEFAULT_BRAND,
-  FONTS,
+  FONT_LIBRARY,
   LANGUAGES,
   SERVICE_SUGGESTIONS,
 } from "@/lib/rafty/constants";
@@ -31,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
       { title: "Set up your business | Rafty" },
       {
         name: "description",
-        content: "Tell Rafty about your business, brand colors, font, currency and services.",
+        content: "Tell Rafty about your business, brand colors, fonts, currency and services.",
       },
       { property: "og:title", content: "Set up your business | Rafty" },
       { property: "og:description", content: "A short setup and your first free post is ready." },
@@ -52,6 +53,13 @@ const STEP_KEYS = [
   "onb.review",
 ];
 
+const SUBMIT_STEPS = [
+  "Creating your account brand...",
+  "Saving your brand identity...",
+  "Saving your services...",
+  "Finishing up...",
+];
+
 function OnboardingPage() {
   const { ready, user, business, completeOnboarding, t, language, setLanguage } = useRafty();
   const navigate = useNavigate();
@@ -63,13 +71,20 @@ function OnboardingPage() {
   const [logoDataUrl, setLogo] = useState<string | null>(null);
   const [primary, setPrimary] = useState(DEFAULT_BRAND.primary);
   const [secondary, setSecondary] = useState(DEFAULT_BRAND.secondary);
+  const [accent, setAccent] = useState(DEFAULT_BRAND.accent);
   const [fontFamily, setFont] = useState<string>(DEFAULT_BRAND.fontFamily);
+  const [fontSecondary, setFontSecondary] = useState<string | null>(null);
   const [currency, setCurrency] = useState<CurrencyCode>(DEFAULT_BRAND.currency);
   const [services, setServices] = useState<string[]>([]);
   const [customService, setCustomService] = useState("");
   const [custom, setCustom] = useState<{ fileName: string; fileType: string; previewDataUrl: string | null } | null>(
     null,
   );
+
+  const [submitting, setSubmitting] = useState(false);
+  const [submitStep, setSubmitStep] = useState(0);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const submitGuard = useRef(false);
 
   useEffect(() => {
     if (!ready) return;
@@ -86,21 +101,40 @@ function OnboardingPage() {
         : true;
 
   async function submit() {
-    await completeOnboarding({
-      type,
-      customType: type === "other" ? customType.trim() : null,
-      name: name.trim(),
-      logoDataUrl,
-      primary,
-      secondary,
-      fontFamily,
-      currency,
-      language,
-      services,
-      customTemplate: custom,
-    });
-    toast.success(t("onb.done"));
-    navigate({ to: "/create", replace: true });
+    if (submitGuard.current) return;
+    submitGuard.current = true;
+    setSubmitting(true);
+    setSubmitError(null);
+    setSubmitStep(0);
+    try {
+      setSubmitStep(0);
+      await new Promise((r) => setTimeout(r, 150));
+      setSubmitStep(1);
+      await new Promise((r) => setTimeout(r, 150));
+      setSubmitStep(2);
+      await completeOnboarding({
+        type,
+        customType: type === "other" ? customType.trim() : null,
+        name: name.trim(),
+        logoDataUrl,
+        primary,
+        secondary,
+        accent,
+        fontFamily,
+        fontSecondary,
+        currency,
+        language,
+        services,
+        customTemplate: custom,
+      });
+      setSubmitStep(3);
+      toast.success(t("onb.done"));
+      navigate({ to: "/create", replace: true });
+    } catch (err) {
+      submitGuard.current = false;
+      setSubmitting(false);
+      setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    }
   }
 
   return (
@@ -150,11 +184,17 @@ function OnboardingPage() {
                   </Label>
                   <Input
                     id="customType"
+                    list="custom-type-suggestions"
                     value={customType}
                     onChange={(e) => setCustomType(e.target.value)}
                     placeholder={t("onb.customTypeHint")}
                     className="h-11 rounded-xl bg-card"
                   />
+                  <datalist id="custom-type-suggestions">
+                    {CUSTOM_TYPE_SUGGESTIONS.map((s) => (
+                      <option key={s} value={s} />
+                    ))}
+                  </datalist>
                 </div>
               ) : null}
               <div className="sm:col-span-2">
@@ -211,11 +251,14 @@ function OnboardingPage() {
                   {t("onb.uploadLogo")}
                 </span>
               </label>
+              <p className="text-xs text-muted-foreground">
+                A logo can only be set once. After you finish setup, only a Rafty admin can replace it.
+              </p>
             </div>
           ) : null}
 
           {step === 3 ? (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="grid gap-2">
                 <Label htmlFor="primary">{t("onb.primary")}</Label>
                 <input
@@ -236,25 +279,70 @@ function OnboardingPage() {
                   className="h-12 w-full rounded-xl border bg-card"
                 />
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="accent">Accent color</Label>
+                <input
+                  id="accent"
+                  type="color"
+                  value={accent}
+                  onChange={(e) => setAccent(e.target.value)}
+                  className="h-12 w-full rounded-xl border bg-card"
+                />
+              </div>
             </div>
           ) : null}
 
           {step === 4 ? (
-            <div className="grid gap-2">
-              {FONTS.map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() => setFont(f)}
-                  style={{ fontFamily: `"${f}", sans-serif` }}
-                  className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left text-base font-semibold ${
-                    fontFamily === f ? "border-primary bg-primary-soft" : "border-border bg-card"
-                  }`}
-                >
-                  {f}
-                  {fontFamily === f ? <Check className="size-4 text-primary" /> : null}
-                </button>
-              ))}
+            <div className="grid gap-4">
+              <div className="grid gap-2">
+                <Label>{t("onb.font")}</Label>
+                <div className="grid max-h-60 gap-2 overflow-y-auto rounded-xl border bg-card p-2">
+                  {FONT_LIBRARY.map((f) => (
+                    <button
+                      key={f.family}
+                      type="button"
+                      onClick={() => setFont(f.family)}
+                      style={{ fontFamily: `"${f.family}", sans-serif` }}
+                      className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left text-base font-semibold ${
+                        fontFamily === f.family ? "border-primary bg-primary-soft" : "border-border bg-background"
+                      }`}
+                    >
+                      {f.family}
+                      {fontFamily === f.family ? <Check className="size-4 text-primary" /> : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between">
+                  <Label>Secondary font (optional)</Label>
+                  {fontSecondary ? (
+                    <button
+                      type="button"
+                      className="text-xs font-semibold text-muted-foreground"
+                      onClick={() => setFontSecondary(null)}
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+                <div className="grid max-h-48 gap-2 overflow-y-auto rounded-xl border bg-card p-2">
+                  {FONT_LIBRARY.map((f) => (
+                    <button
+                      key={f.family}
+                      type="button"
+                      onClick={() => setFontSecondary(f.family)}
+                      style={{ fontFamily: `"${f.family}", sans-serif` }}
+                      className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left text-base font-semibold ${
+                        fontSecondary === f.family ? "border-primary bg-primary-soft" : "border-border bg-background"
+                      }`}
+                    >
+                      {f.family}
+                      {fontSecondary === f.family ? <Check className="size-4 text-primary" /> : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : null}
 
@@ -360,22 +448,33 @@ function OnboardingPage() {
           ) : null}
 
           {step === 8 ? (
-            <dl className="grid gap-3 text-sm">
-              {[
-                [t("onb.type"), t(`type.${type}`)],
-                [t("onb.name"), name || "-"],
-                [t("onb.font"), fontFamily],
-                [t("onb.currency"), currency],
-                [t("onb.language"), LANGUAGES.find((l) => l.code === language)?.label ?? "English"],
-                [t("onb.services"), services.length ? services.join(", ") : "-"],
-                [t("onb.custom"), custom?.fileName ?? "-"],
-              ].map(([k, v]) => (
-                <div key={k} className="flex gap-3 border-b pb-2 last:border-0">
-                  <dt className="w-32 shrink-0 text-muted-foreground">{k}</dt>
-                  <dd className="font-semibold">{v}</dd>
+            <div className="grid gap-4">
+              <dl className="grid gap-3 text-sm">
+                {[
+                  [t("onb.type"), type === "other" && customType.trim() ? customType.trim() : t(`type.${type}`)],
+                  [t("onb.name"), name || "-"],
+                  [t("onb.font"), fontSecondary ? `${fontFamily} + ${fontSecondary}` : fontFamily],
+                  [t("onb.currency"), currency],
+                  [t("onb.language"), LANGUAGES.find((l) => l.code === language)?.label ?? "English"],
+                  [t("onb.services"), services.length ? services.join(", ") : "-"],
+                  [t("onb.custom"), custom?.fileName ?? "-"],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex gap-3 border-b pb-2 last:border-0">
+                    <dt className="w-32 shrink-0 text-muted-foreground">{k}</dt>
+                    <dd className="font-semibold">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+              {submitting ? (
+                <div className="flex items-center gap-2 rounded-xl border bg-primary-soft px-4 py-3 text-sm font-semibold text-primary">
+                  <span className="size-2 animate-pulse rounded-full bg-primary" />
+                  {SUBMIT_STEPS[submitStep]}
                 </div>
-              ))}
-            </dl>
+              ) : null}
+              {submitError ? (
+                <p className="text-sm font-semibold text-destructive">{submitError}</p>
+              ) : null}
+            </div>
           ) : null}
 
           <div className="mt-2 flex gap-2">
@@ -383,6 +482,7 @@ function OnboardingPage() {
               <Button
                 variant="outline"
                 className="h-12 flex-1 rounded-xl"
+                disabled={submitting}
                 onClick={() => setStep((s) => s - 1)}
               >
                 {t("onb.back")}
@@ -397,8 +497,12 @@ function OnboardingPage() {
                 {t("onb.next")}
               </Button>
             ) : (
-              <Button className="h-12 flex-1 rounded-xl" onClick={() => void submit()} disabled={!name.trim()}>
-                {t("onb.submit")}
+              <Button
+                className="h-12 flex-1 rounded-xl"
+                onClick={() => void submit()}
+                disabled={!name.trim() || submitting}
+              >
+                {submitting ? SUBMIT_STEPS[submitStep] : t("onb.submit")}
               </Button>
             )}
           </div>

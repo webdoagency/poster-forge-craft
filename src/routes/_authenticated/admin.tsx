@@ -1,31 +1,38 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Logo } from "@/components/rafty/Logo";
 import { useRafty } from "@/lib/rafty/store";
 import * as repo from "@/lib/rafty/repo";
-import {
-  BUSINESS_TYPES,
-  BUSINESS_TYPE_NAMES,
-  CURRENCIES,
-  FONTS,
-  LANGUAGES,
-} from "@/lib/rafty/constants";
-import type { Business, BusinessStatus, CustomTemplateRequest, TrialUsage } from "@/lib/rafty/types";
-import { globalTemplates } from "@/lib/rafty/templates";
+import { BUSINESS_TYPE_NAMES, PLAN_NAMES, PLANS } from "@/lib/rafty/constants";
+import type {
+  AccountPlan,
+  Business,
+  BusinessStatus,
+  CustomTemplateRequest,
+  PlanTier,
+  Post,
+  TrialUsage,
+} from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "Admin | Rafty" },
-      { name: "description", content: "Rafty platform administration." },
+      { name: "description", content: "Platform administration." },
       { property: "og:title", content: "Admin | Rafty" },
-      { property: "og:description", content: "Rafty platform administration." },
+      { property: "og:description", content: "Platform administration." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -33,11 +40,22 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 const STATUSES: BusinessStatus[] = ["pending", "approved", "rejected", "suspended"];
+const STATUS_FILTERS: (BusinessStatus | "all")[] = ["all", ...STATUSES];
 
 function statusTone(status: BusinessStatus) {
   if (status === "approved") return "default" as const;
   if (status === "pending") return "secondary" as const;
   return "outline" as const;
+}
+
+function timeAgo(iso: string) {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.round(diffMs / 60000);
+  if (mins < 60) return `${Math.max(mins, 0)}m ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  return `${days}d ago`;
 }
 
 function AdminPage() {
@@ -46,26 +64,29 @@ function AdminPage() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [trials, setTrials] = useState<TrialUsage[]>([]);
   const [requests, setRequests] = useState<CustomTemplateRequest[]>([]);
-  const [customTemplates, setCustomTemplates] = useState<
-    { id: string; businessId: string; name: string; archived: boolean }[]
-  >([]);
-  const [postCount, setPostCount] = useState(0);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [plans, setPlans] = useState<AccountPlan[]>([]);
   const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<BusinessStatus | "all">("all");
+  const [loading, setLoading] = useState(false);
 
-  // Admin data is only returned by the database for platform admins.
+  // Every read below only returns rows for platform admins. Access is enforced
+  // server side by RLS and is_super_admin(), this page never assumes a role.
   const load = useCallback(async () => {
-    const [b, tr, rq, ct, posts] = await Promise.all([
+    setLoading(true);
+    const [b, tr, rq, ps, pl] = await Promise.all([
       repo.adminListBusinesses(),
       repo.adminListTrials(),
       repo.listRequests(),
-      repo.adminListCustomTemplates(),
       repo.adminListPosts(),
+      repo.adminListPlans(),
     ]);
     setBusinesses(b);
     setTrials(tr);
     setRequests(rq);
-    setCustomTemplates(ct);
-    setPostCount(posts.length);
+    setPosts(ps);
+    setPlans(pl);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -82,13 +103,19 @@ function AdminPage() {
     [trials],
   );
 
+  const planFor = useMemo(
+    () => (ownerUserId: string) => plans.find((p) => p.userId === ownerUserId),
+    [plans],
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return businesses;
-    return businesses.filter(
-      (b) => b.name.toLowerCase().includes(q) || BUSINESS_TYPE_NAMES[b.type].toLowerCase().includes(q),
-    );
-  }, [businesses, query]);
+    return businesses.filter((b) => {
+      if (statusFilter !== "all" && b.status !== statusFilter) return false;
+      if (!q) return true;
+      return b.name.toLowerCase().includes(q) || BUSINESS_TYPE_NAMES[b.type].toLowerCase().includes(q);
+    });
+  }, [businesses, query, statusFilter]);
 
   async function setStatus(businessId: string, status: BusinessStatus) {
     await repo.adminSetStatus(businessId, status);
@@ -96,9 +123,32 @@ function AdminPage() {
     await load();
   }
 
+  async function setPlan(ownerUserId: string, tier: PlanTier) {
+    await repo.adminSetPlan(ownerUserId, tier);
+    toast.success(`Plan set to ${PLAN_NAMES[tier]}`);
+    await load();
+  }
+
   if (!ready || !isAdmin) return <div className="page-bg min-h-screen" />;
 
-  const pending = businesses.filter((b) => b.status === "pending").length;
+  const now = Date.now();
+  const weekMs = 7 * 24 * 60 * 60 * 1000;
+  const byStatus = (status: BusinessStatus) => businesses.filter((b) => b.status === status).length;
+  const approvedThisWeek = businesses.filter(
+    (b) => b.status === "approved" && now - new Date(b.createdAt).getTime() <= weekMs,
+  ).length;
+  const activeBrands = businesses.filter((b) => b.onboarded).length;
+  const trialTotals = trials.reduce(
+    (acc, t) => ({ used: acc.used + t.postsCreated, limit: acc.limit + t.freePostLimit }),
+    { used: 0, limit: 0 },
+  );
+
+  // Owners grouped for plan management, one row per account.
+  const owners = useMemoOwners(businesses);
+  const recentSignups = businesses.slice(0, 6);
+  const recentPosts = posts.slice(0, 6);
+  const postBusinessName = (businessId: string) =>
+    businesses.find((b) => b.id === businessId)?.name ?? "Unknown business";
 
   return (
     <div className="page-bg min-h-screen">
@@ -113,22 +163,28 @@ function AdminPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <Tabs defaultValue="dashboard">
+        <Tabs defaultValue="overview">
           <TabsList className="mb-5 flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-card p-1">
-            <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="businesses">Businesses</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
+            <TabsTrigger value="plans">Plans</TabsTrigger>
             <TabsTrigger value="requests">Custom templates</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="dashboard">
+          <TabsContent value="overview">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 { label: "Businesses", value: businesses.length },
-                { label: "Pending approval", value: pending },
-                { label: "Posts created", value: postCount },
-                { label: "Custom requests", value: requests.length },
+                { label: "Pending approval", value: byStatus("pending") },
+                { label: "Approved", value: byStatus("approved") },
+                { label: "Approved this week", value: approvedThisWeek },
+                { label: "Suspended or rejected", value: byStatus("suspended") + byStatus("rejected") },
+                { label: "Active brands", value: activeBrands },
+                { label: "Posts created", value: posts.length },
+                {
+                  label: "Trial usage",
+                  value: `${trialTotals.used}/${trialTotals.limit || 0}`,
+                },
               ].map((card) => (
                 <div key={card.label} className="card-soft p-5">
                   <p className="text-sm text-muted-foreground">{card.label}</p>
@@ -136,16 +192,66 @@ function AdminPage() {
                 </div>
               ))}
             </div>
+
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              <div className="card-soft p-5">
+                <h2 className="mb-3 font-display text-lg font-extrabold">Recent signups</h2>
+                <div className="grid gap-2">
+                  {recentSignups.map((b) => (
+                    <div key={b.id} className="flex items-center gap-3 text-sm">
+                      <span className="min-w-0 flex-1 truncate font-semibold">{b.name}</span>
+                      <Badge variant={statusTone(b.status)}>{b.status}</Badge>
+                      <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(b.createdAt)}</span>
+                    </div>
+                  ))}
+                  {recentSignups.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No businesses yet.</p>
+                  ) : null}
+                </div>
+              </div>
+              <div className="card-soft p-5">
+                <h2 className="mb-3 font-display text-lg font-extrabold">Recent posts</h2>
+                <div className="grid gap-2">
+                  {recentPosts.map((p) => (
+                    <div key={p.id} className="flex items-center gap-3 text-sm">
+                      <span className="min-w-0 flex-1 truncate font-semibold">
+                        {p.content.title || "Untitled"}
+                      </span>
+                      <span className="shrink-0 truncate text-xs text-muted-foreground">
+                        {postBusinessName(p.businessId)}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(p.createdAt)}</span>
+                    </div>
+                  ))}
+                  {recentPosts.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No posts yet.</p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="businesses">
-            <div className="mb-4 max-w-sm">
+            <div className="mb-4 flex flex-wrap gap-2">
               <Input
                 placeholder="Search businesses"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="h-11 rounded-xl bg-card"
+                className="h-11 max-w-sm rounded-xl bg-card"
               />
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as BusinessStatus | "all")}>
+                <SelectTrigger className="h-11 w-40 rounded-xl bg-card">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {STATUS_FILTERS.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s === "all" ? "All statuses" : s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {loading ? <span className="self-center text-xs text-muted-foreground">Loading...</span> : null}
             </div>
             <div className="grid gap-3">
               {filtered.map((b) => {
@@ -177,29 +283,43 @@ function AdminPage() {
                 );
               })}
               {filtered.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No businesses yet.</p>
+                <p className="text-sm text-muted-foreground">No businesses match this search.</p>
               ) : null}
             </div>
           </TabsContent>
 
-          <TabsContent value="templates">
-            <div className="card-soft mb-4 p-5">
-              <p className="text-sm text-muted-foreground">Global library</p>
-              <p className="font-display text-3xl font-extrabold">{globalTemplates.length}</p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Templates are assigned automatically by business type, and every business also sees
-                the full library.
-              </p>
-            </div>
-            <div className="grid gap-2">
-              {BUSINESS_TYPES.map((bt) => (
-                <div key={bt} className="card-soft flex items-center gap-3 p-4 text-sm">
-                  <span className="font-semibold">{BUSINESS_TYPE_NAMES[bt]}</span>
-                  <span className="ml-auto text-muted-foreground">
-                    {globalTemplates.filter((t) => t.businessType === bt).length} templates
-                  </span>
-                </div>
-              ))}
+          <TabsContent value="plans">
+            <div className="grid gap-3">
+              {owners.map((owner) => {
+                const plan = planFor(owner.ownerUserId);
+                const tier = plan?.plan ?? "starter";
+                return (
+                  <div key={owner.ownerUserId} className="card-soft flex flex-wrap items-center gap-3 p-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-bold">{owner.names.join(", ")}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {owner.businessIds.length} brand{owner.businessIds.length === 1 ? "" : "s"} | limit{" "}
+                        {plan?.brandLimit ?? 1}
+                      </p>
+                    </div>
+                    <Select value={tier} onValueChange={(v) => void setPlan(owner.ownerUserId, v as PlanTier)}>
+                      <SelectTrigger className="h-10 w-44 rounded-xl bg-card">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PLANS.map((p) => (
+                          <SelectItem key={p.tier} value={p.tier}>
+                            {p.name} ({p.brands} brand{p.brands === 1 ? "" : "s"})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })}
+              {owners.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No accounts yet.</p>
+              ) : null}
             </div>
           </TabsContent>
 
@@ -208,11 +328,7 @@ function AdminPage() {
               {requests.map((r) => (
                 <div key={r.id} className="card-soft flex flex-wrap items-center gap-3 p-4">
                   {r.previewDataUrl ? (
-                    <img
-                      src={r.previewDataUrl}
-                      alt=""
-                      className="size-14 rounded-lg object-cover"
-                    />
+                    <img src={r.previewDataUrl} alt="" className="size-14 rounded-lg object-cover" />
                   ) : null}
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-bold">{r.fileName}</p>
@@ -250,66 +366,23 @@ function AdminPage() {
                 <p className="text-sm text-muted-foreground">No custom template requests.</p>
               ) : null}
             </div>
-
-            <h2 className="mb-3 mt-8 font-display text-lg font-extrabold">Private templates</h2>
-            <div className="grid gap-2">
-              {customTemplates.map((x) => (
-                <div key={x.id} className="card-soft flex items-center gap-3 p-4 text-sm">
-                  <span className="truncate font-semibold">{x.name}</span>
-                  {x.archived ? <Badge variant="outline">archived</Badge> : null}
-                  {!x.archived ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="ml-auto rounded-xl"
-                      onClick={async () => {
-                        await repo.archiveTemplate(x.id);
-                        await load();
-                      }}
-                    >
-                      Archive
-                    </Button>
-                  ) : null}
-                </div>
-              ))}
-              {customTemplates.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No private templates yet.</p>
-              ) : null}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="card-soft p-5">
-                <p className="mb-2 font-bold">Business types</p>
-                <ul className="grid gap-1 text-sm text-muted-foreground">
-                  {BUSINESS_TYPES.map((bt) => (
-                    <li key={bt}>{BUSINESS_TYPE_NAMES[bt]}</li>
-                  ))}
-                </ul>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  Businesses outside these categories use Other with a free text category.
-                </p>
-              </div>
-              <div className="card-soft p-5">
-                <p className="mb-2 font-bold">Fonts</p>
-                <ul className="grid gap-1 text-sm text-muted-foreground">
-                  {FONTS.map((f) => (
-                    <li key={f}>{f}</li>
-                  ))}
-                </ul>
-              </div>
-              <div className="card-soft p-5">
-                <p className="mb-2 font-bold">Currencies and languages</p>
-                <p className="text-sm text-muted-foreground">{CURRENCIES.join(", ")}</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {LANGUAGES.map((l) => l.label).join(", ")}
-                </p>
-              </div>
-            </div>
           </TabsContent>
         </Tabs>
       </main>
     </div>
   );
+}
+
+/** Groups businesses by owner so each account gets one plan management row. */
+function useMemoOwners(businesses: Business[]) {
+  return useMemo(() => {
+    const map = new Map<string, { ownerUserId: string; names: string[]; businessIds: string[] }>();
+    for (const b of businesses) {
+      const entry = map.get(b.ownerUserId) ?? { ownerUserId: b.ownerUserId, names: [], businessIds: [] };
+      entry.names.push(b.name);
+      entry.businessIds.push(b.id);
+      map.set(b.ownerUserId, entry);
+    }
+    return [...map.values()];
+  }, [businesses]);
 }

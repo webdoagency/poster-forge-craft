@@ -159,20 +159,24 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const [nextBrand, nextServices, nextPosts, nextTemplates, nextTrial] = await Promise.all([
-        repo.getBrand(b.id),
-        repo.listServices(b.id),
-        repo.listPosts(b.id),
-        repo.templatesForBusiness(b.id),
-        repo.getTrial(b.id),
-      ]);
+      const [nextBrand, nextServices, nextPosts, nextTemplates, nextTrial, nextFavorites] =
+        await Promise.all([
+          repo.getBrand(b.id),
+          repo.listServices(b.id),
+          repo.listPosts(b.id),
+          repo.templatesForBusiness(b.id),
+          repo.getTrial(b.id),
+          repo.listFavorites(b.id),
+        ]);
       if (cancelled) return;
       setBrand(nextBrand);
       setServices(nextServices);
       setPosts(nextPosts);
       setTemplates(nextTemplates);
       setTrial(nextTrial);
+      setFavorites(nextFavorites);
       setReady(true);
+
     })();
 
     return () => {

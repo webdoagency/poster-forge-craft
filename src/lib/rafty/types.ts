@@ -307,7 +307,12 @@ export type Post = {
   adjustments: PostAdjustments;
   shareStatus: ShareStatus;
   createdAt: string;
+  /** Absent means a single image post, kept for records saved before formats. */
+  format?: ContentFormat;
+  /** Multi card formats store every frame here, in display order. */
+  slides?: Slide[];
 };
+
 
 export type TrialUsage = {
   businessId: string;

@@ -1547,27 +1547,49 @@ function renderCustomTemplate(template: Template, ctx: RenderCtx): React.ReactNo
 
 /* ------------------------------ template names ----------------------------- */
 
-const NAME_PARTS: [string, string][] = [
-  ["Aurora", "Skyline"], ["Editorial", "Column"], ["Glass", "Reflection"], ["Split", "Horizon"],
-  ["Frame", "Border"], ["Duotone", "Wash"], ["Ticket", "Stub"], ["Minimal", "Slate"],
-  ["Poster", "Signal"], ["Banner", "Ridge"], ["Spotlight", "Halo"], ["Stack", "Ledger"],
-  ["Dark", "Velvet"], ["Light", "Marble"], ["Type", "Impact"], ["Wide", "Panel"],
-  ["Dense", "Grid"], ["Asymmetric", "Wedge"], ["Quiet", "Canvas"], ["Bold", "Statement"],
-  ["Muted", "Tone"], ["Radiant", "Field"], ["Layered", "Depth"], ["Open", "Air"],
-  ["Structured", "Order"], ["Fluid", "Curve"], ["Crisp", "Edge"], ["Warm", "Glow"],
-  ["Cool", "Frost"], ["Sharp", "Contrast"], ["Soft", "Focus"], ["Grand", "Scale"],
-  ["Refined", "Detail"], ["Vivid", "Accent"], ["Elevated", "View"], ["Balanced", "Form"],
-  ["Clear", "Space"], ["Rich", "Texture"], ["Airy", "Loft"], ["Precise", "Line"],
-  ["Modern", "Frame"], ["Timeless", "Story"], ["Confident", "Voice"], ["Polished", "Surface"],
-  ["Curated", "Selection"], ["Signature", "Series"], ["Essential", "Look"], ["Distinct", "Edition"],
-  ["Premium", "Set"], ["Standout", "Reveal"],
-];
+/**
+ * Template names are numbered and functional. No invented brand, person or
+ * company names anywhere in the library.
+ */
+const ENGINE_STYLE: Record<string, string> = {
+  aurora: "Gradient",
+  editorial: "Editorial",
+  glass: "Glass",
+  split: "Split",
+  frame: "Frame",
+  duotone: "Duotone",
+  ticket: "Ticket",
+  minimal: "Minimal",
+  poster: "Poster",
+  banner: "Banner",
+  spotlight: "Spotlight",
+  stack: "Stack",
+  darkluxury: "Dark",
+  lightluxury: "Light",
+  typeblast: "Bold Type",
+  whitespacepanel: "Whitespace",
+  densegrid: "Grid",
+  asymmetricoffer: "Offer",
+  fullbleed: "Full Bleed",
+  blurbackdrop: "Blur",
+  diagonalslash: "Diagonal",
+  serifcolumn: "Serif",
+  letterbox: "Letterbox",
+  colorwash: "Color Wash",
+  thinframe: "Thin Frame",
+  offerblock: "Offer Block",
+  glassstrip: "Glass Strip",
+  quietwhite: "Quiet White",
+  duskframe: "Dusk",
+  typeoffer: "Type Offer",
+  splitstack: "Split Stack",
+};
 
-/** Fresh, distinct names for the 10 newly added post templates. */
-const NEW_POST_NAMES: string[] = [
-  "Horizon Bleed", "Nightfall Blur", "Wedge Cut", "Serif Estate", "Wash Field",
-  "Border Signal", "Offer Ledger", "Frosted Strip", "Quiet Bloom", "Dusk Reserve",
-];
+const styleName = (engineId: string) => ENGINE_STYLE[engineId] ?? "Classic";
+const pad = (n: number) => String(n).padStart(2, "0");
+const templateName = (index: number, engineId: string, prefix = "") =>
+  `${prefix}${pad(index)} ${styleName(engineId)}`;
+
 
 /** Which business types a template design tends to fit best. Purely a soft
  * sort hint, every template stays available to every business. */

@@ -5,6 +5,7 @@ import type {
   FormatSpec,
   LanguageCode,
   PlanTier,
+  SocialPlatform,
 } from "./types";
 
 

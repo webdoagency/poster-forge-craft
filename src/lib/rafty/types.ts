@@ -228,6 +228,17 @@ export type Template = {
   scope: TemplateScope;
   businessId: string | null;
   archived: boolean;
+  /** Which content format this template renders. Defaults to post. */
+  format?: ContentFormat;
+  /** Multi card formats: how many slides the design supports. */
+  slides?: { min: number; max: number; default: number };
+  /** Video and story: card timing plus the transition between cards. */
+  motion?: {
+    minDuration: number;
+    maxDuration: number;
+    defaultDuration: number;
+    transition: "fade" | "slide" | "zoom";
+  };
   /** Custom templates only: locked uploaded design plus mapped zones. */
   backgroundPath?: string | null;
   backgroundUrl?: string | null;
@@ -235,6 +246,7 @@ export type Template = {
   zones?: TemplateZone[];
   lockedDesign?: boolean;
 };
+
 
 export type CustomTemplateRequestStatus = "processing" | "ready" | "rejected";
 

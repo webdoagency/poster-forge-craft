@@ -2,7 +2,7 @@ import demoBeach from "@/assets/demo-beach.jpg";
 import demoCity from "@/assets/demo-city.jpg";
 import demoCoffee from "@/assets/demo-coffee.jpg";
 import { globalTemplates } from "./templates";
-import { emptyContent, emptyInstructions, type BrandProfile, type BusinessType, type PostContent, type Template } from "./types";
+import { emptyContact, emptyContent, emptyInstructions, type BrandProfile, type BusinessType, type PostContent, type Template } from "./types";
 
 /**
  * Isolated preview content for the public landing page and template previews.
@@ -29,6 +29,7 @@ const brand = (primary: string, secondary: string, fontFamily: string): BrandPro
   fontSecondary: null,
   showBrandName: false,
   instructions: emptyInstructions,
+  contact: emptyContact,
   currency: "EUR",
   language: "en",
 });

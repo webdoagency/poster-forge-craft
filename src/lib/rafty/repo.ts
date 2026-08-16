@@ -3,6 +3,7 @@ import { DEFAULT_BRAND, PLANS } from "./constants";
 import { globalTemplates } from "./templates";
 import {
   emptyContent,
+  emptyContact,
   emptyInstructions,
   type AccountPlan,
   type BrandProfile,
@@ -233,6 +234,7 @@ export async function getBrand(businessId: string): Promise<BrandProfile | null>
     fontSecondary: row.font_secondary ?? null,
     showBrandName: !!row.show_brand_name,
     instructions: { ...emptyInstructions, ...(row.content_instructions ?? {}) },
+    contact: { ...emptyContact, ...((row as unknown as { contact_info?: Partial<typeof emptyContact> }).contact_info ?? {}) },
     currency: row.currency as CurrencyCode,
     language: row.language as LanguageCode,
   };

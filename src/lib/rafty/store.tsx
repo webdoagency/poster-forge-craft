@@ -12,7 +12,7 @@ import { DEFAULT_BRAND } from "./constants";
 import { makeT, type Translator } from "./i18n";
 import { globalTemplates } from "./templates";
 import { supabase } from "@/integrations/supabase/client";
-import { emptyInstructions } from "./types";
+import { emptyContact, emptyInstructions } from "./types";
 import type {
   AccountPlan,
   BrandProfile,
@@ -429,6 +429,7 @@ export const previewBrand: BrandProfile = {
   fontSecondary: null,
   showBrandName: false,
   instructions: emptyInstructions,
+  contact: emptyContact,
   primary: DEFAULT_BRAND.primary,
   secondary: DEFAULT_BRAND.secondary,
   fontFamily: DEFAULT_BRAND.fontFamily,

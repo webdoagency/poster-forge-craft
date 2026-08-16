@@ -19,6 +19,7 @@ import * as repo from "@/lib/rafty/repo";
 import {
   BUSINESS_TYPE_NAMES,
   PLAN_NAMES,
+  PLATFORM_LABELS,
   PRICE_POINTS,
   partnershipPostsFor,
   tierForPrice,
@@ -29,6 +30,7 @@ import type {
   BusinessStatus,
   CustomTemplateRequest,
   Post,
+  ScheduledPost,
   TrialUsage,
 } from "@/lib/rafty/types";
 
@@ -72,6 +74,7 @@ function AdminPage() {
   const [requests, setRequests] = useState<CustomTemplateRequest[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [plans, setPlans] = useState<AccountPlan[]>([]);
+  const [schedules, setSchedules] = useState<ScheduledPost[]>([]);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<BusinessStatus | "all">("all");
   const [loading, setLoading] = useState(false);
@@ -80,18 +83,20 @@ function AdminPage() {
   // server side by RLS and is_super_admin(), this page never assumes a role.
   const load = useCallback(async () => {
     setLoading(true);
-    const [b, tr, rq, ps, pl] = await Promise.all([
+    const [b, tr, rq, ps, pl, sc] = await Promise.all([
       repo.adminListBusinesses(),
       repo.adminListTrials(),
       repo.listRequests(),
       repo.adminListPosts(),
       repo.adminListPlans(),
+      repo.adminListSchedules(),
     ]);
     setBusinesses(b);
     setTrials(tr);
     setRequests(rq);
     setPosts(ps);
     setPlans(pl);
+    setSchedules(sc);
     setLoading(false);
   }, []);
 
@@ -180,6 +185,7 @@ function AdminPage() {
             <TabsTrigger value="businesses">Businesses</TabsTrigger>
             <TabsTrigger value="plans">Plans</TabsTrigger>
             <TabsTrigger value="requests">Custom templates</TabsTrigger>
+            <TabsTrigger value="queue">Queue</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -392,6 +398,30 @@ function AdminPage() {
               ))}
               {requests.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No custom template requests.</p>
+              ) : null}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="queue">
+            <div className="grid gap-3">
+              {schedules.map((row) => {
+                const b = businesses.find((x) => x.id === row.businessId);
+                return (
+                  <div key={row.id} className="card-soft flex flex-wrap items-center gap-3 p-4">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-bold">{b?.name ?? row.businessId}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {PLATFORM_LABELS[row.platform]} · {new Date(row.scheduledAt).toLocaleString()} ·{" "}
+                        {row.timezone}
+                        {row.note ? ` · ${row.note}` : ""}
+                      </p>
+                    </div>
+                    <Badge variant={row.status === "queued" ? "default" : "outline"}>{row.status}</Badge>
+                  </div>
+                );
+              })}
+              {schedules.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Nothing scheduled across the platform.</p>
               ) : null}
             </div>
           </TabsContent>

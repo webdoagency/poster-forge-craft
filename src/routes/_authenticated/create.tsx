@@ -22,8 +22,8 @@ import { useRafty } from "@/lib/rafty/store";
 import { generateCaption } from "@/lib/rafty/caption";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
 import { CTA_PRESETS, OCCASION_PRESETS, TYPE_FIELDS } from "@/lib/rafty/constants";
-import { emptyContent, type Post, type PostAdjustments, type PostContent } from "@/lib/rafty/types";
-import { id as newId } from "@/lib/rafty/repo";
+import { emptyContent, type PostAdjustments, type PostContent } from "@/lib/rafty/types";
+import { id as newId, type PostWithContact } from "@/lib/rafty/repo";
 
 export const Route = createFileRoute("/_authenticated/create")({
   validateSearch: (
@@ -78,6 +78,9 @@ function CreatePage() {
   const [content, setContent] = useState<PostContent>(existing?.content ?? emptyContent);
   const [showBrandName, setShowBrandName] = useState<boolean>(
     isDuplicate ? existing!.showBrandName : existing?.showBrandName ?? brand?.showBrandName ?? false,
+  );
+  const [showContact, setShowContact] = useState<boolean>(
+    isDuplicate ? existing!.showContact ?? false : existing?.showContact ?? false,
   );
   const [adjustments, setAdjustments] = useState<PostAdjustments>(
     isDuplicate ? {} : existing?.adjustments ?? {},
@@ -150,12 +153,13 @@ function CreatePage() {
   async function persist() {
     setSaving(true);
     try {
-      const post: Post = {
+      const post: PostWithContact = {
         id: postId ?? newId("post"),
         businessId: business!.id,
         templateId: template!.id,
         content,
         showBrandName,
+        showContact,
         adjustments,
         shareStatus: {},
         createdAt: new Date().toISOString(),
@@ -176,6 +180,7 @@ function CreatePage() {
     setPostId(null);
     setContent(emptyContent);
     setShowBrandName(brand!.showBrandName);
+    setShowContact(false);
     setAdjustments({});
     setGenerated(false);
     setShowAdjust(false);
@@ -351,6 +356,14 @@ function CreatePage() {
             <Switch checked={showBrandName} onCheckedChange={setShowBrandName} />
           </div>
 
+          <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
+            <div>
+              <p className="text-sm font-semibold">Show contact info</p>
+              <p className="text-xs text-muted-foreground">Off by default. Uses the contact details from your brand settings.</p>
+            </div>
+            <Switch checked={showContact} onCheckedChange={setShowContact} />
+          </div>
+
           {generated ? (
             <div className="grid gap-1.5">
               <div className="flex items-center gap-2">
@@ -415,6 +428,7 @@ function CreatePage() {
             businessName={business.name}
             businessType={business.type}
             showBrandName={showBrandName}
+            showContact={showContact}
             adjustments={adjustments}
             className="rounded-xl"
           />

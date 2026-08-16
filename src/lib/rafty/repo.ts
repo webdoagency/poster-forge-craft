@@ -3,6 +3,7 @@ import { DEFAULT_BRAND, PLANS } from "./constants";
 import { globalTemplates } from "./templates";
 import {
   emptyContent,
+  emptyContact,
   emptyInstructions,
   type AccountPlan,
   type BrandProfile,
@@ -233,6 +234,7 @@ export async function getBrand(businessId: string): Promise<BrandProfile | null>
     fontSecondary: row.font_secondary ?? null,
     showBrandName: !!row.show_brand_name,
     instructions: { ...emptyInstructions, ...(row.content_instructions ?? {}) },
+    contact: { ...emptyContact, ...((row as unknown as { contact_info?: Partial<typeof emptyContact> }).contact_info ?? {}) },
     currency: row.currency as CurrencyCode,
     language: row.language as LanguageCode,
   };
@@ -250,6 +252,7 @@ export async function saveBrand(businessId: string, patch: Partial<BrandProfile>
   if (patch.instructions !== undefined) row["content_instructions"] = patch.instructions;
   if (patch.currency !== undefined) row["currency"] = patch.currency;
   if (patch.language !== undefined) row["language"] = patch.language;
+  if (patch.contact !== undefined) row["contact_info"] = patch.contact;
 
   if (patch.logoDataUrl !== undefined) {
     const current = await supabase
@@ -555,13 +558,20 @@ type PostRow = {
   caption: string | null;
   adjustments: PostAdjustments | null;
   show_brand_name: boolean | null;
+  show_contact: boolean | null;
   share_status: ShareStatus | null;
   image_path: string | null;
   created_at: string;
   businesses?: { name: string } | null;
 };
 
-async function toPost(row: PostRow): Promise<Post> {
+/**
+ * The Post type in types.ts does not yet include showContact. Files that need
+ * it (store.tsx, create.tsx) use this local extension instead of editing types.ts.
+ */
+export type PostWithContact = Post & { showContact?: boolean };
+
+async function toPost(row: PostRow): Promise<PostWithContact> {
   return {
     id: row.id,
     businessId: row.business_id,
@@ -574,22 +584,23 @@ async function toPost(row: PostRow): Promise<Post> {
       imageDataUrl: await signedUrl(row.image_path),
     },
     showBrandName: !!row.show_brand_name,
+    showContact: !!row.show_contact,
     adjustments: row.adjustments ?? {},
     shareStatus: row.share_status ?? {},
     createdAt: row.created_at,
   };
 }
 
-export async function listPosts(businessId: string): Promise<Post[]> {
+export async function listPosts(businessId: string): Promise<PostWithContact[]> {
   const { data } = await supabase
     .from("posts")
     .select("*")
     .eq("business_id", businessId)
     .order("created_at", { ascending: false });
-  return Promise.all((data ?? []).map((row) => toPost(row as PostRow)));
+  return Promise.all((data ?? []).map((row) => toPost(row as unknown as PostRow)));
 }
 
-export async function savePost(post: Post): Promise<Post | null> {
+export async function savePost(post: PostWithContact): Promise<PostWithContact | null> {
   const { imageDataUrl, ...text } = post.content;
   let imagePath = post.imagePath ?? null;
   if (isDataUrl(imageDataUrl)) {
@@ -606,6 +617,7 @@ export async function savePost(post: Post): Promise<Post | null> {
     caption: post.content.caption ?? "",
     adjustments: post.adjustments ?? {},
     show_brand_name: post.showBrandName ?? false,
+    show_contact: post.showContact ?? false,
     share_status: post.shareStatus ?? {},
     image_path: imagePath,
   };
@@ -629,7 +641,7 @@ export async function savePost(post: Post): Promise<Post | null> {
         .maybeSingle();
   const { data } = await query;
   if (!data) return null;
-  const saved = await toPost(data as PostRow);
+  const saved = await toPost(data as unknown as PostRow);
   if (!existing.data) await supabase.rpc("register_post_usage", { _business_id: post.businessId });
   return saved;
 }
@@ -686,7 +698,7 @@ export async function adminListPosts(): Promise<Post[]> {
     .select("*")
     .order("created_at", { ascending: false })
     .limit(200);
-  return Promise.all((data ?? []).map((row) => toPost(row as PostRow)));
+  return Promise.all((data ?? []).map((row) => toPost(row as unknown as PostRow)));
 }
 
 export async function adminListCustomTemplates(): Promise<

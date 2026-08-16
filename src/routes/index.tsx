@@ -6,6 +6,8 @@ import { PostCanvas } from "@/components/rafty/PostCanvas";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { RaftyIntro } from "@/components/marketing/RaftyIntro";
 import { ScrollStory } from "@/components/marketing/ScrollStory";
+import { MiniDemo } from "@/components/marketing/MiniDemo";
+import { TemplateShowcase } from "@/components/marketing/TemplateShowcase";
 import { demoPosts } from "@/lib/rafty/demo";
 import { usePrefersReducedMotion } from "@/components/marketing/usePrefersReducedMotion";
 
@@ -39,6 +41,8 @@ function LandingPage() {
       <RaftyIntro />
       <MarketingLayout>
         <Hero />
+        <TryItDemo />
+        <TemplateShowcaseSection />
         <ScrollStory />
         <Principles />
         <FinalCta />
@@ -100,6 +104,52 @@ function Hero() {
             className="rounded-2xl shadow-lift"
           />
         </motion.div>
+      </div>
+    </section>
+  );
+}
+
+function TryItDemo() {
+  const reduced = usePrefersReducedMotion();
+  return (
+    <section className="mx-auto max-w-4xl px-4 pb-16 sm:px-6">
+      <motion.div
+        className="rounded-3xl border border-border bg-card p-6 shadow-sm sm:p-10"
+        initial={{ opacity: 0, y: reduced ? 0 : 18 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6 }}
+      >
+        <h2 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
+          Try it yourself
+        </h2>
+        <p className="mt-2 max-w-lg text-sm text-muted-foreground">
+          Swap the photo, change the headline, pick a color. No account
+          needed.
+        </p>
+        <div className="mt-8">
+          <MiniDemo />
+        </div>
+      </motion.div>
+    </section>
+  );
+}
+
+function TemplateShowcaseSection() {
+  const reduced = usePrefersReducedMotion();
+  return (
+    <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <motion.h2
+        className="mx-auto max-w-xl text-center font-display text-3xl font-bold tracking-tight sm:text-4xl"
+        initial={{ opacity: 0, y: reduced ? 0 : 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.5 }}
+      >
+        Templates for how your business actually sells.
+      </motion.h2>
+      <div className="mt-10">
+        <TemplateShowcase />
       </div>
     </section>
   );

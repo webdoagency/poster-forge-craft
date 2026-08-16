@@ -1,4 +1,5 @@
 import { formatPrice } from "./constants";
+import { FitText } from "@/components/rafty/FitText";
 import type {
   BrandProfile,
   BusinessType,
@@ -26,6 +27,8 @@ export type RenderCtx = {
   variant: TemplateVariant;
   showBrandName?: boolean;
   adjustments?: PostAdjustments;
+  /** Renders the brand contact zone when a template opts in. */
+  showContact?: boolean;
 };
 
 const px = (n: number) => `${n}cqw`;
@@ -232,19 +235,78 @@ function Kicker({ ctx, color }: { ctx: RenderCtx; color: string }) {
 
 function Title({ ctx, size, color }: { ctx: RenderCtx; size: number; color: string }) {
   return (
-    <h2
+    <FitText
+      as="h2"
+      text={ctx.content.title || "Your headline here"}
+      maxSize={size}
+      minSize={Math.max(3.2, size * 0.45)}
+      maxLines={3}
+      lineHeight={1.03}
+      tightLineHeight={0.98}
       style={{
-        margin: 0,
-        fontSize: px(size),
-        lineHeight: 1.03,
         fontWeight: 800,
         letterSpacing: "-0.03em",
         fontFamily: font(ctx.brand),
         color,
       }}
+    />
+  );
+}
+
+/** Shrinks to fit rather than clipping or overflowing its zone. */
+function AdditionalText({
+  ctx,
+  size,
+  opacity = 1,
+  style,
+}: {
+  ctx: RenderCtx;
+  size: number;
+  opacity?: number;
+  style?: React.CSSProperties;
+}) {
+  const text = ctx.content.additionalText;
+  if (!text) return null;
+  return (
+    <FitText
+      as="p"
+      text={text}
+      maxSize={size}
+      minSize={Math.max(1.8, size * 0.65)}
+      maxLines={3}
+      lineHeight={1.4}
+      tightLineHeight={1.25}
+      style={{ opacity, fontFamily: fontSecondary(ctx.brand), ...style }}
+    />
+  );
+}
+
+/** Compact contact line, only rendered when the post opts in. Tasteful and
+ * small: never more than a single wrapped line of the brand's essentials. */
+function ContactLine({ ctx, tone }: { ctx: RenderCtx; tone: "light" | "dark" }) {
+  if (!ctx.showContact) return null;
+  const { contact } = ctx.brand;
+  if (!contact) return null;
+  const parts = [
+    contact.phones.filter(Boolean)[0],
+    contact.email,
+    contact.website,
+    contact.address,
+    contact.social,
+  ].filter((v): v is string => !!v && v.trim().length > 0);
+  if (!parts.length) return null;
+  return (
+    <div
+      style={{
+        fontSize: px(2.1),
+        fontWeight: 500,
+        lineHeight: 1.4,
+        fontFamily: fontSecondary(ctx.brand),
+        color: tone === "light" ? "rgba(255,255,255,0.85)" : "rgba(20,16,32,0.62)",
+      }}
     >
-      {ctx.content.title || "Your headline here"}
-    </h2>
+      {parts.join("  ·  ")}
+    </div>
   );
 }
 
@@ -321,16 +383,13 @@ const engines: Engine[] = [
             >
               <Kicker ctx={ctx} color="rgba(255,255,255,0.92)" />
               <Title ctx={ctx} size={9.4} color="#fff" />
-              {content.additionalText ? (
-                <p style={{ margin: 0, fontSize: px(2.9), opacity: 0.9, lineHeight: 1.35, fontFamily: fontSecondary(brand) }}>
-                  {content.additionalText}
-                </p>
-              ) : null}
+              <AdditionalText ctx={ctx} size={2.9} opacity={0.9} />
               <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
               <div style={{ display: "flex", gap: px(2), alignItems: "center", flexWrap: "wrap" }}>
                 <PriceBadge ctx={ctx} tone="light" />
                 <CtaTag ctx={ctx} tone="light" />
               </div>
+              <ContactLine ctx={ctx} tone="light" />
             </AdjustBox>
           </div>
         </div>
@@ -363,11 +422,7 @@ const engines: Engine[] = [
           >
             <Kicker ctx={ctx} color={accentColor(ctx)} />
             <Title ctx={ctx} size={7.4} color="#1a1225" />
-            {content.additionalText ? (
-              <p style={{ margin: 0, fontSize: px(2.8), lineHeight: 1.4, opacity: 0.62, fontFamily: fontSecondary(brand) }}>
-                {content.additionalText}
-              </p>
-            ) : null}
+            <AdditionalText ctx={ctx} size={2.8} opacity={0.62} />
             <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="dark" />
             <div style={{ marginTop: "auto", display: "flex", width: "100%", alignItems: "center", gap: px(2.2) }}>
               <BizRow ctx={ctx} tone="dark" />
@@ -376,6 +431,7 @@ const engines: Engine[] = [
                 <PriceBadge ctx={ctx} tone="dark" />
               </span>
             </div>
+            <ContactLine ctx={ctx} tone="dark" />
           </AdjustBox>
         </div>
       );
@@ -423,11 +479,7 @@ const engines: Engine[] = [
                 </span>
               </div>
               <Title ctx={ctx} size={6.2} color="#181026" />
-              {content.additionalText ? (
-                <p style={{ margin: 0, fontSize: px(2.6), lineHeight: 1.4, opacity: 0.62, fontFamily: fontSecondary(brand) }}>
-                  {content.additionalText}
-                </p>
-              ) : null}
+              <AdditionalText ctx={ctx} size={2.6} opacity={0.62} />
               <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="dark" />
             </AdjustBox>
           </div>
@@ -458,11 +510,7 @@ const engines: Engine[] = [
             <AdjustBox ctx={ctx} style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: px(2) }}>
               <Kicker ctx={ctx} color="rgba(255,255,255,0.85)" />
               <Title ctx={ctx} size={6.6} color="#fff" />
-              {content.additionalText ? (
-                <p style={{ margin: 0, fontSize: px(2.5), opacity: 0.85, lineHeight: 1.4, fontFamily: fontSecondary(brand) }}>
-                  {content.additionalText}
-                </p>
-              ) : null}
+              <AdditionalText ctx={ctx} size={2.5} opacity={0.85} />
               <PriceBadge ctx={ctx} tone="light" />
               <CtaTag ctx={ctx} tone="light" />
             </AdjustBox>
@@ -539,9 +587,7 @@ const engines: Engine[] = [
           >
             <Kicker ctx={ctx} color="rgba(255,255,255,0.8)" />
             <Title ctx={ctx} size={10.5} color="#fff" />
-            {content.additionalText ? (
-              <p style={{ margin: 0, fontSize: px(2.9), opacity: 0.86, lineHeight: 1.35, fontFamily: fontSecondary(brand) }}>{content.additionalText}</p>
-            ) : null}
+            <AdditionalText ctx={ctx} size={2.9} opacity={0.86} />
             <Chips items={metaItems(content, ctx.businessType)} tone="light" />
             <PriceBadge ctx={ctx} tone="light" />
           </AdjustBox>
@@ -573,11 +619,7 @@ const engines: Engine[] = [
             <Title ctx={ctx} size={6.8} color="#181026" />
             <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="dark" />
             <div style={{ marginTop: "auto", display: "flex", alignItems: "flex-end" }}>
-              {content.additionalText ? (
-                <p style={{ margin: 0, maxWidth: "62%", fontSize: px(2.5), lineHeight: 1.4, opacity: 0.6, fontFamily: fontSecondary(brand) }}>
-                  {content.additionalText}
-                </p>
-              ) : null}
+              <AdditionalText ctx={ctx} size={2.5} opacity={0.6} style={{ maxWidth: "62%" }} />
               <span style={{ marginLeft: "auto" }}>
                 <PriceBadge ctx={ctx} tone="dark" />
               </span>
@@ -602,9 +644,7 @@ const engines: Engine[] = [
           <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", gap: px(1.8), color: "#131020" }}>
             <Kicker ctx={ctx} color={accentColor(ctx)} />
             <Title ctx={ctx} size={7.2} color="#131020" />
-            {content.additionalText ? (
-              <p style={{ margin: 0, fontSize: px(2.7), lineHeight: 1.45, opacity: 0.55, fontFamily: fontSecondary(brand) }}>{content.additionalText}</p>
-            ) : null}
+            <AdditionalText ctx={ctx} size={2.7} opacity={0.55} />
           </AdjustBox>
           <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: px(2) }}>
             <Chips items={metaItems(content, ctx.businessType)} tone="dark" />
@@ -612,6 +652,7 @@ const engines: Engine[] = [
               <PriceBadge ctx={ctx} tone="dark" />
             </span>
           </div>
+          <ContactLine ctx={ctx} tone="dark" />
         </div>
       );
     },
@@ -630,9 +671,7 @@ const engines: Engine[] = [
             <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", gap: px(2) }}>
               <Kicker ctx={ctx} color="rgba(255,255,255,0.88)" />
               <Title ctx={ctx} size={10} color="#fff" />
-              {content.additionalText ? (
-                <p style={{ margin: 0, fontSize: px(2.9), opacity: 0.9, lineHeight: 1.35, fontFamily: fontSecondary(brand) }}>{content.additionalText}</p>
-              ) : null}
+              <AdditionalText ctx={ctx} size={2.9} opacity={0.9} />
             </AdjustBox>
             <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: px(2.4) }}>
               <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
@@ -642,6 +681,7 @@ const engines: Engine[] = [
                   <PriceBadge ctx={ctx} tone="light" />
                 </span>
               </div>
+              <ContactLine ctx={ctx} tone="light" />
             </div>
           </div>
         </div>
@@ -679,11 +719,7 @@ const engines: Engine[] = [
             <div style={{ position: "absolute", inset: 0, padding: px(5), display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: px(2) }}>
               <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
               <div style={{ display: "flex", alignItems: "center" }}>
-                {content.additionalText ? (
-                  <p style={{ margin: 0, maxWidth: "60%", color: "#fff", fontSize: px(2.5), opacity: 0.85, lineHeight: 1.35, fontFamily: fontSecondary(brand) }}>
-                    {content.additionalText}
-                  </p>
-                ) : null}
+                <AdditionalText ctx={ctx} size={2.5} opacity={0.85} style={{ maxWidth: "60%", color: "#fff" }} />
                 <span style={{ marginLeft: "auto" }}>
                   <PriceBadge ctx={ctx} tone="light" />
                 </span>
@@ -753,11 +789,7 @@ const engines: Engine[] = [
             <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="dark" />
             <div style={{ display: "flex", alignItems: "center", gap: px(2.2) }}>
               <BizRow ctx={ctx} tone="dark" />
-              {content.additionalText ? (
-                <p style={{ margin: 0, marginLeft: "auto", maxWidth: "55%", textAlign: "right", fontSize: px(2.4), opacity: 0.55, lineHeight: 1.35, fontFamily: fontSecondary(brand) }}>
-                  {content.additionalText}
-                </p>
-              ) : null}
+              <AdditionalText ctx={ctx} size={2.4} opacity={0.55} style={{ maxWidth: "55%", textAlign: "right", marginLeft: "auto" }} />
             </div>
           </div>
         </div>
@@ -790,9 +822,7 @@ const engines: Engine[] = [
             <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", gap: px(2.2) }}>
               <Kicker ctx={ctx} color={brand.accent} />
               <Title ctx={ctx} size={8.4} color="#f6f1ff" />
-              {content.additionalText ? (
-                <p style={{ margin: 0, fontSize: px(2.6), opacity: 0.7, lineHeight: 1.4, fontFamily: fontSecondary(brand) }}>{content.additionalText}</p>
-              ) : null}
+              <AdditionalText ctx={ctx} size={2.6} opacity={0.7} />
               <PriceBadge ctx={ctx} tone="light" />
             </AdjustBox>
           </div>
@@ -870,10 +900,9 @@ const engines: Engine[] = [
             <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", gap: px(2.4) }}>
               <Kicker ctx={ctx} color={accentColor(ctx)} />
               <Title ctx={ctx} size={7.6} color="#181026" />
-              {content.additionalText ? (
-                <p style={{ margin: 0, fontSize: px(2.6), lineHeight: 1.5, opacity: 0.6, fontFamily: fontSecondary(brand) }}>{content.additionalText}</p>
-              ) : null}
+              <AdditionalText ctx={ctx} size={2.6} opacity={0.6} />
               <PriceBadge ctx={ctx} tone="dark" />
+              <ContactLine ctx={ctx} tone="dark" />
             </AdjustBox>
           </div>
           <div style={{ position: "relative", flex: "0 0 38%" }}>
@@ -903,9 +932,7 @@ const engines: Engine[] = [
             </div>
             <Title ctx={ctx} size={6} color="#151020" />
             <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="dark" />
-            {content.additionalText ? (
-              <p style={{ margin: 0, fontSize: px(2.4), lineHeight: 1.4, opacity: 0.6, fontFamily: fontSecondary(brand) }}>{content.additionalText}</p>
-            ) : null}
+            <AdditionalText ctx={ctx} size={2.4} opacity={0.6} />
             <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <BizRow ctx={ctx} tone="dark" />
               <CtaTag ctx={ctx} tone="dark" />

@@ -8,11 +8,12 @@ import {
   useState,
 } from "react";
 import * as repo from "./repo";
+import type { PostWithContact } from "./repo";
 import { DEFAULT_BRAND } from "./constants";
 import { makeT, type Translator } from "./i18n";
 import { globalTemplates } from "./templates";
 import { supabase } from "@/integrations/supabase/client";
-import { emptyInstructions } from "./types";
+import { emptyContact, emptyInstructions } from "./types";
 import type {
   AccountPlan,
   BrandProfile,
@@ -20,7 +21,6 @@ import type {
   BusinessService,
   BusinessType,
   LanguageCode,
-  Post,
   Template,
   TrialUsage,
   User,
@@ -57,7 +57,7 @@ type Ctx = {
   business: Business | null;
   brand: BrandProfile | null;
   services: BusinessService[];
-  posts: Post[];
+  posts: PostWithContact[];
   templates: Template[];
   trial: TrialUsage | null;
   plan: AccountPlan | null;
@@ -78,7 +78,7 @@ type Ctx = {
   reorderServices: (serviceIds: string[]) => Promise<void>;
   createBrand: (input: { name: string; type: BusinessType; customType?: string | null }) => Promise<Result>;
   selectBrand: (businessId: string) => void;
-  createPost: (post: Post) => Promise<Post | null>;
+  createPost: (post: PostWithContact) => Promise<PostWithContact | null>;
   removePost: (postId: string) => Promise<void>;
   canCreatePost: boolean;
   refresh: () => void;
@@ -93,7 +93,7 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
   const [business, setBusiness] = useState<Business | null>(null);
   const [brand, setBrand] = useState<BrandProfile | null>(null);
   const [services, setServices] = useState<BusinessService[]>([]);
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<PostWithContact[]>([]);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [trial, setTrial] = useState<TrialUsage | null>(null);
   const [plan, setPlan] = useState<AccountPlan | null>(null);
@@ -308,7 +308,7 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
   );
 
   const createPost = useCallback(
-    async (post: Post) => {
+    async (post: PostWithContact) => {
       if (!business || post.businessId !== business.id) return null;
       const saved = await repo.savePost(post);
       refresh();
@@ -429,6 +429,7 @@ export const previewBrand: BrandProfile = {
   fontSecondary: null,
   showBrandName: false,
   instructions: emptyInstructions,
+  contact: emptyContact,
   primary: DEFAULT_BRAND.primary,
   secondary: DEFAULT_BRAND.secondary,
   fontFamily: DEFAULT_BRAND.fontFamily,

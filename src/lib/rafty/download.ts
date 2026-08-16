@@ -7,8 +7,12 @@ const FONT_CSS =
 // it module-wide is safe and does not bleed per-post state between exports.
 let fontCssCache: string | null = null;
 
+/** Default export size, the standard 4:5 post. Other formats pass their own
+ * size from the shared format table so there is still one pipeline. */
 const EXPORT_WIDTH = 1080;
 const EXPORT_HEIGHT = 1350;
+
+export type ExportSize = { width: number; height: number };
 
 /** Inline the brand webfonts as base64 so exported PNGs keep the typography. */
 async function getFontEmbedCss(): Promise<string> {
@@ -60,7 +64,9 @@ function nextFrame(): Promise<void> {
  * export implementation, shared by download and share so preview, save,
  * download and share always agree pixel for pixel.
  */
-async function renderNodeToDataUrl(node: HTMLElement): Promise<string> {
+async function renderNodeToDataUrl(node: HTMLElement, size?: ExportSize): Promise<string> {
+  const outWidth = size?.width ?? EXPORT_WIDTH;
+  const outHeight = size?.height ?? EXPORT_HEIGHT;
   const width = node.offsetWidth || node.getBoundingClientRect().width || 1;
   const fontEmbedCSS = await getFontEmbedCss();
 
@@ -70,10 +76,10 @@ async function renderNodeToDataUrl(node: HTMLElement): Promise<string> {
 
   const options = {
     width,
-    height: node.offsetHeight || Math.round((width * EXPORT_HEIGHT) / EXPORT_WIDTH),
-    pixelRatio: EXPORT_WIDTH / width,
-    canvasWidth: EXPORT_WIDTH,
-    canvasHeight: EXPORT_HEIGHT,
+    height: node.offsetHeight || Math.round((width * outHeight) / outWidth),
+    pixelRatio: outWidth / width,
+    canvasWidth: outWidth,
+    canvasHeight: outHeight,
     cacheBust: true,
     ...(fontEmbedCSS ? { fontEmbedCSS } : { skipFonts: true }),
   };
@@ -88,15 +94,19 @@ async function renderNodeToDataUrl(node: HTMLElement): Promise<string> {
 
 /** Renders the post to a PNG Blob. This is the single export implementation;
  * download, share and any future save-to-device flow all call this. */
-export async function renderPostToBlob(node: HTMLElement, filename: string): Promise<Blob> {
+export async function renderPostToBlob(
+  node: HTMLElement,
+  filename: string,
+  size?: ExportSize,
+): Promise<Blob> {
   void filename; // kept in the signature so callers read intent at call sites
-  const dataUrl = await renderNodeToDataUrl(node);
+  const dataUrl = await renderNodeToDataUrl(node, size);
   return (await fetch(dataUrl)).blob();
 }
 
 /** Export a rendered post node as a 1080x1350 PNG. */
-export async function downloadNode(node: HTMLElement, filename: string) {
-  const blob = await renderPostToBlob(node, filename);
+export async function downloadNode(node: HTMLElement, filename: string, size?: ExportSize) {
+  const blob = await renderPostToBlob(node, filename, size);
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -106,9 +116,36 @@ export async function downloadNode(node: HTMLElement, filename: string) {
 }
 
 /** Same export, returned as a File so it can be handed to the Web Share API. */
-export async function nodeToPngFile(node: HTMLElement, filename: string): Promise<File> {
-  const blob = await renderPostToBlob(node, filename);
+export async function nodeToPngFile(
+  node: HTMLElement,
+  filename: string,
+  size?: ExportSize,
+): Promise<File> {
+  const blob = await renderPostToBlob(node, filename, size);
   return new File([blob], `${filename}.png`, { type: "image/png" });
+}
+
+/**
+ * Exports an ordered list of nodes (carousel slides) one after another with
+ * the same deterministic single frame pipeline. Slides are rendered
+ * sequentially from their own live DOM nodes, so one slide can never pick up
+ * another slide's content or overwrite its file.
+ */
+export async function downloadNodes(
+  nodes: HTMLElement[],
+  filename: string,
+  size?: ExportSize,
+): Promise<number> {
+  let done = 0;
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (!node) continue;
+    await downloadNode(node, `${filename}-${String(i + 1).padStart(2, "0")}`, size);
+    done++;
+    // Small gap so browsers do not drop consecutive programmatic downloads.
+    await new Promise((resolve) => setTimeout(resolve, 350));
+  }
+  return done;
 }
 
 export function slugify(value: string) {

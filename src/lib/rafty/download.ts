@@ -86,28 +86,29 @@ async function renderNodeToDataUrl(node: HTMLElement): Promise<string> {
   return toPng(node, options);
 }
 
+/** Renders the post to a PNG Blob. This is the single export implementation;
+ * download, share and any future save-to-device flow all call this. */
+export async function renderPostToBlob(node: HTMLElement, filename: string): Promise<Blob> {
+  void filename; // kept in the signature so callers read intent at call sites
+  const dataUrl = await renderNodeToDataUrl(node);
+  return (await fetch(dataUrl)).blob();
+}
+
 /** Export a rendered post node as a 1080x1350 PNG. */
 export async function downloadNode(node: HTMLElement, filename: string) {
-  const dataUrl = await renderNodeToDataUrl(node);
+  const blob = await renderPostToBlob(node, filename);
+  const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = dataUrl;
+  a.href = url;
   a.download = `${filename}.png`;
   a.click();
+  URL.revokeObjectURL(url);
 }
 
 /** Same export, returned as a File so it can be handed to the Web Share API. */
 export async function nodeToPngFile(node: HTMLElement, filename: string): Promise<File> {
-  const dataUrl = await renderNodeToDataUrl(node);
-  const blob = await (await fetch(dataUrl)).blob();
+  const blob = await renderPostToBlob(node, filename);
   return new File([blob], `${filename}.png`, { type: "image/png" });
-}
-
-/** Same export, returned as a Blob. Shared helper so download, save and share
- * never diverge into separate export implementations. */
-export async function renderPostToBlob(node: HTMLElement, filename: string): Promise<Blob> {
-  const dataUrl = await renderNodeToDataUrl(node);
-  const blob = await (await fetch(dataUrl)).blob();
-  return blob;
 }
 
 export function slugify(value: string) {

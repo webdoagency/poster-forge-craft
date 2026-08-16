@@ -12,15 +12,22 @@ const ACCENTS = [
 ];
 
 /**
- * A tightly scoped interactive preview: visitors can only change the
- * headline text and the accent color. Everything else stays fixed so it
- * reads as a taste of Rafty, not a full editor.
+ * A tightly scoped pre-login demo: visitors can swap the photo, edit the
+ * headline and pick a brand color, and see the 4:5 post update instantly.
+ * Everything else stays fixed so it reads as a taste of Rafty, not a full
+ * editor.
  */
 export function MiniDemo() {
-  const base = demoPosts[0]!;
+  const [postIndex, setPostIndex] = useState(0);
+  const base = demoPosts[postIndex]!;
   const [headline, setHeadline] = useState(base.content.title);
   const [accentIndex, setAccentIndex] = useState(0);
   const accent = ACCENTS[accentIndex]!;
+
+  const handleSelectPost = (index: number) => {
+    setPostIndex(index);
+    setHeadline(demoPosts[index]!.content.title);
+  };
 
   const content = useMemo(
     () => ({ ...base.content, title: headline || base.content.title }),
@@ -28,12 +35,34 @@ export function MiniDemo() {
   );
   const brand = useMemo(
     () => ({ ...base.brand, primary: accent.primary, secondary: accent.secondary }),
-    [accent],
+    [accent, base.brand],
   );
 
   return (
     <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] sm:items-center">
       <div className="order-2 flex flex-col gap-5 sm:order-1">
+        <div>
+          <span className="text-sm font-semibold">Photo</span>
+          <div className="mt-2 flex gap-2">
+            {demoPosts.map((post, i) => (
+              <button
+                key={post.businessName}
+                type="button"
+                onClick={() => handleSelectPost(i)}
+                className="size-14 overflow-hidden rounded-xl border border-border transition-opacity data-[active=true]:border-foreground data-[active=false]:opacity-60"
+                data-active={i === postIndex}
+                aria-label={`Use ${post.businessName} photo`}
+              >
+                <img
+                  src={post.content.imageDataUrl ?? undefined}
+                  alt=""
+                  className="size-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div>
           <Label htmlFor="mini-demo-headline" className="text-sm font-semibold">
             Headline
@@ -47,8 +76,9 @@ export function MiniDemo() {
             placeholder="Your headline here"
           />
         </div>
+
         <div>
-          <span className="text-sm font-semibold">Accent color</span>
+          <span className="text-sm font-semibold">Brand color</span>
           <div className="mt-2 flex flex-wrap gap-2">
             {ACCENTS.map((a, i) => (
               <button
@@ -67,14 +97,16 @@ export function MiniDemo() {
             ))}
           </div>
         </div>
+
         <p className="text-xs text-muted-foreground">
-          This is a taste of what Rafty can do. Inside the app you control
-          every detail of your post.
+          This is a quick preview. Inside Rafty you control every detail of
+          your post, with more templates and options than shown here.
         </p>
       </div>
 
       <div className="order-1 mx-auto w-full max-w-[280px] sm:order-2">
         <PostCanvas
+          key={postIndex}
           template={base.template}
           content={content}
           brand={brand}

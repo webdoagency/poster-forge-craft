@@ -252,6 +252,7 @@ export async function saveBrand(businessId: string, patch: Partial<BrandProfile>
   if (patch.instructions !== undefined) row["content_instructions"] = patch.instructions;
   if (patch.currency !== undefined) row["currency"] = patch.currency;
   if (patch.language !== undefined) row["language"] = patch.language;
+  if (patch.contact !== undefined) row["contact_info"] = patch.contact;
 
   if (patch.logoDataUrl !== undefined) {
     const current = await supabase
@@ -557,13 +558,20 @@ type PostRow = {
   caption: string | null;
   adjustments: PostAdjustments | null;
   show_brand_name: boolean | null;
+  show_contact: boolean | null;
   share_status: ShareStatus | null;
   image_path: string | null;
   created_at: string;
   businesses?: { name: string } | null;
 };
 
-async function toPost(row: PostRow): Promise<Post> {
+/**
+ * The Post type in types.ts does not yet include showContact. Files that need
+ * it (store.tsx, create.tsx) use this local extension instead of editing types.ts.
+ */
+export type PostWithContact = Post & { showContact?: boolean };
+
+async function toPost(row: PostRow): Promise<PostWithContact> {
   return {
     id: row.id,
     businessId: row.business_id,
@@ -576,13 +584,14 @@ async function toPost(row: PostRow): Promise<Post> {
       imageDataUrl: await signedUrl(row.image_path),
     },
     showBrandName: !!row.show_brand_name,
+    showContact: !!row.show_contact,
     adjustments: row.adjustments ?? {},
     shareStatus: row.share_status ?? {},
     createdAt: row.created_at,
   };
 }
 
-export async function listPosts(businessId: string): Promise<Post[]> {
+export async function listPosts(businessId: string): Promise<PostWithContact[]> {
   const { data } = await supabase
     .from("posts")
     .select("*")
@@ -591,7 +600,7 @@ export async function listPosts(businessId: string): Promise<Post[]> {
   return Promise.all((data ?? []).map((row) => toPost(row as PostRow)));
 }
 
-export async function savePost(post: Post): Promise<Post | null> {
+export async function savePost(post: PostWithContact): Promise<PostWithContact | null> {
   const { imageDataUrl, ...text } = post.content;
   let imagePath = post.imagePath ?? null;
   if (isDataUrl(imageDataUrl)) {
@@ -608,6 +617,7 @@ export async function savePost(post: Post): Promise<Post | null> {
     caption: post.content.caption ?? "",
     adjustments: post.adjustments ?? {},
     show_brand_name: post.showBrandName ?? false,
+    show_contact: post.showContact ?? false,
     share_status: post.shareStatus ?? {},
     image_path: imagePath,
   };

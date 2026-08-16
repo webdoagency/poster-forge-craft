@@ -359,6 +359,24 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
     return used < (trial?.freePostLimit ?? 1);
   }, [business, trial]);
 
+  /** Real counts from this brand's own saved posts, never seeded data. */
+  const templateUsage = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const post of posts) out[post.templateId] = (out[post.templateId] ?? 0) + 1;
+    return out;
+  }, [posts]);
+
+  const toggleFavoriteFn = useCallback(
+    async (templateId: string) => {
+      if (!business) return;
+      const next = !favorites.includes(templateId);
+      setFavorites((prev) => (next ? [...prev, templateId] : prev.filter((x) => x !== templateId)));
+      const res = await repo.toggleFavorite(business.id, templateId, next);
+      if (res.error) setFavorites(await repo.listFavorites(business.id));
+    },
+    [business, favorites],
+  );
+
   const value = useMemo<Ctx>(
     () => ({
       ready,
@@ -369,7 +387,11 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
       services,
       posts,
       templates,
+      favorites,
+      templateUsage,
+      toggleFavorite: toggleFavoriteFn,
       trial,
+
       plan,
       formats: allowedFormats(plan),
       brands,

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { Image as ImageIcon, Plus, Sparkles, Wand2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Image as ImageIcon, Plus, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

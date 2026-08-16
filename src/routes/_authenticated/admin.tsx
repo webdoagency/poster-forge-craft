@@ -12,16 +12,22 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Logo } from "@/components/rafty/Logo";
 import { useRafty } from "@/lib/rafty/store";
 import * as repo from "@/lib/rafty/repo";
-import { BUSINESS_TYPE_NAMES, PLAN_NAMES, PLANS } from "@/lib/rafty/constants";
+import {
+  BUSINESS_TYPE_NAMES,
+  PLAN_NAMES,
+  PRICE_POINTS,
+  partnershipPostsFor,
+  tierForPrice,
+} from "@/lib/rafty/constants";
 import type {
   AccountPlan,
   Business,
   BusinessStatus,
   CustomTemplateRequest,
-  PlanTier,
   Post,
   TrialUsage,
 } from "@/lib/rafty/types";

@@ -597,7 +597,7 @@ export async function listPosts(businessId: string): Promise<PostWithContact[]> 
     .select("*")
     .eq("business_id", businessId)
     .order("created_at", { ascending: false });
-  return Promise.all((data ?? []).map((row) => toPost(row as PostRow)));
+  return Promise.all((data ?? []).map((row) => toPost(row as unknown as PostRow)));
 }
 
 export async function savePost(post: PostWithContact): Promise<PostWithContact | null> {
@@ -641,7 +641,7 @@ export async function savePost(post: PostWithContact): Promise<PostWithContact |
         .maybeSingle();
   const { data } = await query;
   if (!data) return null;
-  const saved = await toPost(data as PostRow);
+  const saved = await toPost(data as unknown as PostRow);
   if (!existing.data) await supabase.rpc("register_post_usage", { _business_id: post.businessId });
   return saved;
 }
@@ -698,7 +698,7 @@ export async function adminListPosts(): Promise<Post[]> {
     .select("*")
     .order("created_at", { ascending: false })
     .limit(200);
-  return Promise.all((data ?? []).map((row) => toPost(row as PostRow)));
+  return Promise.all((data ?? []).map((row) => toPost(row as unknown as PostRow)));
 }
 
 export async function adminListCustomTemplates(): Promise<

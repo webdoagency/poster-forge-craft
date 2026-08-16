@@ -83,6 +83,23 @@ export const emptyInstructions: ContentInstructions = {
   hashtags: "",
 };
 
+/** Reusable brand contact details. Brand scoped, shown only when the user opts in. */
+export type BrandContact = {
+  phones: string[];
+  email: string;
+  website: string;
+  address: string;
+  social: string;
+};
+
+export const emptyContact: BrandContact = {
+  phones: [],
+  email: "",
+  website: "",
+  address: "",
+  social: "",
+};
+
 export type BrandProfile = {
   businessId: string;
   /** Private storage object path. Never a public url. */
@@ -99,9 +116,11 @@ export type BrandProfile = {
   fontSecondary: string | null;
   showBrandName: boolean;
   instructions: ContentInstructions;
+  contact: BrandContact;
   currency: CurrencyCode;
   language: LanguageCode;
 };
+
 
 export type BusinessService = {
   id: string;

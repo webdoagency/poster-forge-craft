@@ -16,9 +16,14 @@ export type Database = {
     Tables: {
       account_plans: {
         Row: {
+          active: boolean
+          allow_carousel: boolean
+          allow_custom_templates: boolean
+          allow_video: boolean
           billing_cycle: string
           brand_limit: number
           created_at: string
+          monthly_price: number
           partnership_posts_limit: number
           partnership_posts_used: number
           plan: Database["public"]["Enums"]["plan_tier"]
@@ -26,9 +31,14 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          active?: boolean
+          allow_carousel?: boolean
+          allow_custom_templates?: boolean
+          allow_video?: boolean
           billing_cycle?: string
           brand_limit?: number
           created_at?: string
+          monthly_price?: number
           partnership_posts_limit?: number
           partnership_posts_used?: number
           plan?: Database["public"]["Enums"]["plan_tier"]
@@ -36,9 +46,14 @@ export type Database = {
           user_id: string
         }
         Update: {
+          active?: boolean
+          allow_carousel?: boolean
+          allow_custom_templates?: boolean
+          allow_video?: boolean
           billing_cycle?: string
           brand_limit?: number
           created_at?: string
+          monthly_price?: number
           partnership_posts_limit?: number
           partnership_posts_used?: number
           plan?: Database["public"]["Enums"]["plan_tier"]
@@ -451,6 +466,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_plan: {
+        Args: {
+          _active: boolean
+          _billing_cycle?: string
+          _brand_limit?: number
+          _monthly_price: number
+          _user_id: string
+        }
+        Returns: undefined
+      }
       create_brand: {
         Args: {
           _custom_type?: string
@@ -478,6 +503,15 @@ export type Database = {
       is_super_admin: { Args: never; Returns: boolean }
       my_brand_limit: { Args: never; Returns: number }
       my_business_id: { Args: never; Returns: string }
+      plan_defaults: {
+        Args: { _monthly_price: number }
+        Returns: {
+          allow_carousel: boolean
+          allow_video: boolean
+          brand_limit: number
+          partnership_posts_limit: number
+        }[]
+      }
       register_post_usage: {
         Args: { _business_id: string }
         Returns: undefined
@@ -493,7 +527,7 @@ export type Database = {
         | "restaurant"
         | "retail"
         | "other"
-      plan_tier: "starter" | "growth" | "partnership"
+      plan_tier: "starter" | "growth" | "partnership" | "studio"
       template_request_status: "processing" | "ready" | "rejected"
     }
     CompositeTypes: {
@@ -632,7 +666,7 @@ export const Constants = {
         "retail",
         "other",
       ],
-      plan_tier: ["starter", "growth", "partnership"],
+      plan_tier: ["starter", "growth", "partnership", "studio"],
       template_request_status: ["processing", "ready", "rejected"],
     },
   },

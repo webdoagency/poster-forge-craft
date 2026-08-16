@@ -25,7 +25,7 @@ import { StoryboardPreview } from "@/components/rafty/StoryboardPreview";
 import { useRafty } from "@/lib/rafty/store";
 import { generateCaption } from "@/lib/rafty/caption";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
-import { templatesForFormat } from "@/lib/rafty/templates";
+import { recommendedFirst, templatesForFormat } from "@/lib/rafty/templates";
 import {
   clampDuration,
   CTA_PRESETS,
@@ -137,9 +137,10 @@ function CreatePage() {
   const slideNodes = useRef<(HTMLDivElement | null)[]>([]);
 
   const spec = FORMAT_SPECS[format];
+  /** Business type only reorders the list, it never removes a template. */
   const formatTemplates = useMemo(
-    () => templatesForFormat(templates, format),
-    [templates, format],
+    () => recommendedFirst(templatesForFormat(templates, format), business?.type ?? "other"),
+    [templates, format, business?.type],
   );
   const template = useMemo(
     () => formatTemplates.find((x) => x.id === templateId) ?? formatTemplates[0],

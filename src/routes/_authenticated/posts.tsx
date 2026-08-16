@@ -115,12 +115,17 @@ function PostsPage() {
                   >
                     <PostCanvas
                       template={template}
-                      content={post.content}
+                      content={post.slides?.[0]?.content ?? post.content}
                       brand={brand}
                       businessName={business.name}
                       businessType={business.type}
+                      showBrandName={post.showBrandName}
+                      showContact={post.showContact ?? false}
+                      adjustments={post.slides?.[0]?.adjustments ?? post.adjustments}
+                      format={post.format ?? "post"}
                       className="rounded-xl"
                     />
+
                   </div>
                 </div>
                 <div className="px-4 pb-2 pt-1">

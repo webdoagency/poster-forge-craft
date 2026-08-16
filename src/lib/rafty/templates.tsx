@@ -1,8 +1,9 @@
-import { formatPrice } from "./constants";
+import { formatPrice, FORMAT_SPECS } from "./constants";
 import { FitText } from "@/components/rafty/FitText";
 import type {
   BrandProfile,
   BusinessType,
+  ContentFormat,
   PostAdjustments,
   PostContent,
   Template,

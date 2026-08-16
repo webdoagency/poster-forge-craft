@@ -213,6 +213,17 @@ export const PLAN_NAMES: Record<PlanTier, string> = {
 };
 
 /** Mirrors the database plan_defaults function, for display only. */
+/** Prices an admin can activate. Partnership scales in 100 € steps. */
+export const PRICE_POINTS = [50, 100, 150, 200, 300, 400, 500];
+
+/** Mirrors the database tier mapping, for labels only. */
+export function tierForPrice(monthlyPrice: number): PlanTier {
+  if (monthlyPrice >= 200) return "partnership";
+  if (monthlyPrice >= 150) return "studio";
+  if (monthlyPrice >= 100) return "growth";
+  return "starter";
+}
+
 export function partnershipPostsFor(monthlyPrice: number): number {
   return monthlyPrice >= 200 ? (Math.floor((monthlyPrice - 200) / 100) + 1) * 30 : 0;
 }

@@ -19,7 +19,11 @@ import {
   type Post,
   type PostAdjustments,
   type PostContent,
+  type ScheduledPost,
+  type ScheduleStatus,
   type ShareStatus,
+  type SocialConnection,
+  type SocialPlatform,
   type Template,
   type TemplateVariant,
   type TemplateZone,
@@ -821,6 +825,119 @@ export async function adminSetPlan(
     _active: active,
     _billing_cycle: billingCycle,
   });
+  return error ? { error: error.message } : {};
+}
+
+/* ------------------------ scheduling and connections ----------------------- */
+/**
+ * The queue is a real database record: brand, post, platform, time, timezone
+ * and status. Nothing here marks an item as published, that can only happen
+ * once a genuine publishing connection exists.
+ */
+
+type ScheduleRow = {
+  id: string;
+  business_id: string;
+  post_id: string;
+  platform: SocialPlatform;
+  scheduled_at: string;
+  timezone: string;
+  status: ScheduleStatus;
+  note: string | null;
+  failure_reason: string | null;
+  created_at: string;
+};
+
+function toSchedule(row: ScheduleRow): ScheduledPost {
+  return {
+    id: row.id,
+    businessId: row.business_id,
+    postId: row.post_id,
+    platform: row.platform,
+    scheduledAt: row.scheduled_at,
+    timezone: row.timezone,
+    status: row.status,
+    note: row.note ?? "",
+    failureReason: row.failure_reason ?? null,
+    createdAt: row.created_at,
+  };
+}
+
+export async function listSchedules(businessId: string): Promise<ScheduledPost[]> {
+  const { data } = await supabase
+    .from("scheduled_posts")
+    .select("*")
+    .eq("business_id", businessId)
+    .order("scheduled_at", { ascending: true });
+  return (data ?? []).map((row) => toSchedule(row as unknown as ScheduleRow));
+}
+
+export async function createSchedule(input: {
+  businessId: string;
+  postId: string;
+  platform: SocialPlatform;
+  scheduledAt: string;
+  timezone: string;
+  note?: string;
+}): Promise<{ error?: string }> {
+  const { error } = await supabase.from("scheduled_posts").insert({
+    business_id: input.businessId,
+    post_id: input.postId,
+    platform: input.platform,
+    scheduled_at: input.scheduledAt,
+    timezone: input.timezone,
+    note: input.note ?? "",
+  });
+  return error ? { error: error.message } : {};
+}
+
+export async function cancelSchedule(scheduleId: string): Promise<{ error?: string }> {
+  const { error } = await supabase
+    .from("scheduled_posts")
+    .update({ status: "cancelled" })
+    .eq("id", scheduleId);
+  return error ? { error: error.message } : {};
+}
+
+export async function deleteSchedule(scheduleId: string) {
+  await supabase.from("scheduled_posts").delete().eq("id", scheduleId);
+}
+
+export async function adminListSchedules(): Promise<ScheduledPost[]> {
+  const { data } = await supabase
+    .from("scheduled_posts")
+    .select("*")
+    .order("scheduled_at", { ascending: true })
+    .limit(200);
+  return (data ?? []).map((row) => toSchedule(row as unknown as ScheduleRow));
+}
+
+export async function listConnections(businessId: string): Promise<SocialConnection[]> {
+  const { data } = await supabase
+    .from("brand_social_connections")
+    .select("*")
+    .eq("business_id", businessId);
+  return (data ?? []).map((row) => ({
+    id: row.id as string,
+    businessId: row.business_id as string,
+    platform: row.platform as SocialPlatform,
+    status: row.status as SocialConnection["status"],
+    accountLabel: (row.account_label as string) ?? "",
+  }));
+}
+
+/** Only stores the handle a brand wants used once publishing is available. */
+export async function saveConnectionLabel(
+  businessId: string,
+  platform: SocialPlatform,
+  accountLabel: string,
+): Promise<{ error?: string }> {
+  const { error } = await supabase
+    .from("brand_social_connections")
+    .upsert(
+      { business_id: businessId, platform, account_label: accountLabel, status: "not_connected" },
+      { onConflict: "business_id,platform" },
+    );
   return error ? { error: error.message } : {};
 }
 

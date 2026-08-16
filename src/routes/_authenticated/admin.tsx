@@ -123,9 +123,14 @@ function AdminPage() {
     await load();
   }
 
-  async function setPlan(ownerUserId: string, tier: PlanTier) {
-    await repo.adminSetPlan(ownerUserId, tier);
-    toast.success(`Plan set to ${PLAN_NAMES[tier]}`);
+  /** Price is the entitlement source of truth, the database derives the rest. */
+  async function setPlan(ownerUserId: string, monthlyPrice: number, active: boolean) {
+    const { error } = await repo.adminSetPlan(ownerUserId, monthlyPrice, active);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success(active ? `Activated at ${monthlyPrice} €` : "Entitlement saved, not active");
     await load();
   }
 

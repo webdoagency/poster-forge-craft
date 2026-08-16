@@ -159,6 +159,10 @@ function CreatePage() {
   const active = slides[Math.min(activeIndex, slides.length - 1)] ?? slides[0]!;
   const content = active.content;
   const fields = TYPE_FIELDS[business.type];
+  /** Only the two headline fields stay visible, the rest is optional detail. */
+  const primaryFields = fields.slice(0, 2);
+  const secondaryFields = fields.slice(2);
+
   const trialLeft = Math.max(0, (trial?.freePostLimit ?? 1) - (trial?.postsCreated ?? 0));
   const locked = !canCreatePost && !postId;
 

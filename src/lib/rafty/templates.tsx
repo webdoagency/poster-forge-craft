@@ -1133,6 +1133,7 @@ function buildGlobalTemplates(): Template[] {
         scope: "global",
         businessId: null,
         archived: false,
+        format: "post",
       });
       i++;
     }
@@ -1141,7 +1142,71 @@ function buildGlobalTemplates(): Template[] {
   return out.slice(0, total);
 }
 
-export const globalTemplates: Template[] = buildGlobalTemplates();
+/* --------------------------- other content formats -------------------------- */
+
+/**
+ * Representative sets for the remaining formats. They reuse the exact same
+ * engines, brand data, text fit rules and adjustments as posts, only the
+ * canvas shape and the format rules differ. The full library comes later.
+ */
+const FORMAT_ENGINES: Record<"carousel" | "video" | "story", string[]> = {
+  carousel: ["aurora", "editorial", "spotlight", "darkluxury", "glass", "poster"],
+  video: ["aurora", "spotlight", "darkluxury", "typeblast"],
+  story: ["aurora", "glass", "darkluxury", "typeblast"],
+};
+
+const FORMAT_NAMES: Record<"carousel" | "video" | "story", string[]> = {
+  carousel: ["Story Set", "Column Set", "Halo Set", "Velvet Set", "Reflection Set", "Signal Set"],
+  video: ["Motion Skyline", "Motion Halo", "Motion Velvet", "Motion Impact"],
+  story: ["Tall Skyline", "Tall Reflection", "Tall Velvet", "Tall Impact"],
+};
+
+function buildFormatTemplates(format: "carousel" | "video" | "story"): Template[] {
+  const spec = FORMAT_SPECS[format];
+  return FORMAT_ENGINES[format].map((engineId, index) => {
+    const engine = engineMap.get(engineId) ?? engines[0]!;
+    const variant = variants[index % variants.length]!;
+    return {
+      id: `${format}_${index + 1}`,
+      name: FORMAT_NAMES[format][index] ?? `${engine.label} ${index + 1}`,
+      engine: engine.id,
+      tags: engine.tags,
+      variant,
+      scope: "global" as const,
+      businessId: null,
+      archived: false,
+      format,
+      slides: { min: spec.minSlides, max: spec.maxSlides, default: spec.defaultSlides },
+      ...(format === "video"
+        ? {
+            motion: {
+              minDuration: spec.minDuration,
+              maxDuration: spec.maxDuration,
+              defaultDuration: spec.defaultDuration,
+              transition: (index % 3 === 0 ? "fade" : index % 3 === 1 ? "slide" : "zoom") as
+                | "fade"
+                | "slide"
+                | "zoom",
+            },
+          }
+        : {}),
+    };
+  });
+}
+
+export const globalTemplates: Template[] = [
+  ...buildGlobalTemplates(),
+  ...buildFormatTemplates("carousel"),
+  ...buildFormatTemplates("video"),
+  ...buildFormatTemplates("story"),
+];
+
+/** Templates available for one format. Custom uploads stay in the post format
+ * unless they declare otherwise, since their design is locked to its canvas. */
+export function templatesForFormat(all: Template[], format: ContentFormat): Template[] {
+  return all.filter((tpl) => (tpl.format ?? "post") === format);
+}
+
 
 export function renderTemplate(
   template: Template,

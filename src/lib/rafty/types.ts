@@ -244,7 +244,7 @@ export type Template = {
   engine: string;
   tags: TemplateTag[];
   /** Soft recommendation only. Every template stays selectable by every brand. */
-  suggestedFor?: BusinessType[];
+  suggestedFor?: BusinessType[] | undefined;
   variant: TemplateVariant;
   scope: TemplateScope;
   businessId: string | null;

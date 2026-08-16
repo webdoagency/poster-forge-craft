@@ -11,6 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AppShell } from "@/components/rafty/AppShell";
+import { PostCanvas } from "@/components/rafty/PostCanvas";
+import { placeholderContent } from "@/lib/rafty/placeholder";
+
 import { useRafty } from "@/lib/rafty/store";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
 import * as repo from "@/lib/rafty/repo";

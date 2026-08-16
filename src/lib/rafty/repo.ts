@@ -285,6 +285,37 @@ export async function saveBrand(businessId: string, patch: Partial<BrandProfile>
 
 /* ---------------------------------- plan ---------------------------------- */
 
+type PlanRow = {
+  user_id: string;
+  plan: PlanTier;
+  monthly_price?: number | null;
+  active?: boolean | null;
+  brand_limit: number;
+  billing_cycle: string;
+  allow_carousel?: boolean | null;
+  allow_video?: boolean | null;
+  allow_custom_templates?: boolean | null;
+  partnership_posts_used: number;
+  partnership_posts_limit: number;
+};
+
+function toPlan(row: PlanRow): AccountPlan {
+  return {
+    userId: row.user_id,
+    plan: row.plan,
+    monthlyPrice: row.monthly_price ?? 50,
+    active: !!row.active,
+    brandLimit: row.brand_limit,
+    billingCycle: row.billing_cycle,
+    allowCarousel: !!row.allow_carousel,
+    allowVideo: !!row.allow_video,
+    allowCustomTemplates: row.allow_custom_templates !== false,
+    partnershipPostsUsed: row.partnership_posts_used,
+    partnershipPostsLimit: row.partnership_posts_limit,
+  };
+}
+
+/** Reflects the database owned entitlement. Never a client granted plan. */
 export async function getMyPlan(): Promise<AccountPlan | null> {
   const { data: auth } = await supabase.auth.getUser();
   const uid = auth.user?.id;
@@ -294,23 +325,21 @@ export async function getMyPlan(): Promise<AccountPlan | null> {
     .select("*")
     .eq("user_id", uid)
     .maybeSingle();
-  if (!data) return { userId: uid, plan: "starter", brandLimit: 1, billingCycle: "monthly", partnershipPostsUsed: 0, partnershipPostsLimit: 0 };
-  const row = data as unknown as {
-    user_id: string;
-    plan: PlanTier;
-    brand_limit: number;
-    billing_cycle: string;
-    partnership_posts_used: number;
-    partnership_posts_limit: number;
-  };
-  return {
-    userId: row.user_id,
-    plan: row.plan,
-    brandLimit: row.brand_limit,
-    billingCycle: row.billing_cycle,
-    partnershipPostsUsed: row.partnership_posts_used,
-    partnershipPostsLimit: row.partnership_posts_limit,
-  };
+  if (!data)
+    return {
+      userId: uid,
+      plan: "starter",
+      monthlyPrice: 50,
+      active: false,
+      brandLimit: 1,
+      billingCycle: "monthly",
+      allowCarousel: false,
+      allowVideo: false,
+      allowCustomTemplates: true,
+      partnershipPostsUsed: 0,
+      partnershipPostsLimit: 0,
+    };
+  return toPlan(data as unknown as PlanRow);
 }
 
 /** Brands the caller is a member of. RLS decides what comes back. */

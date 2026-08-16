@@ -699,10 +699,12 @@ export async function savePost(post: PostWithContact): Promise<PostWithContact |
 export async function deletePost(postId: string) {
   const { data } = await supabase
     .from("posts")
-    .select("image_path")
+    .select("image_path, slides")
     .eq("id", postId)
     .maybeSingle();
-  await removeFile((data as { image_path: string | null } | null)?.image_path ?? null);
+  const row = data as { image_path: string | null; slides: StoredSlide[] | null } | null;
+  await removeFile(row?.image_path ?? null);
+  for (const slide of row?.slides ?? []) await removeFile(slide.imagePath ?? null);
   await supabase.from("posts").delete().eq("id", postId);
 }
 

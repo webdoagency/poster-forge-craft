@@ -108,10 +108,12 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
   const [plan, setPlan] = useState<AccountPlan | null>(null);
   const [brands, setBrands] = useState<Business[]>([]);
   const [activeBrandId, setActiveBrandId] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const [guestLanguage, setGuestLanguage] = useState<LanguageCode>("en");
   const loading = useRef(false);
 
   const refresh = useCallback(() => setTick((n) => n + 1), []);
+
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {

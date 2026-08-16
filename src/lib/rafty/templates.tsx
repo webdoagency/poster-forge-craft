@@ -1660,10 +1660,10 @@ function buildGlobalTemplates(): Template[] {
     const count = Math.min(perEngine, remaining);
     for (let k = 0; k < count; k++) {
       const variant = variants[i % variants.length]!;
-      const [a, b] = NAME_PARTS[i % NAME_PARTS.length]!;
       out.push({
         id: `global_${i + 1}`,
-        name: `${a} ${b}`,
+        name: templateName(i + 1, engine.id),
+
         engine: engine.id,
         tags: engine.tags,
         ...(suggestedForEngine(engine.id) ? { suggestedFor: suggestedForEngine(engine.id) } : {}),

@@ -18,11 +18,28 @@ import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
 import { AdjustControls } from "@/components/rafty/AdjustControls";
 import { ShareActions } from "@/components/rafty/ShareActions";
+import { FormatPicker } from "@/components/rafty/FormatPicker";
+import { SlideStrip } from "@/components/rafty/SlideStrip";
+import { CarouselPreview } from "@/components/rafty/CarouselPreview";
+import { StoryboardPreview } from "@/components/rafty/StoryboardPreview";
 import { useRafty } from "@/lib/rafty/store";
 import { generateCaption } from "@/lib/rafty/caption";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
-import { CTA_PRESETS, OCCASION_PRESETS, TYPE_FIELDS } from "@/lib/rafty/constants";
-import { emptyContent, type PostAdjustments, type PostContent } from "@/lib/rafty/types";
+import { templatesForFormat } from "@/lib/rafty/templates";
+import {
+  clampDuration,
+  CTA_PRESETS,
+  FORMAT_SPECS,
+  OCCASION_PRESETS,
+  TYPE_FIELDS,
+} from "@/lib/rafty/constants";
+import {
+  emptyContent,
+  type ContentFormat,
+  type PostAdjustments,
+  type PostContent,
+  type Slide,
+} from "@/lib/rafty/types";
 import { id as newId, type PostWithContact } from "@/lib/rafty/repo";
 
 export const Route = createFileRoute("/_authenticated/create")({
@@ -53,6 +70,17 @@ export const Route = createFileRoute("/_authenticated/create")({
   ),
 });
 
+/** A fresh frame. Every slide owns its own content object, so no two slides
+ * ever share mutable state. */
+function newSlide(durationMs?: number): Slide {
+  return {
+    id: newId("slide"),
+    content: { ...emptyContent, services: [] },
+    adjustments: {},
+    ...(durationMs !== undefined ? { durationMs } : {}),
+  };
+}
+
 function CreatePage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
@@ -72,54 +100,117 @@ function CreatePage() {
   const existing = search.post ? posts.find((p) => p.id === search.post) : undefined;
   const isDuplicate = !!existing && !!search.duplicate;
 
+  const [format, setFormat] = useState<ContentFormat>(existing?.format ?? "post");
   const [templateId, setTemplateId] = useState<string>(
-    existing?.templateId ?? search.template ?? templates[0]?.id ?? "",
+    existing?.templateId ?? search.template ?? "",
   );
-  const [content, setContent] = useState<PostContent>(existing?.content ?? emptyContent);
+  const [slides, setSlides] = useState<Slide[]>(() => {
+    if (existing?.slides?.length) {
+      return existing.slides.map((slide) => ({
+        ...slide,
+        content: { ...slide.content },
+        adjustments: { ...slide.adjustments },
+        ...(isDuplicate ? { id: newId("slide"), imagePath: null } : {}),
+      }));
+    }
+    return [
+      {
+        id: newId("slide"),
+        content: existing ? { ...existing.content } : { ...emptyContent, services: [] },
+        adjustments: isDuplicate ? {} : { ...(existing?.adjustments ?? {}) },
+        ...(isDuplicate ? {} : { imagePath: existing?.imagePath ?? null }),
+      },
+    ];
+  });
+  const [activeIndex, setActiveIndex] = useState(0);
   const [showBrandName, setShowBrandName] = useState<boolean>(
-    isDuplicate ? existing!.showBrandName : existing?.showBrandName ?? brand?.showBrandName ?? false,
+    existing?.showBrandName ?? brand?.showBrandName ?? false,
   );
-  const [showContact, setShowContact] = useState<boolean>(
-    isDuplicate ? existing!.showContact ?? false : existing?.showContact ?? false,
-  );
-  const [adjustments, setAdjustments] = useState<PostAdjustments>(
-    isDuplicate ? {} : existing?.adjustments ?? {},
-  );
+  const [showContact, setShowContact] = useState<boolean>(existing?.showContact ?? false);
   const [postId, setPostId] = useState<string | null>(isDuplicate ? null : existing?.id ?? null);
   const [generated, setGenerated] = useState(Boolean(existing) && !isDuplicate);
   const [showAdjust, setShowAdjust] = useState(false);
   const [newService, setNewService] = useState("");
   const [saving, setSaving] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const slideNodes = useRef<(HTMLDivElement | null)[]>([]);
 
+  const spec = FORMAT_SPECS[format];
+  const formatTemplates = useMemo(
+    () => templatesForFormat(templates, format),
+    [templates, format],
+  );
   const template = useMemo(
-    () => templates.find((x) => x.id === templateId) ?? templates[0],
-    [templates, templateId],
+    () => formatTemplates.find((x) => x.id === templateId) ?? formatTemplates[0],
+    [formatTemplates, templateId],
   );
 
   if (!business || !brand || !template) return null;
 
+  const limits = {
+    min: template.slides?.min ?? spec.minSlides,
+    max: template.slides?.max ?? spec.maxSlides,
+  };
+  const multi = limits.max > 1;
+  const active = slides[Math.min(activeIndex, slides.length - 1)] ?? slides[0]!;
+  const content = active.content;
   const fields = TYPE_FIELDS[business.type];
-  const set = (patch: Partial<PostContent>) => setContent((prev) => ({ ...prev, ...patch }));
   const trialLeft = Math.max(0, (trial?.freePostLimit ?? 1) - (trial?.postsCreated ?? 0));
   const locked = !canCreatePost && !postId;
+
+  /** Patches only the active frame. */
+  const set = (patch: Partial<PostContent>) =>
+    setSlides((prev) =>
+      prev.map((slide, i) =>
+        i === activeIndex ? { ...slide, content: { ...slide.content, ...patch } } : slide,
+      ),
+    );
+
+  const setAdjustments = (next: PostAdjustments) =>
+    setSlides((prev) =>
+      prev.map((slide, i) => (i === activeIndex ? { ...slide, adjustments: next } : slide)),
+    );
+
+  /** Switching format resets the frames to that format's defaults so content
+   * from a different shape never leaks into the new one. */
+  function changeFormat(next: ContentFormat) {
+    const nextSpec = FORMAT_SPECS[next];
+    const nextTemplate = templatesForFormat(templates, next)[0];
+    setFormat(next);
+    setTemplateId(nextTemplate?.id ?? "");
+    setSlides(
+      Array.from({ length: nextSpec.defaultSlides }, () =>
+        newSlide(next === "video" ? nextSpec.defaultDuration : undefined),
+      ),
+    );
+    setActiveIndex(0);
+    setPostId(null);
+    setGenerated(false);
+    setShowAdjust(false);
+    slideNodes.current = [];
+  }
 
   async function onImage(file: File) {
     set({ imageDataUrl: await readFileAsDataUrl(file) });
   }
 
-  function refreshCaption(seed = Date.now()) {
-    set({
-      caption: generateCaption({
-        content,
-        businessType: business!.type,
-        businessName: business!.name,
-        currency: brand!.currency,
-        instructions: brand!.instructions,
-        services: content.services,
-        seed,
-      }),
+  function captionFor(seed: number) {
+    return generateCaption({
+      content: slides[0]!.content,
+      businessType: business!.type,
+      businessName: business!.name,
+      currency: brand!.currency,
+      instructions: brand!.instructions,
+      services: slides[0]!.content.services,
+      seed,
     });
+  }
+
+  function refreshCaption() {
+    const caption = captionFor(Date.now());
+    setSlides((prev) =>
+      prev.map((slide, i) => (i === 0 ? { ...slide, content: { ...slide.content, caption } } : slide)),
+    );
   }
 
   function applyOccasion(occasionId: string) {
@@ -136,31 +227,68 @@ function CreatePage() {
       toast.error(t("create.trialUsed"));
       return;
     }
-    const caption = generateCaption({
-      content,
-      businessType: business!.type,
-      businessName: business!.name,
-      currency: brand!.currency,
-      instructions: brand!.instructions,
-      services: content.services,
-      seed: Date.now(),
-    });
-    set({ caption });
+    refreshCaption();
     setGenerated(true);
     setShowAdjust(false);
+  }
+
+  function setDefaultDuration(ms: number) {
+    const value = clampDuration(ms, spec);
+    setSlides((prev) => prev.map((slide) => ({ ...slide, durationMs: value })));
+  }
+
+  function setCardDuration(index: number, ms: number) {
+    setSlides((prev) =>
+      prev.map((slide, i) => (i === index ? { ...slide, durationMs: clampDuration(ms, spec) } : slide)),
+    );
+  }
+
+  function moveSlide(index: number, direction: -1 | 1) {
+    setSlides((prev) => {
+      const next = [...prev];
+      const target = index + direction;
+      if (target < 0 || target >= next.length) return prev;
+      const a = next[index]!;
+      const b = next[target]!;
+      next[index] = b;
+      next[target] = a;
+      return next;
+    });
+    slideNodes.current = [];
+    setActiveIndex(index + direction);
+  }
+
+  function addSlide() {
+    if (slides.length >= limits.max) return;
+    setSlides((prev) => [
+      ...prev,
+      newSlide(format === "video" ? spec.defaultDuration : undefined),
+    ]);
+    setActiveIndex(slides.length);
+  }
+
+  function removeSlide(index: number) {
+    if (slides.length <= limits.min) return;
+    setSlides((prev) => prev.filter((_, i) => i !== index));
+    slideNodes.current = [];
+    setActiveIndex((prev) => Math.max(0, Math.min(prev, slides.length - 2)));
   }
 
   async function persist() {
     setSaving(true);
     try {
+      const first = slides[0]!;
       const post: PostWithContact = {
         id: postId ?? newId("post"),
         businessId: business!.id,
         templateId: template!.id,
-        content,
+        format,
+        content: first.content,
+        adjustments: first.adjustments,
+        slides: multi ? slides : [],
+        ...(multi ? {} : { imagePath: first.imagePath ?? null }),
         showBrandName,
         showContact,
-        adjustments,
         shareStatus: {},
         createdAt: new Date().toISOString(),
       };
@@ -178,14 +306,21 @@ function CreatePage() {
 
   function resetAll() {
     setPostId(null);
-    setContent(emptyContent);
+    setSlides(
+      Array.from({ length: spec.defaultSlides }, () =>
+        newSlide(format === "video" ? spec.defaultDuration : undefined),
+      ),
+    );
+    setActiveIndex(0);
     setShowBrandName(brand!.showBrandName);
     setShowContact(false);
-    setAdjustments({});
     setGenerated(false);
     setShowAdjust(false);
+    slideNodes.current = [];
     navigate({ to: "/create", search: {} });
   }
+
+  const frameLabel = format === "video" ? "card" : "slide";
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
@@ -199,6 +334,8 @@ function CreatePage() {
           </p>
         </div>
 
+        <FormatPicker value={format} onChange={changeFormat} />
+
         {locked ? (
           <div className="card-soft p-4 text-sm">
             <p className="font-semibold">{t("create.trialUsed")}</p>
@@ -208,8 +345,62 @@ function CreatePage() {
           </div>
         ) : null}
 
+        {multi ? (
+          <SlideStrip
+            slides={slides}
+            activeIndex={activeIndex}
+            format={format}
+            spec={spec}
+            limits={limits}
+            onSelect={setActiveIndex}
+            onMove={moveSlide}
+            onAdd={addSlide}
+            onRemove={removeSlide}
+            onDuration={setCardDuration}
+          />
+        ) : null}
+
+        {format === "video" ? (
+          <div className="card-soft flex items-center justify-between gap-3 p-4">
+            <div>
+              <p className="text-sm font-semibold">Time per card</p>
+              <p className="text-xs text-muted-foreground">
+                Sets every card, then fine tune single cards above.
+              </p>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="size-9 rounded-xl"
+                aria-label="Shorter cards"
+                onClick={() => setDefaultDuration((active.durationMs ?? spec.defaultDuration) - 500)}
+              >
+                -
+              </Button>
+              <span className="w-14 text-center text-sm font-semibold">
+                {((active.durationMs ?? spec.defaultDuration) / 1000).toFixed(1)}s
+              </span>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="size-9 rounded-xl"
+                aria-label="Longer cards"
+                onClick={() => setDefaultDuration((active.durationMs ?? spec.defaultDuration) + 500)}
+              >
+                +
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
         <div className="card-soft flex flex-col gap-4 p-4">
-          <Label>{t("create.image")}</Label>
+          <Label>
+            {t("create.image")}
+            {multi ? ` (${frameLabel} ${activeIndex + 1})` : ""}
+          </Label>
           <label className="relative block cursor-pointer overflow-hidden rounded-xl border border-dashed bg-card">
             <input
               type="file"
@@ -301,20 +492,20 @@ function CreatePage() {
             <Label>{t("create.services")}</Label>
             <div className="flex flex-wrap gap-2">
               {services.map((s) => {
-                const active = content.services.includes(s.name);
+                const isOn = content.services.includes(s.name);
                 return (
                   <button
                     key={s.id}
                     type="button"
                     onClick={() =>
                       set({
-                        services: active
+                        services: isOn
                           ? content.services.filter((x) => x !== s.name)
                           : [...content.services, s.name],
                       })
                     }
                     className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${
-                      active ? "border-primary bg-primary-soft text-accent-foreground" : "border-border bg-card"
+                      isOn ? "border-primary bg-primary-soft text-accent-foreground" : "border-border bg-card"
                     }`}
                   >
                     {s.name}
@@ -351,7 +542,7 @@ function CreatePage() {
           <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
             <div>
               <p className="text-sm font-semibold">Show brand name</p>
-              <p className="text-xs text-muted-foreground">Off by default on the generated post.</p>
+              <p className="text-xs text-muted-foreground">Off by default on the generated design.</p>
             </div>
             <Switch checked={showBrandName} onCheckedChange={setShowBrandName} />
           </div>
@@ -359,7 +550,9 @@ function CreatePage() {
           <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
             <div>
               <p className="text-sm font-semibold">Show contact info</p>
-              <p className="text-xs text-muted-foreground">Off by default. Uses the contact details from your brand settings.</p>
+              <p className="text-xs text-muted-foreground">
+                Off by default. Uses the contact details from your brand settings.
+              </p>
             </div>
             <Switch checked={showContact} onCheckedChange={setShowContact} />
           </div>
@@ -373,7 +566,7 @@ function CreatePage() {
                   size="sm"
                   variant="ghost"
                   className="ml-auto h-8 rounded-lg"
-                  onClick={() => refreshCaption()}
+                  onClick={refreshCaption}
                 >
                   <Wand2 className="mr-1 size-3.5" />
                   Regenerate
@@ -381,8 +574,14 @@ function CreatePage() {
               </div>
               <Textarea
                 id="caption"
-                value={content.caption}
-                onChange={(e) => set({ caption: e.target.value })}
+                value={slides[0]!.content.caption}
+                onChange={(e) =>
+                  setSlides((prev) =>
+                    prev.map((slide, i) =>
+                      i === 0 ? { ...slide, content: { ...slide.content, caption: e.target.value } } : slide,
+                    ),
+                  )
+                }
                 rows={6}
                 className="rounded-xl"
               />
@@ -397,7 +596,7 @@ function CreatePage() {
         ) : null}
 
         {generated && showAdjust ? (
-          <AdjustControls adjustments={adjustments} onChange={setAdjustments} />
+          <AdjustControls adjustments={active.adjustments} onChange={setAdjustments} />
         ) : null}
       </section>
 
@@ -409,7 +608,7 @@ function CreatePage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="max-h-72">
-              {templates.map((x) => (
+              {formatTemplates.map((x) => (
                 <SelectItem key={x.id} value={x.id}>
                   {x.name}
                   {x.scope === "custom" ? " (custom)" : ""}
@@ -419,30 +618,66 @@ function CreatePage() {
           </Select>
         </div>
 
-        <div className="card-soft mx-auto w-full max-w-[520px] overflow-hidden p-2">
-          <PostCanvas
-            ref={canvasRef}
-            template={template}
-            content={content}
-            brand={brand}
-            businessName={business.name}
-            businessType={business.type}
-            showBrandName={showBrandName}
-            showContact={showContact}
-            adjustments={adjustments}
-            className="rounded-xl"
-          />
+        <div className="mx-auto w-full max-w-[520px]">
+          {format === "carousel" ? (
+            <CarouselPreview
+              slides={slides}
+              template={template}
+              brand={brand}
+              businessName={business.name}
+              businessType={business.type}
+              showBrandName={showBrandName}
+              showContact={showContact}
+              format={format}
+              activeIndex={activeIndex}
+              onSelect={setActiveIndex}
+              nodesRef={slideNodes}
+            />
+          ) : format === "video" ? (
+            <StoryboardPreview
+              slides={slides}
+              template={template}
+              brand={brand}
+              businessName={business.name}
+              businessType={business.type}
+              showBrandName={showBrandName}
+              showContact={showContact}
+              spec={spec}
+              activeIndex={activeIndex}
+              onSelect={setActiveIndex}
+            />
+          ) : (
+            <div
+              className={`card-soft mx-auto overflow-hidden p-2 ${format === "story" ? "max-w-[320px]" : ""}`}
+            >
+              <PostCanvas
+                ref={canvasRef}
+                template={template}
+                content={content}
+                brand={brand}
+                businessName={business.name}
+                businessType={business.type}
+                showBrandName={showBrandName}
+                showContact={showContact}
+                adjustments={active.adjustments}
+                format={format}
+                className="rounded-xl"
+              />
+            </div>
+          )}
         </div>
 
         <div className="mx-auto w-full max-w-[520px]">
           {generated ? (
             <ShareActions
               canvasRef={canvasRef}
-              filename={content.title || business.name}
-              caption={content.caption}
+              filename={slides[0]!.content.title || business.name}
+              caption={slides[0]!.content.caption}
               onSave={persist}
               saving={saving}
-              saveLabel={t("create.saved").includes("saved") ? "Save" : "Save"}
+              size={{ width: spec.width, height: spec.height }}
+              {...(format === "carousel" ? { slideNodes } : {})}
+              exportable={spec.exportable}
             />
           ) : (
             <Button className="h-12 w-full rounded-xl" onClick={generate} disabled={locked}>
@@ -457,7 +692,7 @@ function CreatePage() {
             className="mx-auto text-xs font-semibold text-muted-foreground underline-offset-4 hover:underline"
             onClick={resetAll}
           >
-            Create a new post
+            Start something new
           </button>
         ) : null}
       </section>

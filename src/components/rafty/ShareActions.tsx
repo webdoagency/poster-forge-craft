@@ -2,7 +2,13 @@ import { useState } from "react";
 import { Check, Copy, Download, Facebook, Instagram, Save, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { downloadNode, nodeToPngFile, slugify } from "@/lib/rafty/download";
+import {
+  downloadNode,
+  downloadNodes,
+  nodeToPngFile,
+  slugify,
+  type ExportSize,
+} from "@/lib/rafty/download";
 
 type Props = {
   canvasRef: React.RefObject<HTMLElement | null>;
@@ -11,16 +17,38 @@ type Props = {
   onSave: () => void;
   saveLabel?: string;
   saving?: boolean;
+  /** Export canvas size, from the shared format table. */
+  size?: ExportSize;
+  /** Ordered slide nodes for multi frame formats. */
+  slideNodes?: React.MutableRefObject<(HTMLDivElement | null)[]>;
+  /** False for formats without a reliable renderer yet, such as video. */
+  exportable?: boolean;
+  /** Shown instead of the export buttons when export is unavailable. */
+  unavailableNote?: string;
 };
 
 /**
- * Primary actions once a post has been generated. Meta publishing is not
- * implemented, so Instagram and Facebook are clearly disabled with an
- * explanation instead of pretending to publish anything.
+ * Primary actions once content has been generated. Every export goes through
+ * the one deterministic renderer. Meta publishing is not implemented, so
+ * Instagram and Facebook are clearly disabled with an explanation instead of
+ * pretending to publish anything.
  */
-export function ShareActions({ canvasRef, filename, caption, onSave, saveLabel = "Save", saving }: Props) {
+export function ShareActions({
+  canvasRef,
+  filename,
+  caption,
+  onSave,
+  saveLabel = "Save",
+  saving,
+  size,
+  slideNodes,
+  exportable = true,
+  unavailableNote,
+}: Props) {
   const [copied, setCopied] = useState(false);
   const [sharing, setSharing] = useState(false);
+
+  const multi = (slideNodes?.current?.filter(Boolean).length ?? 0) > 1;
 
   async function copyCaption() {
     try {
@@ -33,12 +61,18 @@ export function ShareActions({ canvasRef, filename, caption, onSave, saveLabel =
     }
   }
 
-  async function saveToDevice() {
-    const node = canvasRef.current;
-    if (!node) return;
+  async function exportAll() {
     setSharing(true);
     try {
-      const file = await nodeToPngFile(node, slugify(filename));
+      if (slideNodes) {
+        const nodes = slideNodes.current.filter((n): n is HTMLDivElement => !!n);
+        const count = await downloadNodes(nodes, slugify(filename), size);
+        toast.success(`${count} images downloaded in order.`);
+        return;
+      }
+      const node = canvasRef.current;
+      if (!node) return;
+      const file = await nodeToPngFile(node, slugify(filename), size);
       const nav = navigator as Navigator & {
         canShare?: (data: { files: File[] }) => boolean;
         share?: (data: { files: File[]; title?: string; text?: string }) => Promise<void>;
@@ -47,7 +81,7 @@ export function ShareActions({ canvasRef, filename, caption, onSave, saveLabel =
         await nav.share({ files: [file], title: filename, text: caption });
         return;
       }
-      await downloadNode(node, slugify(filename));
+      await downloadNode(node, slugify(filename), size);
       toast.success("Image downloaded.");
     } catch (err) {
       if ((err as Error)?.name !== "AbortError") {
@@ -60,16 +94,25 @@ export function ShareActions({ canvasRef, filename, caption, onSave, saveLabel =
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 gap-2">
+      <div className={exportable ? "grid grid-cols-2 gap-2" : "grid gap-2"}>
         <Button className="h-12 rounded-xl" onClick={onSave} disabled={saving}>
           <Save className="mr-1 size-4" />
           {saveLabel}
         </Button>
-        <Button variant="outline" className="h-12 rounded-xl" onClick={saveToDevice} disabled={sharing}>
-          <Share2 className="mr-1 size-4" />
-          Save to device
-        </Button>
+        {exportable ? (
+          <Button variant="outline" className="h-12 rounded-xl" onClick={exportAll} disabled={sharing}>
+            <Share2 className="mr-1 size-4" />
+            {multi ? "Save all slides" : "Save to device"}
+          </Button>
+        ) : null}
       </div>
+
+      {!exportable ? (
+        <p className="rounded-xl border border-dashed bg-muted/40 p-3 text-xs text-muted-foreground">
+          {unavailableNote ??
+            "Video download is not available yet. Your storyboard, timing and content are saved and will export once video rendering is ready."}
+        </p>
+      ) : null}
 
       <Button variant="outline" className="h-11 rounded-xl" onClick={copyCaption}>
         {copied ? <Check className="mr-1 size-4" /> : <Copy className="mr-1 size-4" />}
@@ -97,14 +140,16 @@ export function ShareActions({ canvasRef, filename, caption, onSave, saveLabel =
         connected Meta business account. Nothing is published automatically.
       </p>
 
-      <Button
-        variant="ghost"
-        className="h-9 rounded-xl text-xs text-muted-foreground"
-        onClick={() => canvasRef.current && downloadNode(canvasRef.current, slugify(filename))}
-      >
-        <Download className="mr-1 size-3.5" />
-        Download PNG
-      </Button>
+      {exportable && !slideNodes ? (
+        <Button
+          variant="ghost"
+          className="h-9 rounded-xl text-xs text-muted-foreground"
+          onClick={() => canvasRef.current && downloadNode(canvasRef.current, slugify(filename), size)}
+        >
+          <Download className="mr-1 size-3.5" />
+          Download PNG
+        </Button>
+      ) : null}
     </div>
   );
 }

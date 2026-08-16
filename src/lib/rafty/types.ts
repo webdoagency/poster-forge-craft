@@ -19,7 +19,43 @@ export type BusinessType =
   | "other";
 
 
+/**
+ * Content formats. One shared template model drives all of them, so a
+ * template only declares which format it belongs to plus the extra rules that
+ * format needs (slide counts for carousels, card timing for video).
+ */
+export type ContentFormat = "post" | "carousel" | "video" | "story";
+
+export type FormatSpec = {
+  format: ContentFormat;
+  label: string;
+  /** Export canvas in pixels. Preview uses the same aspect ratio. */
+  width: number;
+  height: number;
+  /** Multi card formats only. Single frame formats use 1/1/1. */
+  minSlides: number;
+  maxSlides: number;
+  defaultSlides: number;
+  /** Video and story timing, in milliseconds. */
+  minDuration: number;
+  maxDuration: number;
+  defaultDuration: number;
+  /** True once a reliable renderer exists for this format. */
+  exportable: boolean;
+};
+
+/** One frame of any format. A single post is simply one slide. */
+export type Slide = {
+  id: string;
+  content: PostContent;
+  adjustments: PostAdjustments;
+  /** Video and story cards only. */
+  durationMs?: number;
+  imagePath?: string | null;
+};
+
 export type LanguageCode = "en" | "de" | "sq";
+
 
 export type CurrencyCode = "EUR" | "CHF" | "GBP" | "USD" | "ALL" | "SEK" | "NOK" | "DKK";
 
@@ -192,6 +228,17 @@ export type Template = {
   scope: TemplateScope;
   businessId: string | null;
   archived: boolean;
+  /** Which content format this template renders. Defaults to post. */
+  format?: ContentFormat;
+  /** Multi card formats: how many slides the design supports. */
+  slides?: { min: number; max: number; default: number };
+  /** Video and story: card timing plus the transition between cards. */
+  motion?: {
+    minDuration: number;
+    maxDuration: number;
+    defaultDuration: number;
+    transition: "fade" | "slide" | "zoom";
+  };
   /** Custom templates only: locked uploaded design plus mapped zones. */
   backgroundPath?: string | null;
   backgroundUrl?: string | null;
@@ -199,6 +246,7 @@ export type Template = {
   zones?: TemplateZone[];
   lockedDesign?: boolean;
 };
+
 
 export type CustomTemplateRequestStatus = "processing" | "ready" | "rejected";
 
@@ -259,7 +307,12 @@ export type Post = {
   adjustments: PostAdjustments;
   shareStatus: ShareStatus;
   createdAt: string;
+  /** Absent means a single image post, kept for records saved before formats. */
+  format?: ContentFormat;
+  /** Multi card formats store every frame here, in display order. */
+  slides?: Slide[];
 };
+
 
 export type TrialUsage = {
   businessId: string;

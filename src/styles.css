@@ -176,3 +176,19 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-soft);
 }
+
+/* Subtle card transition used by the storyboard preview. */
+@keyframes rafty-card-in {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.rafty-card-in {
+  animation: rafty-card-in 320ms ease-out both;
+}

@@ -63,16 +63,35 @@ export type BusinessStatus = "pending" | "approved" | "rejected" | "suspended";
 
 export type UserRole = "owner" | "admin";
 
-export type PlanTier = "starter" | "growth" | "partnership";
+export type PlanTier = "starter" | "growth" | "studio" | "partnership";
 
+/**
+ * Entitlements are owned by the database and activated by a Rafty admin.
+ * The client only reflects them, it never grants them.
+ */
 export type AccountPlan = {
   userId: string;
   plan: PlanTier;
+  monthlyPrice: number;
+  /** False until an admin activates the account, features stay locked. */
+  active: boolean;
   brandLimit: number;
   billingCycle: string;
+  allowCarousel: boolean;
+  allowVideo: boolean;
+  allowCustomTemplates: boolean;
   partnershipPostsUsed: number;
   partnershipPostsLimit: number;
 };
+
+/** Formats the active entitlement allows. Posts are always included. */
+export function allowedFormats(plan: AccountPlan | null): ContentFormat[] {
+  const out: ContentFormat[] = ["post"];
+  if (!plan?.active) return out;
+  if (plan.allowCarousel) out.push("carousel");
+  if (plan.allowVideo) out.push("video", "story");
+  return out;
+}
 
 export type User = {
   id: string;
@@ -224,6 +243,8 @@ export type Template = {
   name: string;
   engine: string;
   tags: TemplateTag[];
+  /** Soft recommendation only. Every template stays selectable by every brand. */
+  suggestedFor?: BusinessType[] | undefined;
   variant: TemplateVariant;
   scope: TemplateScope;
   businessId: string | null;

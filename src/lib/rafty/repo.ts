@@ -285,6 +285,37 @@ export async function saveBrand(businessId: string, patch: Partial<BrandProfile>
 
 /* ---------------------------------- plan ---------------------------------- */
 
+type PlanRow = {
+  user_id: string;
+  plan: PlanTier;
+  monthly_price?: number | null;
+  active?: boolean | null;
+  brand_limit: number;
+  billing_cycle: string;
+  allow_carousel?: boolean | null;
+  allow_video?: boolean | null;
+  allow_custom_templates?: boolean | null;
+  partnership_posts_used: number;
+  partnership_posts_limit: number;
+};
+
+function toPlan(row: PlanRow): AccountPlan {
+  return {
+    userId: row.user_id,
+    plan: row.plan,
+    monthlyPrice: row.monthly_price ?? 50,
+    active: !!row.active,
+    brandLimit: row.brand_limit,
+    billingCycle: row.billing_cycle,
+    allowCarousel: !!row.allow_carousel,
+    allowVideo: !!row.allow_video,
+    allowCustomTemplates: row.allow_custom_templates !== false,
+    partnershipPostsUsed: row.partnership_posts_used,
+    partnershipPostsLimit: row.partnership_posts_limit,
+  };
+}
+
+/** Reflects the database owned entitlement. Never a client granted plan. */
 export async function getMyPlan(): Promise<AccountPlan | null> {
   const { data: auth } = await supabase.auth.getUser();
   const uid = auth.user?.id;
@@ -294,23 +325,21 @@ export async function getMyPlan(): Promise<AccountPlan | null> {
     .select("*")
     .eq("user_id", uid)
     .maybeSingle();
-  if (!data) return { userId: uid, plan: "starter", brandLimit: 1, billingCycle: "monthly", partnershipPostsUsed: 0, partnershipPostsLimit: 0 };
-  const row = data as unknown as {
-    user_id: string;
-    plan: PlanTier;
-    brand_limit: number;
-    billing_cycle: string;
-    partnership_posts_used: number;
-    partnership_posts_limit: number;
-  };
-  return {
-    userId: row.user_id,
-    plan: row.plan,
-    brandLimit: row.brand_limit,
-    billingCycle: row.billing_cycle,
-    partnershipPostsUsed: row.partnership_posts_used,
-    partnershipPostsLimit: row.partnership_posts_limit,
-  };
+  if (!data)
+    return {
+      userId: uid,
+      plan: "starter",
+      monthlyPrice: 50,
+      active: false,
+      brandLimit: 1,
+      billingCycle: "monthly",
+      allowCarousel: false,
+      allowVideo: false,
+      allowCustomTemplates: true,
+      partnershipPostsUsed: 0,
+      partnershipPostsLimit: 0,
+    };
+  return toPlan(data as unknown as PlanRow);
 }
 
 /** Brands the caller is a member of. RLS decides what comes back. */
@@ -773,38 +802,26 @@ export async function adminSetStatus(businessId: string, status: BusinessStatus)
 
 export async function adminListPlans(): Promise<AccountPlan[]> {
   const { data } = await supabase.from("account_plans").select("*");
-  return (data ?? []).map((row) => {
-    const r = row as {
-      user_id: string;
-      plan: PlanTier;
-      brand_limit: number;
-      billing_cycle: string;
-      partnership_posts_used: number;
-      partnership_posts_limit: number;
-    };
-    return {
-      userId: r.user_id,
-      plan: r.plan,
-      brandLimit: r.brand_limit,
-      billingCycle: r.billing_cycle,
-      partnershipPostsUsed: r.partnership_posts_used,
-      partnershipPostsLimit: r.partnership_posts_limit,
-    };
-  });
+  return (data ?? []).map((row) => toPlan(row as unknown as PlanRow));
 }
 
-/** Sets the tier and derives the brand and partnership limits from the plan catalog. */
-export async function adminSetPlan(ownerUserId: string, tier: PlanTier) {
-  const preset = PLANS.find((p) => p.tier === tier);
-  await supabase.from("account_plans").upsert(
-    {
-      user_id: ownerUserId,
-      plan: tier,
-      brand_limit: preset?.brands ?? 1,
-      partnership_posts_limit: preset?.partnershipPosts ?? 0,
-    } as never,
-    { onConflict: "user_id" },
-  );
+/**
+ * Activation and pricing are applied by a database function that verifies the
+ * caller is a platform admin, so entitlements can never come from the browser.
+ */
+export async function adminSetPlan(
+  ownerUserId: string,
+  monthlyPrice: number,
+  active: boolean,
+  billingCycle = "monthly",
+): Promise<{ error?: string }> {
+  const { error } = await supabase.rpc("admin_set_plan", {
+    _user_id: ownerUserId,
+    _monthly_price: monthlyPrice,
+    _active: active,
+    _billing_cycle: billingCycle,
+  });
+  return error ? { error: error.message } : {};
 }
 
 export const DEFAULTS = DEFAULT_BRAND;

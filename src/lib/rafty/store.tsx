@@ -13,10 +13,11 @@ import { DEFAULT_BRAND } from "./constants";
 import { makeT, type Translator } from "./i18n";
 import { globalTemplates } from "./templates";
 import { supabase } from "@/integrations/supabase/client";
-import { emptyContact, emptyInstructions } from "./types";
+import { allowedFormats, emptyContact, emptyInstructions } from "./types";
 import type {
   AccountPlan,
   BrandProfile,
+  ContentFormat,
   Business,
   BusinessService,
   BusinessType,
@@ -61,6 +62,8 @@ type Ctx = {
   templates: Template[];
   trial: TrialUsage | null;
   plan: AccountPlan | null;
+  /** Formats the activated entitlement allows. The database enforces it too. */
+  formats: ContentFormat[];
   brands: Business[];
   brandSlotsLeft: number;
   language: LanguageCode;
@@ -356,6 +359,7 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
       templates,
       trial,
       plan,
+      formats: allowedFormats(plan),
       brands,
       brandSlotsLeft: Math.max(0, (plan?.brandLimit ?? 1) - brands.length),
       language,

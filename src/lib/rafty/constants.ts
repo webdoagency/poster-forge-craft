@@ -138,12 +138,17 @@ export const LANGUAGES: { code: LanguageCode; label: string }[] = [
 
 /* ---------------------------------- plans --------------------------------- */
 
+/**
+ * Commercial catalog. The database is the source of truth for what an account
+ * may actually do, this list only describes the offers.
+ */
 export const PLANS: {
   tier: PlanTier;
   name: string;
   monthly: number;
   brands: number;
   partnershipPosts: number;
+  formats: string;
   features: string[];
 }[] = [
   {
@@ -152,27 +157,49 @@ export const PLANS: {
     monthly: 50,
     brands: 1,
     partnershipPosts: 0,
-    features: ["1 brand", "Unlimited templates", "Your templates"],
+    formats: "Image posts",
+    features: ["1 brand", "Image posts", "Unlimited ready made templates", "Your own uploaded templates"],
   },
   {
     tier: "growth",
     name: "Growth",
     monthly: 100,
+    brands: 1,
+    partnershipPosts: 0,
+    formats: "Posts, carousels, story and reel",
+    features: [
+      "1 brand",
+      "Full app: posts, carousels, story and reel",
+      "Unlimited ready made templates",
+      "Your own uploaded templates",
+    ],
+  },
+  {
+    tier: "studio",
+    name: "Studio",
+    monthly: 150,
     brands: 2,
     partnershipPosts: 0,
-    features: ["2 brands", "Unlimited templates", "Your templates"],
+    formats: "Posts, carousels, story and reel",
+    features: [
+      "2 brands",
+      "Full app: posts, carousels, story and reel",
+      "Unlimited ready made templates",
+      "Your own uploaded templates",
+    ],
   },
   {
     tier: "partnership",
     name: "Partnership",
     monthly: 200,
-    brands: 3,
+    brands: 1,
     partnershipPosts: 30,
+    formats: "Posts, carousels, story and reel",
     features: [
-      "3 brands",
-      "Unlimited templates",
-      "Your templates",
-      "Rafty Partnership: we create up to 30 posts per month from your pictures and information",
+      "Full app plus a content team",
+      "1 brand",
+      "30 posts per month created by Rafty from your pictures and information",
+      "Every additional 100 € per month adds 30 more done for you posts",
       "You still create unlimited posts yourself",
     ],
   },
@@ -181,8 +208,25 @@ export const PLANS: {
 export const PLAN_NAMES: Record<PlanTier, string> = {
   starter: "Starter",
   growth: "Growth",
+  studio: "Studio",
   partnership: "Partnership",
 };
+
+/** Mirrors the database plan_defaults function, for display only. */
+/** Prices an admin can activate. Partnership scales in 100 € steps. */
+export const PRICE_POINTS = [50, 100, 150, 200, 300, 400, 500];
+
+/** Mirrors the database tier mapping, for labels only. */
+export function tierForPrice(monthlyPrice: number): PlanTier {
+  if (monthlyPrice >= 200) return "partnership";
+  if (monthlyPrice >= 150) return "studio";
+  if (monthlyPrice >= 100) return "growth";
+  return "starter";
+}
+
+export function partnershipPostsFor(monthlyPrice: number): number {
+  return monthlyPrice >= 200 ? (Math.floor((monthlyPrice - 200) / 100) + 1) * 30 : 0;
+}
 
 export const ANNUAL_DISCOUNT = 0.2;
 

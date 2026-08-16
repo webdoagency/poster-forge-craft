@@ -12,16 +12,22 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Logo } from "@/components/rafty/Logo";
 import { useRafty } from "@/lib/rafty/store";
 import * as repo from "@/lib/rafty/repo";
-import { BUSINESS_TYPE_NAMES, PLAN_NAMES, PLANS } from "@/lib/rafty/constants";
+import {
+  BUSINESS_TYPE_NAMES,
+  PLAN_NAMES,
+  PRICE_POINTS,
+  partnershipPostsFor,
+  tierForPrice,
+} from "@/lib/rafty/constants";
 import type {
   AccountPlan,
   Business,
   BusinessStatus,
   CustomTemplateRequest,
-  PlanTier,
   Post,
   TrialUsage,
 } from "@/lib/rafty/types";
@@ -123,9 +129,14 @@ function AdminPage() {
     await load();
   }
 
-  async function setPlan(ownerUserId: string, tier: PlanTier) {
-    await repo.adminSetPlan(ownerUserId, tier);
-    toast.success(`Plan set to ${PLAN_NAMES[tier]}`);
+  /** Price is the entitlement source of truth, the database derives the rest. */
+  async function setPlan(ownerUserId: string, monthlyPrice: number, active: boolean) {
+    const { error } = await repo.adminSetPlan(ownerUserId, monthlyPrice, active);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success(active ? `Activated at ${monthlyPrice} €` : "Entitlement saved, not active");
     await load();
   }
 
@@ -292,28 +303,45 @@ function AdminPage() {
             <div className="grid gap-3">
               {owners.map((owner) => {
                 const plan = planFor(owner.ownerUserId);
-                const tier = plan?.plan ?? "starter";
+                const price = plan?.monthlyPrice ?? 50;
+                const active = plan?.active ?? false;
                 return (
                   <div key={owner.ownerUserId} className="card-soft flex flex-wrap items-center gap-3 p-4">
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-bold">{owner.names.join(", ")}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {owner.businessIds.length} brand{owner.businessIds.length === 1 ? "" : "s"} | limit{" "}
-                        {plan?.brandLimit ?? 1}
+                        {plan?.brandLimit ?? 1} | {PLAN_NAMES[plan?.plan ?? "starter"]}
+                        {plan && plan.partnershipPostsLimit > 0
+                          ? ` | ${plan.partnershipPostsUsed}/${plan.partnershipPostsLimit} done for you posts`
+                          : ""}
                       </p>
                     </div>
-                    <Select value={tier} onValueChange={(v) => void setPlan(owner.ownerUserId, v as PlanTier)}>
-                      <SelectTrigger className="h-10 w-44 rounded-xl bg-card">
+                    <Select
+                      value={String(price)}
+                      onValueChange={(v) => void setPlan(owner.ownerUserId, Number(v), active)}
+                    >
+                      <SelectTrigger className="h-10 w-52 rounded-xl bg-card">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {PLANS.map((p) => (
-                          <SelectItem key={p.tier} value={p.tier}>
-                            {p.name} ({p.brands} brand{p.brands === 1 ? "" : "s"})
+                        {PRICE_POINTS.map((p) => (
+                          <SelectItem key={p} value={String(p)}>
+                            {p} € | {PLAN_NAMES[tierForPrice(p)]}
+                            {partnershipPostsFor(p) > 0 ? ` | ${partnershipPostsFor(p)} posts` : ""}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {active ? "Active" : "Not active"}
+                      </span>
+                      <Switch
+                        checked={active}
+                        onCheckedChange={(v) => void setPlan(owner.ownerUserId, price, v)}
+                      />
+                    </div>
                   </div>
                 );
               })}

@@ -19,7 +19,43 @@ export type BusinessType =
   | "other";
 
 
+/**
+ * Content formats. One shared template model drives all of them, so a
+ * template only declares which format it belongs to plus the extra rules that
+ * format needs (slide counts for carousels, card timing for video).
+ */
+export type ContentFormat = "post" | "carousel" | "video" | "story";
+
+export type FormatSpec = {
+  format: ContentFormat;
+  label: string;
+  /** Export canvas in pixels. Preview uses the same aspect ratio. */
+  width: number;
+  height: number;
+  /** Multi card formats only. Single frame formats use 1/1/1. */
+  minSlides: number;
+  maxSlides: number;
+  defaultSlides: number;
+  /** Video and story timing, in milliseconds. */
+  minDuration: number;
+  maxDuration: number;
+  defaultDuration: number;
+  /** True once a reliable renderer exists for this format. */
+  exportable: boolean;
+};
+
+/** One frame of any format. A single post is simply one slide. */
+export type Slide = {
+  id: string;
+  content: PostContent;
+  adjustments: PostAdjustments;
+  /** Video and story cards only. */
+  durationMs?: number;
+  imagePath?: string | null;
+};
+
 export type LanguageCode = "en" | "de" | "sq";
+
 
 export type CurrencyCode = "EUR" | "CHF" | "GBP" | "USD" | "ALL" | "SEK" | "NOK" | "DKK";
 

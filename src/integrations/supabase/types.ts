@@ -320,10 +320,12 @@ export type Database = {
           caption: string
           content: Json
           created_at: string
+          format: string
           id: string
           image_path: string | null
           share_status: Json
           show_brand_name: boolean
+          slides: Json
           template_id: string
           updated_at: string
         }
@@ -333,10 +335,12 @@ export type Database = {
           caption?: string
           content?: Json
           created_at?: string
+          format?: string
           id?: string
           image_path?: string | null
           share_status?: Json
           show_brand_name?: boolean
+          slides?: Json
           template_id: string
           updated_at?: string
         }
@@ -346,10 +350,12 @@ export type Database = {
           caption?: string
           content?: Json
           created_at?: string
+          format?: string
           id?: string
           image_path?: string | null
           share_status?: Json
           show_brand_name?: boolean
+          slides?: Json
           template_id?: string
           updated_at?: string
         }

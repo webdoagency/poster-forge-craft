@@ -124,6 +124,44 @@ export type Database = {
           },
         ]
       }
+      brand_social_connections: {
+        Row: {
+          account_label: string
+          business_id: string
+          created_at: string
+          id: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          status: Database["public"]["Enums"]["social_conn_status"]
+          updated_at: string
+        }
+        Insert: {
+          account_label?: string
+          business_id: string
+          created_at?: string
+          id?: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          status?: Database["public"]["Enums"]["social_conn_status"]
+          updated_at?: string
+        }
+        Update: {
+          account_label?: string
+          business_id?: string
+          created_at?: string
+          id?: string
+          platform?: Database["public"]["Enums"]["social_platform"]
+          status?: Database["public"]["Enums"]["social_conn_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_social_connections_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_members: {
         Row: {
           business_id: string
@@ -408,6 +446,63 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_posts: {
+        Row: {
+          business_id: string
+          created_at: string
+          failure_reason: string | null
+          id: string
+          note: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          post_id: string
+          scheduled_at: string
+          status: Database["public"]["Enums"]["schedule_status"]
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          note?: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          post_id: string
+          scheduled_at: string
+          status?: Database["public"]["Enums"]["schedule_status"]
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          failure_reason?: string | null
+          id?: string
+          note?: string
+          platform?: Database["public"]["Enums"]["social_platform"]
+          post_id?: string
+          scheduled_at?: string
+          status?: Database["public"]["Enums"]["schedule_status"]
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_posts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trial_usage: {
         Row: {
           business_id: string
@@ -528,6 +623,20 @@ export type Database = {
         | "retail"
         | "other"
       plan_tier: "starter" | "growth" | "partnership" | "studio"
+      schedule_status: "queued" | "cancelled" | "published" | "failed"
+      social_conn_status:
+        | "unavailable"
+        | "not_connected"
+        | "connected"
+        | "ready"
+        | "failed"
+      social_platform:
+        | "instagram"
+        | "facebook"
+        | "linkedin"
+        | "tiktok"
+        | "x"
+        | "youtube"
       template_request_status: "processing" | "ready" | "rejected"
     }
     CompositeTypes: {
@@ -667,6 +776,22 @@ export const Constants = {
         "other",
       ],
       plan_tier: ["starter", "growth", "partnership", "studio"],
+      schedule_status: ["queued", "cancelled", "published", "failed"],
+      social_conn_status: [
+        "unavailable",
+        "not_connected",
+        "connected",
+        "ready",
+        "failed",
+      ],
+      social_platform: [
+        "instagram",
+        "facebook",
+        "linkedin",
+        "tiktok",
+        "x",
+        "youtube",
+      ],
       template_request_status: ["processing", "ready", "rejected"],
     },
   },

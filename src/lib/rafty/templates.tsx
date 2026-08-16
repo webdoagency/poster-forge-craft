@@ -1689,7 +1689,7 @@ function buildNewGlobalTemplates(): Template[] {
     const variant = variants[(index + 1) % variants.length]!;
     return {
       id: `global_${51 + index}`,
-      name: NEW_POST_NAMES[index] ?? `${engine.label} Edition`,
+      name: templateName(51 + index, engine.id),
       engine: engine.id,
       tags: engine.tags,
       ...(suggestedForEngine(engine.id) ? { suggestedFor: suggestedForEngine(engine.id) } : {}),

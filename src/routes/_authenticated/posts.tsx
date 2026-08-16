@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
-import { Clipboard, Copy, Download, Pencil, Search, Trash2 } from "lucide-react";
+import { CalendarClock, Clipboard, Copy, Download, Pencil, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -167,6 +167,11 @@ function PostsPage() {
                     onClick={() => void handleDownload(post)}
                   >
                     <Download className="size-4" />
+                  </Button>
+                  <Button asChild size="icon" variant="outline" className="size-9 shrink-0 rounded-xl">
+                    <Link to="/schedule" aria-label="Schedule">
+                      <CalendarClock className="size-4" />
+                    </Link>
                   </Button>
                   <Button
                     size="icon"

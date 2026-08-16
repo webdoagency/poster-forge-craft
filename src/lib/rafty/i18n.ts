@@ -8,6 +8,7 @@ const en: Record<string, string> = {
   "nav.create": "Create",
   "nav.posts": "Posts",
   "nav.templates": "Templates",
+  "nav.schedule": "Schedule",
   "nav.brand": "Brand",
   "nav.signOut": "Sign out",
 
@@ -146,6 +147,7 @@ const de: Record<string, string> = {
   "nav.create": "Erstellen",
   "nav.posts": "Beiträge",
   "nav.templates": "Vorlagen",
+  "nav.schedule": "Planung",
   "nav.brand": "Marke",
   "nav.signOut": "Abmelden",
 
@@ -285,6 +287,7 @@ const sq: Record<string, string> = {
   "nav.create": "Krijo",
   "nav.posts": "Postimet",
   "nav.templates": "Shabllonet",
+  "nav.schedule": "Planifiko",
   "nav.brand": "Brendi",
   "nav.signOut": "Shkëputu",
 

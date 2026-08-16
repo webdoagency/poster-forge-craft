@@ -357,3 +357,39 @@ export const emptyContent: PostContent = {
 };
 
 export const defaultAdjust: LayerAdjust = { x: 0, y: 0, scale: 1, align: "left" };
+
+/* ------------------------- scheduling and connections ---------------------- */
+
+export type SocialPlatform = "instagram" | "facebook" | "linkedin" | "tiktok" | "x" | "youtube";
+
+export type ScheduleStatus = "queued" | "cancelled" | "published" | "failed";
+
+/** A real queue entry. Rafty never claims a social publish it cannot perform:
+ * queued items are prepared content with a time, not a promised post. */
+export type ScheduledPost = {
+  id: string;
+  businessId: string;
+  postId: string;
+  platform: SocialPlatform;
+  scheduledAt: string;
+  timezone: string;
+  status: ScheduleStatus;
+  note: string;
+  failureReason: string | null;
+  createdAt: string;
+};
+
+export type SocialConnectionStatus =
+  | "unavailable"
+  | "not_connected"
+  | "connected"
+  | "ready"
+  | "failed";
+
+export type SocialConnection = {
+  id: string;
+  businessId: string;
+  platform: SocialPlatform;
+  status: SocialConnectionStatus;
+  accountLabel: string;
+};

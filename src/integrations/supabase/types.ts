@@ -67,6 +67,7 @@ export type Database = {
           accent_color: string
           background_color: string | null
           business_id: string
+          contact_info: Json
           content_instructions: Json
           created_at: string
           currency: string
@@ -84,6 +85,7 @@ export type Database = {
           accent_color?: string
           background_color?: string | null
           business_id: string
+          contact_info?: Json
           content_instructions?: Json
           created_at?: string
           currency?: string
@@ -101,6 +103,7 @@ export type Database = {
           accent_color?: string
           background_color?: string | null
           business_id?: string
+          contact_info?: Json
           content_instructions?: Json
           created_at?: string
           currency?: string
@@ -378,6 +381,7 @@ export type Database = {
           image_path: string | null
           share_status: Json
           show_brand_name: boolean
+          show_contact: boolean
           slides: Json
           template_id: string
           updated_at: string
@@ -393,6 +397,7 @@ export type Database = {
           image_path?: string | null
           share_status?: Json
           show_brand_name?: boolean
+          show_contact?: boolean
           slides?: Json
           template_id: string
           updated_at?: string
@@ -408,6 +413,7 @@ export type Database = {
           image_path?: string | null
           share_status?: Json
           show_brand_name?: boolean
+          show_contact?: boolean
           slides?: Json
           template_id?: string
           updated_at?: string
@@ -499,6 +505,35 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_favorites: {
+        Row: {
+          business_id: string
+          created_at: string
+          id: string
+          template_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          id?: string
+          template_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          id?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_favorites_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]

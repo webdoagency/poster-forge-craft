@@ -509,6 +509,40 @@ export async function templatesForBusiness(businessId: string): Promise<Template
   return [...custom, ...globalTemplates];
 }
 
+/* ------------------------------- favourites ------------------------------- */
+/** Per brand favourites. RLS scopes every row to the caller's own brand. */
+
+export async function listFavorites(businessId: string): Promise<string[]> {
+  const { data } = await supabase
+    .from("template_favorites")
+    .select("template_id")
+    .eq("business_id", businessId);
+  return (data ?? []).map((row) => row.template_id as string);
+}
+
+export async function toggleFavorite(
+  businessId: string,
+  templateId: string,
+  next: boolean,
+): Promise<{ error?: string }> {
+  if (next) {
+    const { error } = await supabase
+      .from("template_favorites")
+      .upsert(
+        { business_id: businessId, template_id: templateId } as never,
+        { onConflict: "business_id,template_id" },
+      );
+    return error ? { error: error.message } : {};
+  }
+  const { error } = await supabase
+    .from("template_favorites")
+    .delete()
+    .eq("business_id", businessId)
+    .eq("template_id", templateId);
+  return error ? { error: error.message } : {};
+}
+
+
 
 /* --------------------------- custom template flow ------------------------- */
 

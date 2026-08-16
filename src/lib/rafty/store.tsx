@@ -61,6 +61,8 @@ type Ctx = {
   templates: Template[];
   trial: TrialUsage | null;
   plan: AccountPlan | null;
+  /** Formats the activated entitlement allows. The database enforces it too. */
+  formats: ContentFormat[];
   brands: Business[];
   brandSlotsLeft: number;
   language: LanguageCode;

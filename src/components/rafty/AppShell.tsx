@@ -84,6 +84,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Select>
           ) : null}
           <div className="ml-auto flex min-w-0 items-center gap-3">
+            <Link
+              to="/schedule"
+              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground sm:flex sm:items-center sm:gap-1.5"
+            >
+              <CalendarClock className="size-4" />
+              {t("nav.schedule")}
+            </Link>
             {isAdmin ? (
               <Link
                 to="/admin"
@@ -112,7 +119,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="mx-auto max-w-7xl px-4 pb-28 pt-6 sm:px-6 md:pb-16">{children}</main>
 
       <nav className="glass-panel fixed inset-x-0 bottom-0 z-40 border-x-0 border-b-0 pb-[env(safe-area-inset-bottom)] md:hidden">
-        <div className="grid grid-cols-5">
+        <div className="grid grid-cols-4">
           {nav.map((item) => (
             <Link
               key={item.to}

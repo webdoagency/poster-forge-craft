@@ -423,6 +423,10 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
       brand,
       services,
       posts,
+      favorites,
+      templateUsage,
+      toggleFavoriteFn,
+
       templates,
       trial,
       plan,

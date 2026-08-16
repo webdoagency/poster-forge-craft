@@ -13,13 +13,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+/** Four primary destinations only. Scheduling stays reachable from the header
+ * and from a saved post, it is not a daily destination. */
 const nav = [
   { to: "/create", labelKey: "nav.create", icon: Sparkles },
-  { to: "/posts", labelKey: "nav.posts", icon: Images },
   { to: "/templates", labelKey: "nav.templates", icon: LayoutTemplate },
-  { to: "/schedule", labelKey: "nav.schedule", icon: CalendarClock },
+  { to: "/posts", labelKey: "nav.posts", icon: Images },
   { to: "/brand", labelKey: "nav.brand", icon: Palette },
 ] as const;
+
 
 /** Business chrome. Most accounts have one brand, a switcher only appears
  * once the plan grants more than one. */

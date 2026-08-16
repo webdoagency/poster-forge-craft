@@ -131,7 +131,9 @@ function CreatePage() {
   const [postId, setPostId] = useState<string | null>(isDuplicate ? null : existing?.id ?? null);
   const [generated, setGenerated] = useState(Boolean(existing) && !isDuplicate);
   const [showAdjust, setShowAdjust] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [newService, setNewService] = useState("");
+
   const [saving, setSaving] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const slideNodes = useRef<(HTMLDivElement | null)[]>([]);

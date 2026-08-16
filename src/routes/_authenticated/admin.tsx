@@ -297,28 +297,45 @@ function AdminPage() {
             <div className="grid gap-3">
               {owners.map((owner) => {
                 const plan = planFor(owner.ownerUserId);
-                const tier = plan?.plan ?? "starter";
+                const price = plan?.monthlyPrice ?? 50;
+                const active = plan?.active ?? false;
                 return (
                   <div key={owner.ownerUserId} className="card-soft flex flex-wrap items-center gap-3 p-4">
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-bold">{owner.names.join(", ")}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {owner.businessIds.length} brand{owner.businessIds.length === 1 ? "" : "s"} | limit{" "}
-                        {plan?.brandLimit ?? 1}
+                        {plan?.brandLimit ?? 1} | {PLAN_NAMES[plan?.plan ?? "starter"]}
+                        {plan && plan.partnershipPostsLimit > 0
+                          ? ` | ${plan.partnershipPostsUsed}/${plan.partnershipPostsLimit} done for you posts`
+                          : ""}
                       </p>
                     </div>
-                    <Select value={tier} onValueChange={(v) => void setPlan(owner.ownerUserId, v as PlanTier)}>
-                      <SelectTrigger className="h-10 w-44 rounded-xl bg-card">
+                    <Select
+                      value={String(price)}
+                      onValueChange={(v) => void setPlan(owner.ownerUserId, Number(v), active)}
+                    >
+                      <SelectTrigger className="h-10 w-52 rounded-xl bg-card">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {PLANS.map((p) => (
-                          <SelectItem key={p.tier} value={p.tier}>
-                            {p.name} ({p.brands} brand{p.brands === 1 ? "" : "s"})
+                        {PRICE_POINTS.map((p) => (
+                          <SelectItem key={p} value={String(p)}>
+                            {p} € | {PLAN_NAMES[tierForPrice(p)]}
+                            {partnershipPostsFor(p) > 0 ? ` | ${partnershipPostsFor(p)} posts` : ""}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {active ? "Active" : "Not active"}
+                      </span>
+                      <Switch
+                        checked={active}
+                        onCheckedChange={(v) => void setPlan(owner.ownerUserId, price, v)}
+                      />
+                    </div>
                   </div>
                 );
               })}

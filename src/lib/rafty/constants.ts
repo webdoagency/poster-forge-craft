@@ -327,3 +327,78 @@ export const DEFAULT_BRAND = {
   currency: "EUR" as CurrencyCode,
   language: "en" as LanguageCode,
 };
+
+/* --------------------------------- formats -------------------------------- */
+
+/**
+ * One shared table of content formats. Every canvas, preview, export and
+ * template definition reads its dimensions and limits from here, so there is
+ * a single source of truth instead of per feature magic numbers.
+ */
+export const FORMAT_SPECS: Record<ContentFormat, FormatSpec> = {
+  post: {
+    format: "post",
+    label: "Post",
+    width: 1080,
+    height: 1350,
+    minSlides: 1,
+    maxSlides: 1,
+    defaultSlides: 1,
+    minDuration: 0,
+    maxDuration: 0,
+    defaultDuration: 0,
+    exportable: true,
+  },
+  carousel: {
+    format: "carousel",
+    label: "Carousel",
+    width: 1080,
+    height: 1350,
+    minSlides: 2,
+    maxSlides: 8,
+    defaultSlides: 3,
+    minDuration: 0,
+    maxDuration: 0,
+    defaultDuration: 0,
+    exportable: true,
+  },
+  video: {
+    format: "video",
+    label: "Video",
+    width: 1080,
+    height: 1920,
+    minSlides: 2,
+    maxSlides: 6,
+    defaultSlides: 3,
+    minDuration: 1500,
+    maxDuration: 8000,
+    defaultDuration: 3000,
+    exportable: false,
+  },
+  story: {
+    format: "story",
+    label: "Story",
+    width: 1080,
+    height: 1920,
+    minSlides: 1,
+    maxSlides: 1,
+    defaultSlides: 1,
+    minDuration: 0,
+    maxDuration: 0,
+    defaultDuration: 0,
+    exportable: true,
+  },
+};
+
+export const CONTENT_FORMATS: ContentFormat[] = ["post", "carousel", "video", "story"];
+
+export const FORMAT_HINTS: Record<ContentFormat, string> = {
+  post: "One image, one design.",
+  carousel: "Several slides in one order.",
+  video: "Short storyboard with timing.",
+  story: "Tall full screen design.",
+};
+
+/** Clamps a card duration into the template or format safe bounds. */
+export const clampDuration = (ms: number, spec: FormatSpec) =>
+  Math.min(spec.maxDuration, Math.max(spec.minDuration, Math.round(ms / 500) * 500));

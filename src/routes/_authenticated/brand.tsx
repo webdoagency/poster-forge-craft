@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowDown, ArrowUp, Lock, Plus, Trash2, Upload } from "lucide-react";
+import { ArrowDown, ArrowUp, Lock, Plus, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,7 +26,7 @@ import {
   FONT_LIBRARY,
   LANGUAGES,
 } from "@/lib/rafty/constants";
-import type { BusinessType, ContentInstructions, CurrencyCode, LanguageCode } from "@/lib/rafty/types";
+import { emptyContact, type BrandContact, type BusinessType, type ContentInstructions, type CurrencyCode, type LanguageCode } from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/_authenticated/brand")({
   head: () => ({
@@ -232,6 +232,118 @@ function AddBrandForm({ onDone }: { onDone: () => void }) {
           Cancel
         </Button>
       </div>
+    </div>
+  );
+}
+
+function ContactForm({ value, onSave }: { value: BrandContact; onSave: (contact: BrandContact) => Promise<void> }) {
+  const [draft, setDraft] = useState<BrandContact>(value);
+  const [saving, setSaving] = useState(false);
+
+  function setPhone(index: number, v: string) {
+    const phones = [...draft.phones];
+    phones[index] = v;
+    setDraft({ ...draft, phones });
+  }
+
+  function addPhone() {
+    setDraft({ ...draft, phones: [...draft.phones, ""] });
+  }
+
+  function removePhone(index: number) {
+    setDraft({ ...draft, phones: draft.phones.filter((_, i) => i !== index) });
+  }
+
+  async function save() {
+    setSaving(true);
+    try {
+      await onSave({ ...draft, phones: draft.phones.map((p) => p.trim()).filter(Boolean) });
+      toast.success("Contact info saved.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="card-soft grid gap-3 p-4">
+      <p className="text-sm font-bold">Contact information</p>
+      <p className="text-xs text-muted-foreground">
+        Add the details customers use to reach you. Turn this on per post from the create screen.
+      </p>
+
+      <div className="grid gap-1.5">
+        <Label>Phone numbers</Label>
+        <div className="grid gap-2">
+          {draft.phones.map((phone, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(index, e.target.value)}
+                placeholder="Phone number"
+                className="h-10 rounded-xl"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-10 shrink-0 rounded-xl"
+                aria-label="Remove phone"
+                onClick={() => removePhone(index)}
+              >
+                <X className="size-4" />
+              </Button>
+            </div>
+          ))}
+        </div>
+        <Button variant="outline" size="sm" className="h-9 w-fit rounded-xl" onClick={addPhone}>
+          <Plus className="mr-1 size-3.5" />
+          Add phone
+        </Button>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-1.5">
+          <Label>Email</Label>
+          <Input
+            value={draft.email}
+            onChange={(e) => setDraft({ ...draft, email: e.target.value })}
+            placeholder="hello@yourbrand.com"
+            className="h-10 rounded-xl"
+          />
+        </div>
+        <div className="grid gap-1.5">
+          <Label>Website</Label>
+          <Input
+            value={draft.website}
+            onChange={(e) => setDraft({ ...draft, website: e.target.value })}
+            placeholder="yourbrand.com"
+            className="h-10 rounded-xl"
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-1.5">
+        <Label>Address</Label>
+        <Input
+          value={draft.address}
+          onChange={(e) => setDraft({ ...draft, address: e.target.value })}
+          placeholder="Street, city"
+          className="h-10 rounded-xl"
+        />
+      </div>
+
+      <div className="grid gap-1.5">
+        <Label>Social handle (optional)</Label>
+        <Input
+          value={draft.social}
+          onChange={(e) => setDraft({ ...draft, social: e.target.value })}
+          placeholder="@yourbrand"
+          className="h-10 rounded-xl"
+        />
+      </div>
+
+      <Button className="h-10 w-fit rounded-xl" disabled={saving} onClick={save}>
+        {saving ? "Saving..." : "Save contact info"}
+      </Button>
     </div>
   );
 }

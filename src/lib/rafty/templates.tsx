@@ -1,4 +1,5 @@
 import { formatPrice } from "./constants";
+import { FitText } from "@/components/rafty/FitText";
 import type {
   BrandProfile,
   BusinessType,
@@ -26,6 +27,8 @@ export type RenderCtx = {
   variant: TemplateVariant;
   showBrandName?: boolean;
   adjustments?: PostAdjustments;
+  /** Renders the brand contact zone when a template opts in. */
+  showContact?: boolean;
 };
 
 const px = (n: number) => `${n}cqw`;
@@ -232,19 +235,78 @@ function Kicker({ ctx, color }: { ctx: RenderCtx; color: string }) {
 
 function Title({ ctx, size, color }: { ctx: RenderCtx; size: number; color: string }) {
   return (
-    <h2
+    <FitText
+      as="h2"
+      text={ctx.content.title || "Your headline here"}
+      maxSize={size}
+      minSize={Math.max(3.2, size * 0.45)}
+      maxLines={3}
+      lineHeight={1.03}
+      tightLineHeight={0.98}
       style={{
-        margin: 0,
-        fontSize: px(size),
-        lineHeight: 1.03,
         fontWeight: 800,
         letterSpacing: "-0.03em",
         fontFamily: font(ctx.brand),
         color,
       }}
+    />
+  );
+}
+
+/** Shrinks to fit rather than clipping or overflowing its zone. */
+function AdditionalText({
+  ctx,
+  size,
+  opacity = 1,
+  style,
+}: {
+  ctx: RenderCtx;
+  size: number;
+  opacity?: number;
+  style?: React.CSSProperties;
+}) {
+  const text = ctx.content.additionalText;
+  if (!text) return null;
+  return (
+    <FitText
+      as="p"
+      text={text}
+      maxSize={size}
+      minSize={Math.max(1.8, size * 0.65)}
+      maxLines={3}
+      lineHeight={1.4}
+      tightLineHeight={1.25}
+      style={{ opacity, fontFamily: fontSecondary(ctx.brand), ...style }}
+    />
+  );
+}
+
+/** Compact contact line, only rendered when the post opts in. Tasteful and
+ * small: never more than a single wrapped line of the brand's essentials. */
+function ContactLine({ ctx, tone }: { ctx: RenderCtx; tone: "light" | "dark" }) {
+  if (!ctx.showContact) return null;
+  const { contact } = ctx.brand;
+  if (!contact) return null;
+  const parts = [
+    contact.phones.filter(Boolean)[0],
+    contact.email,
+    contact.website,
+    contact.address,
+    contact.social,
+  ].filter((v): v is string => !!v && v.trim().length > 0);
+  if (!parts.length) return null;
+  return (
+    <div
+      style={{
+        fontSize: px(2.1),
+        fontWeight: 500,
+        lineHeight: 1.4,
+        fontFamily: fontSecondary(ctx.brand),
+        color: tone === "light" ? "rgba(255,255,255,0.85)" : "rgba(20,16,32,0.62)",
+      }}
     >
-      {ctx.content.title || "Your headline here"}
-    </h2>
+      {parts.join("  ·  ")}
+    </div>
   );
 }
 

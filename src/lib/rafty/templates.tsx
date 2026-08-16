@@ -1724,22 +1724,11 @@ const FORMAT_ENGINES: Record<"carousel" | "video" | "story", string[]> = {
   ],
 };
 
-const FORMAT_NAMES: Record<"carousel" | "video" | "story", string[]> = {
-  carousel: [
-    "Story Set", "Column Set", "Halo Set", "Velvet Set", "Reflection Set", "Signal Set",
-    "Horizon Set", "Stub Set", "Slate Set", "Ridge Set", "Ledger Set", "Marble Set",
-    "Panel Set", "Grid Set", "Wedge Set", "Bleed Set", "Blur Set", "Column Suite",
-    "Letterbox Set", "Stack Set",
-  ],
-  video: [
-    "Motion Skyline", "Motion Halo", "Motion Velvet", "Motion Impact",
-    "Motion Bleed", "Motion Wash", "Motion Letterbox", "Motion Offer",
-  ],
-  story: [
-    "Tall Skyline", "Tall Reflection", "Tall Velvet", "Tall Impact",
-    "Tall Bleed", "Tall Letterbox", "Tall Wash", "Tall Reserve",
-    "Tall Bloom", "Tall Border", "Tall Wedge", "Tall Offer",
-  ],
+/** Neutral prefixes keep the numbering readable per format. */
+const FORMAT_PREFIX: Record<"carousel" | "video" | "story", string> = {
+  carousel: "C",
+  video: "V",
+  story: "S",
 };
 
 function buildFormatTemplates(format: "carousel" | "video" | "story"): Template[] {
@@ -1749,7 +1738,8 @@ function buildFormatTemplates(format: "carousel" | "video" | "story"): Template[
     const variant = variants[index % variants.length]!;
     return {
       id: `${format}_${index + 1}`,
-      name: FORMAT_NAMES[format][index] ?? `${engine.label} ${index + 1}`,
+      name: templateName(index + 1, engine.id, FORMAT_PREFIX[format]),
+
       engine: engine.id,
       tags: engine.tags,
       ...(suggestedForEngine(engine.id) ? { suggestedFor: suggestedForEngine(engine.id) } : {}),

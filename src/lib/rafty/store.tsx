@@ -60,7 +60,13 @@ type Ctx = {
   services: BusinessService[];
   posts: PostWithContact[];
   templates: Template[];
+  /** Template ids this brand starred. Real persisted preference. */
+  favorites: string[];
+  /** Real usage counts per template id, derived from this brand's saved posts. */
+  templateUsage: Record<string, number>;
+  toggleFavorite: (templateId: string) => Promise<void>;
   trial: TrialUsage | null;
+
   plan: AccountPlan | null;
   /** Formats the activated entitlement allows. The database enforces it too. */
   formats: ContentFormat[];

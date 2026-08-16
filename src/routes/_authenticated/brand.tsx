@@ -542,6 +542,8 @@ function BrandPage() {
         </div>
       </div>
 
+      <ContactForm value={brand.contact ?? emptyContact} onSave={(contact) => saveBrand({ contact })} />
+
       <div className="card-soft grid gap-3 p-4">
         <Label>{t("brand.services")}</Label>
         <div className="grid gap-2">

@@ -389,6 +389,7 @@ const engines: Engine[] = [
                 <PriceBadge ctx={ctx} tone="light" />
                 <CtaTag ctx={ctx} tone="light" />
               </div>
+              <ContactLine ctx={ctx} tone="light" />
             </AdjustBox>
           </div>
         </div>
@@ -430,6 +431,7 @@ const engines: Engine[] = [
                 <PriceBadge ctx={ctx} tone="dark" />
               </span>
             </div>
+            <ContactLine ctx={ctx} tone="dark" />
           </AdjustBox>
         </div>
       );
@@ -650,6 +652,7 @@ const engines: Engine[] = [
               <PriceBadge ctx={ctx} tone="dark" />
             </span>
           </div>
+          <ContactLine ctx={ctx} tone="dark" />
         </div>
       );
     },
@@ -678,6 +681,7 @@ const engines: Engine[] = [
                   <PriceBadge ctx={ctx} tone="light" />
                 </span>
               </div>
+              <ContactLine ctx={ctx} tone="light" />
             </div>
           </div>
         </div>
@@ -898,6 +902,7 @@ const engines: Engine[] = [
               <Title ctx={ctx} size={7.6} color="#181026" />
               <AdditionalText ctx={ctx} size={2.6} opacity={0.6} />
               <PriceBadge ctx={ctx} tone="dark" />
+              <ContactLine ctx={ctx} tone="dark" />
             </AdjustBox>
           </div>
           <div style={{ position: "relative", flex: "0 0 38%" }}>

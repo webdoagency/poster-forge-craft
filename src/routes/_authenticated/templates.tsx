@@ -461,6 +461,8 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
 
 function TemplatesPage() {
   const { business, brand, templates, favorites, toggleFavorite, refresh, t } = useRafty();
+  const placeholder = useMemo(() => placeholderContent(business?.type ?? "other"), [business?.type]);
+
   const [tag, setTag] = useState<TemplateTag | "all">("all");
   const [wizardOpen, setWizardOpen] = useState(false);
   const [requests, setRequests] = useState<CustomTemplateRequest[]>([]);

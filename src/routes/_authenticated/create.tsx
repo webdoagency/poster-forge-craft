@@ -91,6 +91,7 @@ function CreatePage() {
     posts,
     templates,
     trial,
+    formats,
     canCreatePost,
     createPost,
     addService,
@@ -334,7 +335,7 @@ function CreatePage() {
           </p>
         </div>
 
-        <FormatPicker value={format} onChange={changeFormat} />
+        <FormatPicker value={format} onChange={changeFormat} allowed={formats} />
 
         {locked ? (
           <div className="card-soft p-4 text-sm">

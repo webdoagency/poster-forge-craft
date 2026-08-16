@@ -1,4 +1,12 @@
-import type { BusinessType, CurrencyCode, LanguageCode, PlanTier } from "./types";
+import type {
+  BusinessType,
+  ContentFormat,
+  CurrencyCode,
+  FormatSpec,
+  LanguageCode,
+  PlanTier,
+} from "./types";
+
 
 export const BUSINESS_TYPES: BusinessType[] = [
   "travel_agency",

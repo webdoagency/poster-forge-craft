@@ -561,8 +561,19 @@ type PostRow = {
   show_contact: boolean | null;
   share_status: ShareStatus | null;
   image_path: string | null;
+  format: string | null;
+  slides: StoredSlide[] | null;
   created_at: string;
   businesses?: { name: string } | null;
+};
+
+/** Slides are stored without any data url, only the private storage path. */
+type StoredSlide = {
+  id: string;
+  content: Partial<PostContent>;
+  adjustments: PostAdjustments | null;
+  durationMs?: number;
+  imagePath?: string | null;
 };
 
 /**
@@ -588,6 +599,20 @@ async function toPost(row: PostRow): Promise<PostWithContact> {
     adjustments: row.adjustments ?? {},
     shareStatus: row.share_status ?? {},
     createdAt: row.created_at,
+    format: (row.format as Post["format"]) ?? "post",
+    slides: await Promise.all(
+      (row.slides ?? []).map(async (slide) => ({
+        id: slide.id,
+        content: {
+          ...emptyContent,
+          ...slide.content,
+          imageDataUrl: await signedUrl(slide.imagePath ?? null),
+        },
+        adjustments: slide.adjustments ?? {},
+        ...(slide.durationMs !== undefined ? { durationMs: slide.durationMs } : {}),
+        imagePath: slide.imagePath ?? null,
+      })),
+    ),
   };
 }
 
@@ -610,6 +635,28 @@ export async function savePost(post: PostWithContact): Promise<PostWithContact |
       imagePath = uploaded;
     }
   }
+  // Every slide keeps its own storage object, uploaded from its own content,
+  // so saving one slide can never overwrite another slide's media.
+  const storedSlides: StoredSlide[] = [];
+  for (const slide of post.slides ?? []) {
+    const { imageDataUrl, ...slideText } = slide.content;
+    let slidePath = slide.imagePath ?? null;
+    if (isDataUrl(imageDataUrl)) {
+      const uploaded = await uploadDataUrl(post.businessId, "posts", imageDataUrl);
+      if (uploaded) {
+        if (slidePath) await removeFile(slidePath);
+        slidePath = uploaded;
+      }
+    }
+    storedSlides.push({
+      id: slide.id,
+      content: slideText,
+      adjustments: slide.adjustments ?? {},
+      ...(slide.durationMs !== undefined ? { durationMs: slide.durationMs } : {}),
+      imagePath: slidePath,
+    });
+  }
+
   const payload = {
     business_id: post.businessId,
     template_id: post.templateId,
@@ -620,6 +667,8 @@ export async function savePost(post: PostWithContact): Promise<PostWithContact |
     show_contact: post.showContact ?? false,
     share_status: post.shareStatus ?? {},
     image_path: imagePath,
+    format: post.format ?? "post",
+    slides: storedSlides,
   };
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
     post.id ?? "",

@@ -637,22 +637,21 @@ function CreatePage() {
       </section>
 
       <section className={`flex flex-col gap-4 ${generated ? "order-1 lg:order-2" : ""}`}>
-        <div className="flex items-center gap-3">
-          <Label className="shrink-0">{t("create.template")}</Label>
-          <Select value={template.id} onValueChange={setTemplateId}>
-            <SelectTrigger className="rounded-xl bg-card">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="max-h-72">
-              {formatTemplates.map((x) => (
-                <SelectItem key={x.id} value={x.id}>
-                  {x.name}
-                  {x.scope === "custom" ? " (custom)" : ""}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="mx-auto w-full max-w-[520px]">
+          <Label className="mb-1.5 block text-xs uppercase tracking-wide text-muted-foreground">
+            {t("create.template")}
+          </Label>
+          <TemplatePicker
+            templates={formatTemplates}
+            value={template.id}
+            onSelect={setTemplateId}
+            brand={brand}
+            businessType={business.type}
+            businessName={business.name}
+            format={format}
+          />
         </div>
+
 
         <div className="mx-auto w-full max-w-[520px]">
           {format === "carousel" ? (

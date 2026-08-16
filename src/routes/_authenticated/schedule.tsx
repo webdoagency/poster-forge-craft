@@ -87,7 +87,8 @@ function SchedulePage() {
     [posts],
   );
 
-  if (!business) return null;
+  if (!business || !businessId) return null;
+  const bid = businessId;
 
   async function add() {
     if (!postId) {
@@ -101,7 +102,7 @@ function SchedulePage() {
     }
     setSaving(true);
     const res = await repo.createSchedule({
-      businessId: business.id,
+      businessId: bid,
       postId,
       platform,
       scheduledAt: at.toISOString(),
@@ -133,7 +134,7 @@ function SchedulePage() {
   }
 
   async function saveLabel(p: SocialPlatform) {
-    const res = await repo.saveConnectionLabel(business.id, p, labels[p] ?? "");
+    const res = await repo.saveConnectionLabel(bid, p, labels[p] ?? "");
     if (res.error) {
       toast.error(res.error);
       return;

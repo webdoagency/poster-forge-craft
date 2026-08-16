@@ -454,3 +454,55 @@ export const FORMAT_HINTS: Record<ContentFormat, string> = {
 /** Clamps a card duration into the template or format safe bounds. */
 export const clampDuration = (ms: number, spec: FormatSpec) =>
   Math.min(spec.maxDuration, Math.max(spec.minDuration, Math.round(ms / 500) * 500));
+
+/* --------------------------- social and scheduling ------------------------- */
+
+/**
+ * Publishing surfaces. `available` is false for every platform whose publishing
+ * API is not wired up, so the UI can say "Connect when available" instead of
+ * pretending a connection exists.
+ */
+export const SOCIAL_PLATFORMS: {
+  platform: SocialPlatform;
+  label: string;
+  available: boolean;
+  note: string;
+}[] = [
+  {
+    platform: "instagram",
+    label: "Instagram",
+    available: false,
+    note: "Needs a professional account linked to a Facebook Page through a Meta business account.",
+  },
+  {
+    platform: "facebook",
+    label: "Facebook",
+    available: false,
+    note: "Needs a Facebook Page inside a Meta business account.",
+  },
+  { platform: "linkedin", label: "LinkedIn", available: false, note: "Company page publishing." },
+  { platform: "tiktok", label: "TikTok", available: false, note: "Business account publishing." },
+  { platform: "x", label: "X", available: false, note: "Account posting." },
+  { platform: "youtube", label: "YouTube", available: false, note: "Shorts publishing." },
+];
+
+export const PLATFORM_LABELS: Record<SocialPlatform, string> = {
+  instagram: "Instagram",
+  facebook: "Facebook",
+  linkedin: "LinkedIn",
+  tiktok: "TikTok",
+  x: "X",
+  youtube: "YouTube",
+};
+
+/** Timezones offered for scheduling. Stored with every queue entry. */
+export const TIMEZONES = [
+  "UTC",
+  "Europe/Tirane",
+  "Europe/Zurich",
+  "Europe/Berlin",
+  "Europe/London",
+  "Europe/Athens",
+  "America/New_York",
+  "America/Los_Angeles",
+];

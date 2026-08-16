@@ -1547,27 +1547,49 @@ function renderCustomTemplate(template: Template, ctx: RenderCtx): React.ReactNo
 
 /* ------------------------------ template names ----------------------------- */
 
-const NAME_PARTS: [string, string][] = [
-  ["Aurora", "Skyline"], ["Editorial", "Column"], ["Glass", "Reflection"], ["Split", "Horizon"],
-  ["Frame", "Border"], ["Duotone", "Wash"], ["Ticket", "Stub"], ["Minimal", "Slate"],
-  ["Poster", "Signal"], ["Banner", "Ridge"], ["Spotlight", "Halo"], ["Stack", "Ledger"],
-  ["Dark", "Velvet"], ["Light", "Marble"], ["Type", "Impact"], ["Wide", "Panel"],
-  ["Dense", "Grid"], ["Asymmetric", "Wedge"], ["Quiet", "Canvas"], ["Bold", "Statement"],
-  ["Muted", "Tone"], ["Radiant", "Field"], ["Layered", "Depth"], ["Open", "Air"],
-  ["Structured", "Order"], ["Fluid", "Curve"], ["Crisp", "Edge"], ["Warm", "Glow"],
-  ["Cool", "Frost"], ["Sharp", "Contrast"], ["Soft", "Focus"], ["Grand", "Scale"],
-  ["Refined", "Detail"], ["Vivid", "Accent"], ["Elevated", "View"], ["Balanced", "Form"],
-  ["Clear", "Space"], ["Rich", "Texture"], ["Airy", "Loft"], ["Precise", "Line"],
-  ["Modern", "Frame"], ["Timeless", "Story"], ["Confident", "Voice"], ["Polished", "Surface"],
-  ["Curated", "Selection"], ["Signature", "Series"], ["Essential", "Look"], ["Distinct", "Edition"],
-  ["Premium", "Set"], ["Standout", "Reveal"],
-];
+/**
+ * Template names are numbered and functional. No invented brand, person or
+ * company names anywhere in the library.
+ */
+const ENGINE_STYLE: Record<string, string> = {
+  aurora: "Gradient",
+  editorial: "Editorial",
+  glass: "Glass",
+  split: "Split",
+  frame: "Frame",
+  duotone: "Duotone",
+  ticket: "Ticket",
+  minimal: "Minimal",
+  poster: "Poster",
+  banner: "Banner",
+  spotlight: "Spotlight",
+  stack: "Stack",
+  darkluxury: "Dark",
+  lightluxury: "Light",
+  typeblast: "Bold Type",
+  whitespacepanel: "Whitespace",
+  densegrid: "Grid",
+  asymmetricoffer: "Offer",
+  fullbleed: "Full Bleed",
+  blurbackdrop: "Blur",
+  diagonalslash: "Diagonal",
+  serifcolumn: "Serif",
+  letterbox: "Letterbox",
+  colorwash: "Color Wash",
+  thinframe: "Thin Frame",
+  offerblock: "Offer Block",
+  glassstrip: "Glass Strip",
+  quietwhite: "Quiet White",
+  duskframe: "Dusk",
+  typeoffer: "Type Offer",
+  splitstack: "Split Stack",
+};
 
-/** Fresh, distinct names for the 10 newly added post templates. */
-const NEW_POST_NAMES: string[] = [
-  "Horizon Bleed", "Nightfall Blur", "Wedge Cut", "Serif Estate", "Wash Field",
-  "Border Signal", "Offer Ledger", "Frosted Strip", "Quiet Bloom", "Dusk Reserve",
-];
+const styleName = (engineId: string) => ENGINE_STYLE[engineId] ?? "Classic";
+const pad = (n: number) => String(n).padStart(2, "0");
+const templateName = (index: number, engineId: string, prefix = "") =>
+  `${prefix}${pad(index)} ${styleName(engineId)}`;
+
 
 /** Which business types a template design tends to fit best. Purely a soft
  * sort hint, every template stays available to every business. */
@@ -1638,10 +1660,10 @@ function buildGlobalTemplates(): Template[] {
     const count = Math.min(perEngine, remaining);
     for (let k = 0; k < count; k++) {
       const variant = variants[i % variants.length]!;
-      const [a, b] = NAME_PARTS[i % NAME_PARTS.length]!;
       out.push({
         id: `global_${i + 1}`,
-        name: `${a} ${b}`,
+        name: templateName(i + 1, engine.id),
+
         engine: engine.id,
         tags: engine.tags,
         ...(suggestedForEngine(engine.id) ? { suggestedFor: suggestedForEngine(engine.id) } : {}),
@@ -1667,7 +1689,7 @@ function buildNewGlobalTemplates(): Template[] {
     const variant = variants[(index + 1) % variants.length]!;
     return {
       id: `global_${51 + index}`,
-      name: NEW_POST_NAMES[index] ?? `${engine.label} Edition`,
+      name: templateName(51 + index, engine.id),
       engine: engine.id,
       tags: engine.tags,
       ...(suggestedForEngine(engine.id) ? { suggestedFor: suggestedForEngine(engine.id) } : {}),
@@ -1702,22 +1724,11 @@ const FORMAT_ENGINES: Record<"carousel" | "video" | "story", string[]> = {
   ],
 };
 
-const FORMAT_NAMES: Record<"carousel" | "video" | "story", string[]> = {
-  carousel: [
-    "Story Set", "Column Set", "Halo Set", "Velvet Set", "Reflection Set", "Signal Set",
-    "Horizon Set", "Stub Set", "Slate Set", "Ridge Set", "Ledger Set", "Marble Set",
-    "Panel Set", "Grid Set", "Wedge Set", "Bleed Set", "Blur Set", "Column Suite",
-    "Letterbox Set", "Stack Set",
-  ],
-  video: [
-    "Motion Skyline", "Motion Halo", "Motion Velvet", "Motion Impact",
-    "Motion Bleed", "Motion Wash", "Motion Letterbox", "Motion Offer",
-  ],
-  story: [
-    "Tall Skyline", "Tall Reflection", "Tall Velvet", "Tall Impact",
-    "Tall Bleed", "Tall Letterbox", "Tall Wash", "Tall Reserve",
-    "Tall Bloom", "Tall Border", "Tall Wedge", "Tall Offer",
-  ],
+/** Neutral prefixes keep the numbering readable per format. */
+const FORMAT_PREFIX: Record<"carousel" | "video" | "story", string> = {
+  carousel: "C",
+  video: "V",
+  story: "S",
 };
 
 function buildFormatTemplates(format: "carousel" | "video" | "story"): Template[] {
@@ -1727,7 +1738,8 @@ function buildFormatTemplates(format: "carousel" | "video" | "story"): Template[
     const variant = variants[index % variants.length]!;
     return {
       id: `${format}_${index + 1}`,
-      name: FORMAT_NAMES[format][index] ?? `${engine.label} ${index + 1}`,
+      name: templateName(index + 1, engine.id, FORMAT_PREFIX[format]),
+
       engine: engine.id,
       tags: engine.tags,
       ...(suggestedForEngine(engine.id) ? { suggestedFor: suggestedForEngine(engine.id) } : {}),

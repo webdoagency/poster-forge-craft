@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Minus, Plus, Upload, X } from "lucide-react";
+import { AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Minus, Plus, Star, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AppShell } from "@/components/rafty/AppShell";
+import { PostCanvas } from "@/components/rafty/PostCanvas";
+import { placeholderContent } from "@/lib/rafty/placeholder";
+
 import { useRafty } from "@/lib/rafty/store";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
 import * as repo from "@/lib/rafty/repo";
@@ -457,7 +460,9 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
 }
 
 function TemplatesPage() {
-  const { business, templates, refresh, t } = useRafty();
+  const { business, brand, templates, favorites, toggleFavorite, refresh, t } = useRafty();
+  const placeholder = useMemo(() => placeholderContent(business?.type ?? "other"), [business?.type]);
+
   const [tag, setTag] = useState<TemplateTag | "all">("all");
   const [wizardOpen, setWizardOpen] = useState(false);
   const [requests, setRequests] = useState<CustomTemplateRequest[]>([]);
@@ -533,19 +538,39 @@ function TemplatesPage() {
         </div>
       ) : null}
 
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
         {ordered.map((tpl) => (
-          <article key={tpl.id} className="card-soft overflow-hidden">
-            <div className="aspect-[4/5] w-full overflow-hidden bg-muted">
-              {tpl.backgroundUrl ? (
-                <img src={tpl.backgroundUrl} alt="" className="size-full object-cover" />
+          <article key={tpl.id} className="card-soft relative overflow-hidden">
+            <div className="overflow-hidden">
+              {brand && business ? (
+                <PostCanvas
+                  template={tpl}
+                  content={placeholder}
+                  brand={brand}
+                  businessName={business.name}
+                  businessType={business.type}
+                />
               ) : (
-                <div className="flex size-full items-center justify-center text-xs font-semibold text-muted-foreground">
-                  {tpl.name}
-                </div>
+                <div className="aspect-[4/5] w-full bg-muted" />
               )}
             </div>
-            <div className="flex items-center gap-3 px-4 pb-4 pt-3">
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              aria-label="Favourite"
+              className="absolute right-2 top-2 size-8 rounded-full bg-background/80"
+              onClick={() => void toggleFavorite(tpl.id)}
+            >
+              <Star
+                className={
+                  favorites.includes(tpl.id)
+                    ? "size-4 fill-primary text-primary"
+                    : "size-4 text-muted-foreground"
+                }
+              />
+            </Button>
+            <div className="flex items-center gap-3 px-3 pb-3 pt-2.5">
               <div className="min-w-0">
                 <p className="truncate text-sm font-bold">{tpl.name}</p>
                 <p className="truncate text-xs text-muted-foreground">
@@ -561,6 +586,7 @@ function TemplatesPage() {
           </article>
         ))}
       </div>
+
     </div>
   );
 }

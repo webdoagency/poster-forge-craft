@@ -60,7 +60,13 @@ type Ctx = {
   services: BusinessService[];
   posts: PostWithContact[];
   templates: Template[];
+  /** Template ids this brand starred. Real persisted preference. */
+  favorites: string[];
+  /** Real usage counts per template id, derived from this brand's saved posts. */
+  templateUsage: Record<string, number>;
+  toggleFavorite: (templateId: string) => Promise<void>;
   trial: TrialUsage | null;
+
   plan: AccountPlan | null;
   /** Formats the activated entitlement allows. The database enforces it too. */
   formats: ContentFormat[];
@@ -102,10 +108,12 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
   const [plan, setPlan] = useState<AccountPlan | null>(null);
   const [brands, setBrands] = useState<Business[]>([]);
   const [activeBrandId, setActiveBrandId] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<string[]>([]);
   const [guestLanguage, setGuestLanguage] = useState<LanguageCode>("en");
   const loading = useRef(false);
 
   const refresh = useCallback(() => setTick((n) => n + 1), []);
+
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
@@ -151,20 +159,24 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const [nextBrand, nextServices, nextPosts, nextTemplates, nextTrial] = await Promise.all([
-        repo.getBrand(b.id),
-        repo.listServices(b.id),
-        repo.listPosts(b.id),
-        repo.templatesForBusiness(b.id),
-        repo.getTrial(b.id),
-      ]);
+      const [nextBrand, nextServices, nextPosts, nextTemplates, nextTrial, nextFavorites] =
+        await Promise.all([
+          repo.getBrand(b.id),
+          repo.listServices(b.id),
+          repo.listPosts(b.id),
+          repo.templatesForBusiness(b.id),
+          repo.getTrial(b.id),
+          repo.listFavorites(b.id),
+        ]);
       if (cancelled) return;
       setBrand(nextBrand);
       setServices(nextServices);
       setPosts(nextPosts);
       setTemplates(nextTemplates);
       setTrial(nextTrial);
+      setFavorites(nextFavorites);
       setReady(true);
+
     })();
 
     return () => {
@@ -347,6 +359,24 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
     return used < (trial?.freePostLimit ?? 1);
   }, [business, trial]);
 
+  /** Real counts from this brand's own saved posts, never seeded data. */
+  const templateUsage = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const post of posts) out[post.templateId] = (out[post.templateId] ?? 0) + 1;
+    return out;
+  }, [posts]);
+
+  const toggleFavoriteFn = useCallback(
+    async (templateId: string) => {
+      if (!business) return;
+      const next = !favorites.includes(templateId);
+      setFavorites((prev) => (next ? [...prev, templateId] : prev.filter((x) => x !== templateId)));
+      const res = await repo.toggleFavorite(business.id, templateId, next);
+      if (res.error) setFavorites(await repo.listFavorites(business.id));
+    },
+    [business, favorites],
+  );
+
   const value = useMemo<Ctx>(
     () => ({
       ready,
@@ -357,7 +387,11 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
       services,
       posts,
       templates,
+      favorites,
+      templateUsage,
+      toggleFavorite: toggleFavoriteFn,
       trial,
+
       plan,
       formats: allowedFormats(plan),
       brands,
@@ -389,6 +423,10 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
       brand,
       services,
       posts,
+      favorites,
+      templateUsage,
+      toggleFavoriteFn,
+
       templates,
       trial,
       plan,

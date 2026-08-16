@@ -39,7 +39,7 @@ const pick = (id: string) => globalTemplates.find((t) => t.id === id) ?? globalT
 export const demoPosts: DemoPost[] = [
   {
     template: pick("global_1"),
-    businessName: "Aurora Voyages",
+    businessName: "Travel Agency",
     businessType: "travel_agency",
     brand: brand("#5b4bff", "#c05cf6", "Sora"),
     content: {
@@ -57,7 +57,7 @@ export const demoPosts: DemoPost[] = [
   },
   {
     template: pick("global_9"),
-    businessName: "Nordhaus Living",
+    businessName: "Real Estate",
     businessType: "real_estate",
     brand: brand("#3f4fd8", "#7f6bf0", "Manrope"),
     content: {
@@ -75,7 +75,7 @@ export const demoPosts: DemoPost[] = [
   },
   {
     template: pick("global_21"),
-    businessName: "Ember Kitchen",
+    businessName: "Restaurant",
     businessType: "restaurant",
     brand: brand("#6d3df0", "#b06cf5", "Playfair Display"),
     content: {

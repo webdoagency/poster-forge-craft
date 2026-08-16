@@ -423,24 +423,8 @@ function CreatePage() {
             )}
           </label>
 
-          <div className="grid gap-2">
-            <Label>Occasion</Label>
-            <div className="flex flex-wrap gap-2">
-              {OCCASION_PRESETS.map((o) => (
-                <button
-                  key={o.id}
-                  type="button"
-                  onClick={() => applyOccasion(o.id)}
-                  className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-primary hover:text-foreground"
-                >
-                  {o.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           <div className="grid gap-3 sm:grid-cols-2">
-            {fields.map((f) => (
+            {primaryFields.map((f) => (
               <div key={f.key} className="grid gap-1.5">
                 <Label htmlFor={f.key}>{t(f.labelKey)}</Label>
                 <Input
@@ -453,111 +437,155 @@ function CreatePage() {
             ))}
           </div>
 
-          <div className="grid gap-1.5">
-            <Label htmlFor="additional">{t("create.additional")}</Label>
-            <Input
-              id="additional"
-              value={content.additionalText}
-              onChange={(e) => set({ additionalText: e.target.value })}
-              className="h-11 rounded-xl"
-            />
-          </div>
+          <button
+            type="button"
+            onClick={() => setMoreOpen((v) => !v)}
+            className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground"
+          >
+            {moreOpen ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
+            More details (optional)
+          </button>
 
-          <div className="grid gap-1.5">
-            <Label htmlFor="cta">Call to action</Label>
-            <Input
-              id="cta"
-              value={content.cta}
-              onChange={(e) => set({ cta: e.target.value })}
-              placeholder="Send us a message"
-              className="h-11 rounded-xl"
-            />
-            <div className="flex flex-wrap gap-2">
-              {CTA_PRESETS.map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => set({ cta: preset })}
-                  className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
-                    content.cta === preset
-                      ? "border-primary bg-primary-soft text-accent-foreground"
-                      : "border-border bg-card text-muted-foreground"
-                  }`}
-                >
-                  {preset}
-                </button>
-              ))}
-            </div>
-          </div>
+          {moreOpen ? (
+            <div className="grid gap-4 border-t pt-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {secondaryFields.map((f) => (
+                  <div key={f.key} className="grid gap-1.5">
+                    <Label htmlFor={f.key}>{t(f.labelKey)}</Label>
+                    <Input
+                      id={f.key}
+                      value={content[f.key]}
+                      onChange={(e) => set({ [f.key]: e.target.value } as Partial<PostContent>)}
+                      className="h-11 rounded-xl"
+                    />
+                  </div>
+                ))}
+              </div>
 
-          <div className="grid gap-2">
-            <Label>{t("create.services")}</Label>
-            <div className="flex flex-wrap gap-2">
-              {services.map((s) => {
-                const isOn = content.services.includes(s.name);
-                return (
-                  <button
-                    key={s.id}
+              <div className="grid gap-1.5">
+                <Label htmlFor="additional">{t("create.additional")}</Label>
+                <Input
+                  id="additional"
+                  value={content.additionalText}
+                  onChange={(e) => set({ additionalText: e.target.value })}
+                  className="h-11 rounded-xl"
+                />
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label htmlFor="cta">Call to action</Label>
+                <Input
+                  id="cta"
+                  value={content.cta}
+                  onChange={(e) => set({ cta: e.target.value })}
+                  placeholder="Send us a message"
+                  className="h-11 rounded-xl"
+                />
+                <div className="flex flex-wrap gap-2">
+                  {CTA_PRESETS.map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => set({ cta: preset })}
+                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
+                        content.cta === preset
+                          ? "border-primary bg-primary-soft text-accent-foreground"
+                          : "border-border bg-card text-muted-foreground"
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Occasion</Label>
+                <div className="flex flex-wrap gap-2">
+                  {OCCASION_PRESETS.map((o) => (
+                    <button
+                      key={o.id}
+                      type="button"
+                      onClick={() => applyOccasion(o.id)}
+                      className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-primary hover:text-foreground"
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>{t("create.services")}</Label>
+                <div className="flex flex-wrap gap-2">
+                  {services.map((s) => {
+                    const isOn = content.services.includes(s.name);
+                    return (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() =>
+                          set({
+                            services: isOn
+                              ? content.services.filter((x) => x !== s.name)
+                              : [...content.services, s.name],
+                          })
+                        }
+                        className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${
+                          isOn ? "border-primary bg-primary-soft text-accent-foreground" : "border-border bg-card"
+                        }`}
+                      >
+                        {s.name}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={newService}
+                    onChange={(e) => setNewService(e.target.value)}
+                    placeholder={t("create.addService")}
+                    className="h-10 rounded-xl"
+                  />
+                  <Button
                     type="button"
-                    onClick={() =>
-                      set({
-                        services: isOn
-                          ? content.services.filter((x) => x !== s.name)
-                          : [...content.services, s.name],
-                      })
-                    }
-                    className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${
-                      isOn ? "border-primary bg-primary-soft text-accent-foreground" : "border-border bg-card"
-                    }`}
+                    variant="outline"
+                    size="icon"
+                    className="size-10 shrink-0 rounded-xl"
+                    aria-label={t("create.addService")}
+                    onClick={() => {
+                      const v = newService.trim();
+                      if (!v) return;
+                      addService(v);
+                      set({ services: [...content.services, v] });
+                      setNewService("");
+                    }}
                   >
-                    {s.name}
-                  </button>
-                );
-              })}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                value={newService}
-                onChange={(e) => setNewService(e.target.value)}
-                placeholder={t("create.addService")}
-                className="h-10 rounded-xl"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="size-10 shrink-0 rounded-xl"
-                aria-label={t("create.addService")}
-                onClick={() => {
-                  const v = newService.trim();
-                  if (!v) return;
-                  addService(v);
-                  set({ services: [...content.services, v] });
-                  setNewService("");
-                }}
-              >
-                <Plus className="size-4" />
-              </Button>
-            </div>
-          </div>
+                    <Plus className="size-4" />
+                  </Button>
+                </div>
+              </div>
 
-          <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
-            <div>
-              <p className="text-sm font-semibold">Show brand name</p>
-              <p className="text-xs text-muted-foreground">Off by default on the generated design.</p>
-            </div>
-            <Switch checked={showBrandName} onCheckedChange={setShowBrandName} />
-          </div>
+              <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
+                <div>
+                  <p className="text-sm font-semibold">Show brand name</p>
+                  <p className="text-xs text-muted-foreground">Off by default on the generated design.</p>
+                </div>
+                <Switch checked={showBrandName} onCheckedChange={setShowBrandName} />
+              </div>
 
-          <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
-            <div>
-              <p className="text-sm font-semibold">Show contact info</p>
-              <p className="text-xs text-muted-foreground">
-                Off by default. Uses the contact details from your brand settings.
-              </p>
+              <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
+                <div>
+                  <p className="text-sm font-semibold">Show contact info</p>
+                  <p className="text-xs text-muted-foreground">
+                    Uses the contact details saved in your brand settings.
+                  </p>
+                </div>
+                <Switch checked={showContact} onCheckedChange={setShowContact} />
+              </div>
             </div>
-            <Switch checked={showContact} onCheckedChange={setShowContact} />
-          </div>
+          ) : null}
+
 
           {generated ? (
             <div className="grid gap-1.5">

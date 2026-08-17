@@ -39,6 +39,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function ContactPage() {
   const [sent, setSent] = useState(false);
+  const [emailed, setEmailed] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -46,6 +47,7 @@ function ContactPage() {
   const [business, setBusiness] = useState("");
   const [message, setMessage] = useState("");
   const reduced = usePrefersReducedMotion();
+  const submitRequest = useServerFn(submitContactRequestFn);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();

@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { usePrefersReducedMotion } from "@/components/marketing/usePrefersReducedMotion";
+import { submitContactRequest } from "@/lib/rafty/repo";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -14,39 +16,57 @@ export const Route = createFileRoute("/contact")({
       { title: "Book a demo with krijo24" },
       {
         name: "description",
-        content: "Tell us about your business and we will get in touch to show you krijo24 and talk through pricing.",
+        content:
+          "Tell us about your business and we will get in touch to show you krijo24 and talk through pricing.",
       },
       { property: "og:title", content: "Book a demo with krijo24" },
       { property: "og:description", content: "Tell us about your business and we will get in touch." },
-      { property: "og:url", content: "https://rafty.webdoagency.com/contact" },
+      { property: "og:url", content: "https://krijo24.com/contact" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://rafty.webdoagency.com/contact" }],
+    links: [{ rel: "canonical", href: "https://krijo24.com/contact" }],
   }),
   component: ContactPage,
 });
 
-const CONTACT_EMAIL = "hello@webdoagency.com";
+const CONTACT_EMAIL = "contact@webdoagency.com";
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function ContactPage() {
-  const [submitted, setSubmitted] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [business, setBusiness] = useState("");
   const [message, setMessage] = useState("");
   const reduced = usePrefersReducedMotion();
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSubmitted(true);
-  }
+    if (busy || sent) return;
+    setError(null);
 
-  const mailtoHref = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
-    `Demo request${business ? ` – ${business}` : ""}`,
-  )}&body=${encodeURIComponent(
-    `Name: ${name}\nEmail: ${email}\nBusiness: ${business}\n\n${message}`,
-  )}`;
+    if (!name.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
+    if (!EMAIL_RE.test(email.trim())) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setBusy(true);
+    const res = await submitContactRequest({ name, email, business, message });
+    setBusy(false);
+    if (res.error) {
+      setError("We could not send your request. Please try again, or email us directly.");
+      return;
+    }
+    setSent(true);
+    toast.success("Request sent. We will be in touch.");
+  }
 
   return (
     <MarketingLayout>
@@ -56,42 +76,31 @@ function ContactPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
-            Book a demo
-          </h1>
+          <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">Book a demo</h1>
           <p className="mt-5 text-base text-muted-foreground sm:text-lg">
-            Tell us a little about your business. This form does not submit
-            anywhere on its own, it prepares an email to us so nothing gets
-            lost.
+            Tell us a little about your business. We read every request and reply personally, usually
+            within a day.
           </p>
         </motion.div>
 
         <div className="mt-10">
-          {submitted ? (
+          {sent ? (
             <motion.div
               className="flex flex-col items-start gap-3 border-t border-border pt-8"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <h2 className="font-display text-xl font-bold">Thanks, almost there</h2>
+              <h2 className="font-display text-xl font-bold">Thanks, we have it</h2>
               <p className="text-sm text-muted-foreground">
-                Send the message below and we will get back to you personally,
-                usually within a day.
+                Your request is with us. We will reply to {email.trim()} shortly.
               </p>
               <a
-                href={mailtoHref}
-                className="mt-2 inline-flex items-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90"
-              >
-                Open my email to send it
-              </a>
-              <button
-                type="button"
-                onClick={() => setSubmitted(false)}
+                href={`mailto:${CONTACT_EMAIL}`}
                 className="mt-1 text-sm font-medium text-muted-foreground hover:text-foreground"
               >
-                Edit my message
-              </button>
+                Add something? Write to {CONTACT_EMAIL}
+              </a>
             </motion.div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-5 border-t border-border pt-8">
@@ -100,6 +109,7 @@ function ContactPage() {
                 <Input
                   id="contact-name"
                   required
+                  maxLength={100}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="mt-2 rounded-xl"
@@ -112,6 +122,7 @@ function ContactPage() {
                   id="contact-email"
                   type="email"
                   required
+                  maxLength={255}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="mt-2 rounded-xl"
@@ -122,6 +133,7 @@ function ContactPage() {
                 <Label htmlFor="contact-business">Business</Label>
                 <Input
                   id="contact-business"
+                  maxLength={120}
                   value={business}
                   onChange={(e) => setBusiness(e.target.value)}
                   className="mt-2 rounded-xl"
@@ -132,6 +144,7 @@ function ContactPage() {
                 <Label htmlFor="contact-message">Message</Label>
                 <Textarea
                   id="contact-message"
+                  maxLength={2000}
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="mt-2 rounded-xl"
@@ -139,8 +152,9 @@ function ContactPage() {
                   placeholder="What would you like to see in the demo?"
                 />
               </div>
-              <Button type="submit" size="lg" className="mt-2 rounded-full">
-                Continue
+              {error ? <p className="text-sm text-destructive">{error}</p> : null}
+              <Button type="submit" size="lg" disabled={busy} className="mt-2 rounded-full">
+                {busy ? "Sending..." : "Send request"}
               </Button>
               <p className="text-xs text-muted-foreground">
                 Prefer email directly? Write to{" "}

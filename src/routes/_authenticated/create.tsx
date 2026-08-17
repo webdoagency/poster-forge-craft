@@ -25,7 +25,6 @@ import {
   clampDuration,
   CTA_PRESETS,
   FORMAT_SPECS,
-  OCCASION_PRESETS,
   TYPE_FIELDS,
 } from "@/lib/rafty/constants";
 import {

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
+import { LazyMount } from "@/components/rafty/LazyMount";
 import { placeholderContent } from "@/lib/rafty/placeholder";
 
 import { useRafty } from "@/lib/rafty/store";

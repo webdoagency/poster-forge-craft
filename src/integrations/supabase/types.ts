@@ -62,6 +62,21 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_allowlist: {
+        Row: {
+          created_at: string
+          email: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+        }
+        Relationships: []
+      }
       brand_profiles: {
         Row: {
           accent_color: string
@@ -262,6 +277,36 @@ export type Database = {
           status?: Database["public"]["Enums"]["business_status"]
           type?: Database["public"]["Enums"]["business_type"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      contact_requests: {
+        Row: {
+          business: string
+          created_at: string
+          email: string
+          handled: boolean
+          id: string
+          message: string
+          name: string
+        }
+        Insert: {
+          business?: string
+          created_at?: string
+          email: string
+          handled?: boolean
+          id?: string
+          message?: string
+          name: string
+        }
+        Update: {
+          business?: string
+          created_at?: string
+          email?: string
+          handled?: boolean
+          id?: string
+          message?: string
+          name?: string
         }
         Relationships: []
       }
@@ -606,6 +651,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      claim_admin_role: { Args: never; Returns: boolean }
       create_brand: {
         Args: {
           _custom_type?: string
@@ -657,6 +703,17 @@ export type Database = {
         | "restaurant"
         | "retail"
         | "other"
+        | "hotel"
+        | "beauty"
+        | "fitness"
+        | "healthcare"
+        | "construction"
+        | "cleaning"
+        | "events"
+        | "education"
+        | "professional_services"
+        | "ecommerce"
+        | "automotive_service"
       plan_tier: "starter" | "growth" | "partnership" | "studio"
       schedule_status: "queued" | "cancelled" | "published" | "failed"
       social_conn_status:
@@ -809,6 +866,17 @@ export const Constants = {
         "restaurant",
         "retail",
         "other",
+        "hotel",
+        "beauty",
+        "fitness",
+        "healthcare",
+        "construction",
+        "cleaning",
+        "events",
+        "education",
+        "professional_services",
+        "ecommerce",
+        "automotive_service",
       ],
       plan_tier: ["starter", "growth", "partnership", "studio"],
       schedule_status: ["queued", "cancelled", "published", "failed"],

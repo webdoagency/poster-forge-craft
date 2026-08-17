@@ -61,14 +61,31 @@ function ContactPage() {
     }
 
     setBusy(true);
-    const res = await submitContactRequest({ name, email, business, message });
-    setBusy(false);
-    if (res.error) {
+    try {
+      const res = await submitRequest({
+        data: {
+          name: name.trim(),
+          email: email.trim(),
+          business: business.trim(),
+          message: message.trim(),
+        },
+      });
+      if (!res.saved) {
+        setError("We could not send your request. Please try again, or email us directly.");
+        return;
+      }
+      setSent(true);
+      setEmailed(res.emailed);
+      toast.success(
+        res.emailed
+          ? "Request sent. We will be in touch."
+          : "Request saved. Email delivery is delayed — you can also write to us directly.",
+      );
+    } catch {
       setError("We could not send your request. Please try again, or email us directly.");
-      return;
+    } finally {
+      setBusy(false);
     }
-    setSent(true);
-    toast.success("Request sent. We will be in touch.");
   }
 
   return (

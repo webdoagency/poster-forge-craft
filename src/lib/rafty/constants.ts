@@ -15,6 +15,17 @@ export const BUSINESS_TYPES: BusinessType[] = [
   "car_dealership",
   "restaurant",
   "retail",
+  "hotel",
+  "beauty",
+  "fitness",
+  "healthcare",
+  "construction",
+  "cleaning",
+  "events",
+  "education",
+  "professional_services",
+  "ecommerce",
+  "automotive_service",
   "other",
 ];
 
@@ -25,7 +36,18 @@ export const BUSINESS_TYPE_NAMES: Record<BusinessType, string> = {
   car_dealership: "Car Dealership",
   restaurant: "Restaurant",
   retail: "Retail",
-  other: "Other business",
+  hotel: "Hotel / Accommodation",
+  beauty: "Beauty / Salon",
+  fitness: "Fitness / Gym",
+  healthcare: "Healthcare / Clinic",
+  construction: "Construction / Trades",
+  cleaning: "Cleaning Service",
+  events: "Events",
+  education: "Education",
+  professional_services: "Professional Services",
+  ecommerce: "E-commerce",
+  automotive_service: "Automotive Service",
+  other: "Other / Custom",
 };
 
 /**

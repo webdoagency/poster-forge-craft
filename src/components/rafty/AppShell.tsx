@@ -105,11 +105,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
             <Link
               to="/settings"
-              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground sm:flex sm:items-center sm:gap-1.5"
+              aria-label="Account settings"
+              className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground sm:px-3"
             >
               <Settings className="size-4" />
-              Settings
+              <span className="hidden sm:inline">Settings</span>
             </Link>
+
 
 
             {isAdmin ? (

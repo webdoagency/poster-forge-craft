@@ -339,16 +339,8 @@ function CreatePage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
       <section className={`flex flex-col gap-4 ${generated ? "order-2 lg:order-1" : ""}`}>
-        <div>
-          <h1 className="font-display text-2xl font-extrabold">{t("create.title")}</h1>
-          <p className="text-sm text-muted-foreground">
-            {business.status === "approved"
-              ? business.name
-              : `${t(`status.${business.status}`)} | ${t("trial.remaining")}: ${trialLeft}`}
-          </p>
-        </div>
-
         <FormatPicker value={format} onChange={changeFormat} allowed={formats} />
+
 
         {locked ? (
           <div className="card-soft p-4 text-sm">

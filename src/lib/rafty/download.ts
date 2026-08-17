@@ -154,6 +154,6 @@ export function slugify(value: string) {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "")
-      .slice(0, 48) || "rafty-post"
+      .slice(0, 48) || "krijo24-post"
   );
 }

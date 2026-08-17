@@ -172,7 +172,7 @@ export function TemplatePicker({
                           tpl.id === value ? "border-primary ring-2 ring-primary/40" : "border-border",
                         )}
                       >
-                        <Lazy>
+                        <LazyMount>
                           <PostCanvas
                             template={tpl}
                             content={content}
@@ -182,7 +182,7 @@ export function TemplatePicker({
                             format={format}
                             className="rounded-md"
                           />
-                        </Lazy>
+                        </LazyMount>
                         <span className="mt-1 block truncate text-[11px] font-semibold">
                           {tpl.name}
                           {tpl.scope === "custom" ? " • yours" : ""}

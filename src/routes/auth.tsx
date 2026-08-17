@@ -9,12 +9,12 @@ import { useRafty } from "@/lib/rafty/store";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in | Rafty" },
+      { title: "Sign in | krijo24" },
       {
         name: "description",
-        content: "Sign in or create your Rafty account and set up your business.",
+        content: "Sign in or create your krijo24 account and set up your business.",
       },
-      { property: "og:title", content: "Sign in | Rafty" },
+      { property: "og:title", content: "Sign in | krijo24" },
       { property: "og:description", content: "Sign in to create branded posts in seconds." },
     ],
   }),

@@ -22,12 +22,12 @@ import type { CustomTemplateRequest, Template, TemplateTag, TemplateZone, ZoneKe
 export const Route = createFileRoute("/_authenticated/templates")({
   head: () => ({
     meta: [
-      { title: "Templates | Rafty" },
+      { title: "Templates | krijo24" },
       {
         name: "description",
         content: "A library of visual post templates, plus your own uploaded designs.",
       },
-      { property: "og:title", content: "Templates | Rafty" },
+      { property: "og:title", content: "Templates | krijo24" },
       { property: "og:description", content: "Pick a look, then bring your own content." },
     ],
   }),
@@ -198,7 +198,7 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
       {stage === "pick" ? (
         <div className="grid gap-3">
           <p className="text-sm text-muted-foreground">
-            Upload your design as a PNG or JPG. It will never be distorted, restyled, or marked with any Rafty
+            Upload your design as a PNG or JPG. It will never be distorted, restyled, or marked with any krijo24
             branding.
           </p>
           <label className="w-fit">

@@ -29,7 +29,7 @@ export const BUSINESS_TYPE_NAMES: Record<BusinessType, string> = {
 };
 
 /**
- * Suggestions for the custom category field. Rafty is not limited to the five
+ * Suggestions for the custom category field. krijo24 is not limited to the five
  * quick start types, these simply help a business describe itself.
  */
 export const CUSTOM_TYPE_SUGGESTIONS = [
@@ -199,7 +199,7 @@ export const PLANS: {
     features: [
       "Full app plus a content team",
       "1 brand",
-      "30 posts per month created by Rafty from your pictures and information",
+      "30 posts per month created by krijo24 from your pictures and information",
       "Every additional 100 € per month adds 30 more done for you posts",
       "You still create unlimited posts yourself",
     ],

@@ -49,12 +49,12 @@ export const Route = createFileRoute("/_authenticated/create")({
   },
   head: () => ({
     meta: [
-      { title: "Create a post | Rafty" },
+      { title: "Create a post | krijo24" },
       {
         name: "description",
         content: "Upload one image, add a few details and generate a branded post in seconds.",
       },
-      { property: "og:title", content: "Create a post | Rafty" },
+      { property: "og:title", content: "Create a post | krijo24" },
       { property: "og:description", content: "One image in, a finished branded post out." },
     ],
   }),

@@ -38,7 +38,7 @@ export function RaftyIntro() {
         >
           <motion.img
             src={iconAsset.url}
-            alt="Rafty"
+            alt="krijo24"
             className="h-10 w-auto"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

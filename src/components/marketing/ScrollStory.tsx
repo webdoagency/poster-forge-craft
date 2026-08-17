@@ -8,7 +8,7 @@ const STAGES = [
   {
     eyebrow: "Start with what you have",
     headline: "One photo. A few details.",
-    body: "Drop in a single image and the basics of your offer. Rafty takes it from there.",
+    body: "Drop in a single image and the basics of your offer. krijo24 takes it from there.",
   },
   {
     eyebrow: "Pick a look",

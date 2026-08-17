@@ -2,7 +2,7 @@ import type { LanguageCode } from "./types";
 
 /** UI copy for English, German and Albanian. English is the fallback. */
 const en: Record<string, string> = {
-  "brand.product": "Rafty",
+  "brand.product": "krijo24",
   "brand.handle": "@rafty",
 
   "nav.create": "Create",
@@ -20,7 +20,7 @@ const en: Record<string, string> = {
   "landing.trial":
     "Free trial: after onboarding, while your approval is pending, your business can create one post for free.",
   "landing.typesTitle": "Built for five business types",
-  "landing.examples": "Made with Rafty",
+  "landing.examples": "Made with krijo24",
   "landing.finalTitle": "Your next post is one image away.",
   "landing.finalCta": "Try for free",
 
@@ -30,7 +30,7 @@ const en: Record<string, string> = {
   "auth.name": "Your name",
   "auth.password": "Password",
   "auth.haveAccount": "Already have an account?",
-  "auth.noAccount": "New to Rafty?",
+  "auth.noAccount": "New to krijo24?",
 
   "onb.title": "Set up your business",
   "onb.step": "Step",
@@ -159,7 +159,7 @@ const de: Record<string, string> = {
   "landing.trial":
     "Kostenlos testen: nach dem Onboarding kann dein Unternehmen während der Prüfung einen Beitrag gratis erstellen.",
   "landing.typesTitle": "Für fünf Branchen gemacht",
-  "landing.examples": "Erstellt mit Rafty",
+  "landing.examples": "Erstellt mit krijo24",
   "landing.finalTitle": "Dein nächster Beitrag ist ein Bild entfernt.",
   "landing.finalCta": "Kostenlos testen",
 
@@ -169,7 +169,7 @@ const de: Record<string, string> = {
   "auth.name": "Dein Name",
   "auth.password": "Passwort",
   "auth.haveAccount": "Schon ein Konto?",
-  "auth.noAccount": "Neu bei Rafty?",
+  "auth.noAccount": "Neu bei krijo24?",
 
   "onb.title": "Unternehmen einrichten",
   "onb.step": "Schritt",
@@ -299,7 +299,7 @@ const sq: Record<string, string> = {
   "landing.trial":
     "Provo falas: pas regjistrimit, ndërsa aprovimi është në pritje, biznesi mund të krijojë një postim falas.",
   "landing.typesTitle": "Ndërtuar për pesë tipe biznesi",
-  "landing.examples": "Krijuar me Rafty",
+  "landing.examples": "Krijuar me krijo24",
   "landing.finalTitle": "Postimi i radhës është një foto larg.",
   "landing.finalCta": "Provo falas",
 
@@ -309,7 +309,7 @@ const sq: Record<string, string> = {
   "auth.name": "Emri i juaj",
   "auth.password": "Fjalëkalimi",
   "auth.haveAccount": "Ke llogari?",
-  "auth.noAccount": "I ri në Rafty?",
+  "auth.noAccount": "I ri në krijo24?",
 
   "onb.title": "Konfiguro biznesin",
   "onb.step": "Hapi",

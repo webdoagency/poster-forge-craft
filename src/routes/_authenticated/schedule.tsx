@@ -21,12 +21,12 @@ import type { ScheduledPost, SocialConnection, SocialPlatform } from "@/lib/raft
 export const Route = createFileRoute("/_authenticated/schedule")({
   head: () => ({
     meta: [
-      { title: "Schedule & social | Rafty" },
+      { title: "Schedule & social | krijo24" },
       {
         name: "description",
         content: "Queue saved posts for a date and time, and manage your brand social accounts.",
       },
-      { property: "og:title", content: "Schedule & social | Rafty" },
+      { property: "og:title", content: "Schedule & social | krijo24" },
       {
         property: "og:description",
         content: "Plan when your saved posts go out and keep your social handles on your brand.",
@@ -115,7 +115,7 @@ function SchedulePage() {
       return;
     }
     setNote("");
-    toast.success("Added to your Rafty queue.");
+    toast.success("Added to your krijo24 queue.");
     await load();
   }
 
@@ -227,7 +227,7 @@ function SchedulePage() {
 
         <p className="mt-4 flex gap-2 rounded-xl border border-dashed bg-muted/40 p-3 text-xs text-muted-foreground">
           <Info className="mt-0.5 size-3.5 shrink-0" />
-          Queued items are prepared and timed inside Rafty. Automatic posting starts only once a
+          Queued items are prepared and timed inside krijo24. Automatic posting starts only once a
           platform connection is available, so nothing is ever marked as published by mistake.
         </p>
 
@@ -284,7 +284,7 @@ function SchedulePage() {
       <aside className="glass-panel h-fit rounded-3xl p-5 sm:p-6">
         <h2 className="text-base font-black tracking-tight">Social accounts</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Save the handle Rafty should use. Connecting opens up as each platform becomes available.
+          Save the handle krijo24 should use. Connecting opens up as each platform becomes available.
         </p>
         <div className="mt-4 grid gap-3">
           {SOCIAL_PLATFORMS.map((p) => {

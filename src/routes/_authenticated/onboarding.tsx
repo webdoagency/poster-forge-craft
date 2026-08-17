@@ -29,12 +29,12 @@ import type { BusinessType, CurrencyCode, LanguageCode } from "@/lib/rafty/types
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
-      { title: "Set up your business | Rafty" },
+      { title: "Set up your business | krijo24" },
       {
         name: "description",
-        content: "Tell Rafty about your business, brand colors, fonts, currency and services.",
+        content: "Tell krijo24 about your business, brand colors, fonts, currency and services.",
       },
-      { property: "og:title", content: "Set up your business | Rafty" },
+      { property: "og:title", content: "Set up your business | krijo24" },
       { property: "og:description", content: "A short setup and your first free post is ready." },
     ],
   }),
@@ -252,7 +252,7 @@ function OnboardingPage() {
                 </span>
               </label>
               <p className="text-xs text-muted-foreground">
-                A logo can only be set once. After you finish setup, only a Rafty admin can replace it.
+                A logo can only be set once. After you finish setup, only a krijo24 admin can replace it.
               </p>
             </div>
           ) : null}

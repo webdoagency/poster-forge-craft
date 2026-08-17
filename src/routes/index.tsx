@@ -14,13 +14,13 @@ import { usePrefersReducedMotion } from "@/components/marketing/usePrefersReduce
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Rafty | Branded posts, created in minutes" },
+      { title: "krijo24 | Branded posts, created in minutes" },
       {
         name: "description",
         content:
-          "Rafty helps any business create professional branded content quickly and consistently. Pick a template, add your details, generate a post and save it in seconds.",
+          "krijo24 helps any business create professional branded content quickly and consistently. Pick a template, add your details, generate a post and save it in seconds.",
       },
-      { property: "og:title", content: "Rafty | Branded posts, created in minutes" },
+      { property: "og:title", content: "krijo24 | Branded posts, created in minutes" },
       {
         property: "og:description",
         content:
@@ -69,7 +69,7 @@ function Hero() {
             on brand.
           </h1>
           <p className="mt-6 max-w-md text-lg text-muted-foreground">
-            One image, a few details, a finished post. Rafty turns what your
+            One image, a few details, a finished post. krijo24 turns what your
             business already has into content worth sharing.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-6">
@@ -169,7 +169,7 @@ const PRINCIPLES = [
   {
     n: "03",
     title: "Generate and adjust",
-    body: "Rafty writes the caption and lays it out. Tweak anything that is not quite right.",
+    body: "krijo24 writes the caption and lays it out. Tweak anything that is not quite right.",
   },
   {
     n: "04",

@@ -37,9 +37,9 @@ import type {
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
-      { title: "Admin | Rafty" },
+      { title: "Admin | krijo24" },
       { name: "description", content: "Platform administration." },
-      { property: "og:title", content: "Admin | Rafty" },
+      { property: "og:title", content: "Admin | krijo24" },
       { property: "og:description", content: "Platform administration." },
       { name: "robots", content: "noindex" },
     ],

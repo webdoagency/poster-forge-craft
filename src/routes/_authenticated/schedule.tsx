@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarClock, Info, Trash2, X } from "lucide-react";
+import { CalendarClock, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";

@@ -7,7 +7,7 @@ export function MarketingLayout({ children }: { children: ReactNode }) {
   useLenis();
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background">
+    <div className="min-h-screen overflow-x-clip bg-background">
       <MarketingHeader />
       <main>{children}</main>
       <MarketingFooter />

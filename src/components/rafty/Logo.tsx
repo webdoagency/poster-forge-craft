@@ -1,34 +1,40 @@
 import { cn } from "@/lib/utils";
+import logoBlack from "@/assets/Krijo24_logo_blackfont.png.asset.json";
+import logoWhite from "@/assets/Krijo24_logo_whitefont.png.asset.json";
+import iconBlack from "@/assets/Krijo24_icon_black.png.asset.json";
+import iconWhite from "@/assets/Krijo24_icon_white.png.asset.json";
 
 /**
- * krijo24 wordmark.
- *
- * The final krijo24 logo file is not in the project yet, so the mark is set
- * typographically rather than invented. When the asset lands, drop it in
- * src/assets and swap the <span> for an <img src={logoAsset.url} /> here, this
- * is the only place the mark is rendered.
+ * krijo24 mark. `tone` picks the black or white artwork, `showWordmark`
+ * switches between the full logo and the k24 icon.
  */
 export function Logo({
   className,
   showWordmark = true,
   height = 28,
+  tone = "dark",
 }: {
   className?: string;
   showWordmark?: boolean;
   height?: number;
+  /** "dark" = black artwork for light surfaces, "light" = white artwork for dark surfaces. */
+  tone?: "dark" | "light";
 }) {
+  const src = showWordmark
+    ? tone === "light"
+      ? logoWhite.url
+      : logoBlack.url
+    : tone === "light"
+      ? iconWhite.url
+      : iconBlack.url;
+
   return (
-    <span
-      className={cn("inline-flex items-center leading-none", className)}
+    <img
+      src={src}
+      alt="krijo24"
       style={{ height }}
-      aria-label="krijo24"
-    >
-      <span
-        className="font-display font-extrabold tracking-tight"
-        style={{ fontSize: height * 0.82 }}
-      >
-        {showWordmark ? "krijo24" : "k24"}
-      </span>
-    </span>
+      className={cn("w-auto select-none object-contain", className)}
+      draggable={false}
+    />
   );
 }

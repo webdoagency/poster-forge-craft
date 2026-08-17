@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePrefersReducedMotion } from "./usePrefersReducedMotion";
+import { Logo } from "@/components/rafty/Logo";
 
 const SESSION_KEY = "krijo24-intro-shown";
 
@@ -35,14 +36,13 @@ export function BrandIntro() {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.28, ease: "easeInOut" }}
         >
-          <motion.span
-            className="font-display text-3xl font-extrabold tracking-tight text-background"
+          <motion.div
             initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            krijo24
-          </motion.span>
+            <Logo height={40} tone="light" />
+          </motion.div>
         </motion.div>
       ) : null}
     </AnimatePresence>

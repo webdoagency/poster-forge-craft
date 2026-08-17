@@ -90,7 +90,35 @@ function SchedulePage() {
     [posts],
   );
 
-  if (!business || !businessId) return null;
+  /** Small live render of a saved post, so a queue item is recognised by sight. */
+  const Thumb = useCallback(
+    ({ id, className }: { id: string; className?: string }) => {
+      const post = posts.find((p) => p.id === id);
+      const template = post ? templates.find((x) => x.id === post.templateId) ?? templates[0] : null;
+      if (!post || !template || !brand || !business) {
+        return <div className={`w-full rounded-md bg-muted ${className ?? ""}`} style={{ aspectRatio: "4 / 5" }} />;
+      }
+      return (
+        <LazyMount className={className}>
+          <PostCanvas
+            template={template}
+            content={post.slides?.[0]?.content ?? post.content}
+            brand={brand}
+            businessName={business.name}
+            businessType={business.type}
+            showBrandName={post.showBrandName}
+            showContact={post.showContact ?? false}
+            adjustments={post.slides?.[0]?.adjustments ?? post.adjustments}
+            format={post.format ?? "post"}
+            className="rounded-md"
+          />
+        </LazyMount>
+      );
+    },
+    [posts, templates, brand, business],
+  );
+
+  if (!business || !businessId || !brand) return null;
   const bid = businessId;
 
   async function add() {

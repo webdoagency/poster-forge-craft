@@ -82,7 +82,7 @@ export const submitContactRequestFn = createServerFn({ method: "POST" })
           "X-Connection-Api-Key": resendKey,
         },
         body: JSON.stringify({
-          from: "krijo24 <onboarding@resend.dev>",
+          from: "krijo24 <notifications@krijo24.com>",
           to: [CONTACT_TO],
           reply_to: data.email,
           subject: `Demo request: ${data.name}${data.business ? ` (${data.business})` : ""}`,

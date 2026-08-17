@@ -50,6 +50,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const statusLabel = t(`status.${business.status}`);
   const hasMultipleBrands = brands.length > 1;
+  // Trial counter belongs in the chrome, not in the Create form: it is account
+  // state, not something the user fills in.
+  const trialLeft =
+    business.status === "approved"
+      ? null
+      : Math.max(0, (trial?.freePostLimit ?? 1) - (trial?.postsCreated ?? 0));
+
 
   return (
     <div className="page-bg min-h-screen">

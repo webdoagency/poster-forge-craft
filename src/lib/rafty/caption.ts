@@ -7,21 +7,43 @@ import type { BusinessType, ContentInstructions, CurrencyCode, PostContent } fro
  * content instructions stay authoritative for tone and wording.
  */
 
-const OPENERS: Record<BusinessType, string[]> = {
+const OPENERS: Partial<Record<BusinessType, string[]>> = {
   travel_agency: ["Pack light, stay longer.", "This one books out fast.", "Your next trip, sorted."],
   real_estate: ["Just listed.", "Room to breathe.", "A place worth seeing in person."],
   car_dealership: ["Ready to drive today.", "Just arrived on the lot.", "Keys are waiting."],
   restaurant: ["On the menu now.", "Fresh out of the kitchen.", "Tonight tastes good."],
   retail: ["New in stock.", "Small drop, big favourite.", "Back by request."],
+  hotel: ["Rooms open for these dates.", "Stay a little longer.", "Your weekend, handled."],
+  beauty: ["Fresh look, booked in minutes.", "New in the studio.", "Time for something new."],
+  fitness: ["Start this week.", "Training that fits your day.", "Progress starts here."],
+  healthcare: ["Appointments open this week.", "Care when you need it.", "Book a check up."],
+  construction: ["Another project delivered.", "Built to last.", "From plan to finished."],
+  cleaning: ["Spotless, on schedule.", "Booked in minutes.", "Fresh start for your space."],
+  events: ["Dates are opening up.", "Every detail planned.", "Let's make it memorable."],
+  education: ["Enrolment is open.", "New course starting.", "Learn at your own pace."],
+  professional_services: ["Now taking new clients.", "Straight answers, fast.", "Let's get it sorted."],
+  ecommerce: ["New in the shop.", "Back in stock.", "Ships today."],
+  automotive_service: ["Service slots open.", "In and out the same day.", "Keep it running right."],
   other: ["Something new from us.", "Now available.", "Worth a closer look."],
 };
 
-const DEFAULT_CLOSERS: Record<BusinessType, string> = {
+const DEFAULT_CLOSERS: Partial<Record<BusinessType, string>> = {
   travel_agency: "Send us a message to reserve.",
   real_estate: "Message us to book a viewing.",
   car_dealership: "Message us for a test drive.",
   restaurant: "Reserve your table today.",
   retail: "Message us to order.",
+  hotel: "Message us to check availability.",
+  beauty: "Message us to book your spot.",
+  fitness: "Message us to start your trial.",
+  healthcare: "Message us to book an appointment.",
+  construction: "Message us for a free estimate.",
+  cleaning: "Message us to book a cleaning.",
+  events: "Message us to check your date.",
+  education: "Message us to enrol.",
+  professional_services: "Message us for a free consultation.",
+  ecommerce: "Order online today.",
+  automotive_service: "Message us to book a service.",
   other: "Message us to learn more.",
 };
 

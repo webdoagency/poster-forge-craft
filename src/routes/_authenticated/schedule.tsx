@@ -101,7 +101,7 @@ function SchedulePage() {
         return <div className={`w-full rounded-md bg-muted ${className ?? ""}`} style={{ aspectRatio: "4 / 5" }} />;
       }
       return (
-        <LazyMount className={className}>
+        <LazyMount {...(className ? { className } : {})}>
           <PostCanvas
             template={template}
             content={post.slides?.[0]?.content ?? post.content}

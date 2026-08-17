@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
+import { LazyMount } from "@/components/rafty/LazyMount";
 import { useRafty } from "@/lib/rafty/store";
 import { downloadNode, slugify } from "@/lib/rafty/download";
 import { id as newId } from "@/lib/rafty/repo";
@@ -100,87 +101,85 @@ function PostsPage() {
       ) : filtered.length === 0 ? (
         <div className="card-soft p-6 text-sm text-muted-foreground">No posts match this search.</div>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 xl:grid-cols-5">
           {filtered.map((post) => {
             const template = templates.find((x) => x.id === post.templateId) ?? templates[0];
             if (!template) return null;
             return (
               <article key={post.id} className="card-soft overflow-hidden">
-                <div className="p-2">
-                  <div
-                    ref={(node) => {
-                      if (node) canvasRefs.current.set(post.id, node);
-                      else canvasRefs.current.delete(post.id);
-                    }}
-                  >
-                    <PostCanvas
-                      template={template}
-                      content={post.slides?.[0]?.content ?? post.content}
-                      brand={brand}
-                      businessName={business.name}
-                      businessType={business.type}
-                      showBrandName={post.showBrandName}
-                      showContact={post.showContact ?? false}
-                      adjustments={post.slides?.[0]?.adjustments ?? post.adjustments}
-                      format={post.format ?? "post"}
-                      className="rounded-xl"
-                    />
-
-                  </div>
+                <div className="p-1.5">
+                  <LazyMount>
+                    <div
+                      ref={(node) => {
+                        if (node) canvasRefs.current.set(post.id, node);
+                        else canvasRefs.current.delete(post.id);
+                      }}
+                    >
+                      <PostCanvas
+                        template={template}
+                        content={post.slides?.[0]?.content ?? post.content}
+                        brand={brand}
+                        businessName={business.name}
+                        businessType={business.type}
+                        showBrandName={post.showBrandName}
+                        showContact={post.showContact ?? false}
+                        adjustments={post.slides?.[0]?.adjustments ?? post.adjustments}
+                        format={post.format ?? "post"}
+                        className="rounded-md"
+                      />
+                    </div>
+                  </LazyMount>
                 </div>
-                <div className="px-4 pb-2 pt-1">
-                  <p className="truncate text-sm font-bold">{post.content.title || "Untitled"}</p>
-                  <p className="truncate text-xs text-muted-foreground">{template.name}</p>
-                  {post.content.caption ? (
-                    <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{post.content.caption}</p>
-                  ) : null}
+                <div className="px-2 pb-1">
+                  <p className="truncate text-[11px] font-bold">{post.content.title || "Untitled"}</p>
+                  <p className="truncate text-[10px] text-muted-foreground">{template.name}</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 px-4 pb-4 pt-1">
-                  <Button asChild size="icon" variant="outline" className="size-9 shrink-0 rounded-xl">
+                <div className="flex items-center gap-0.5 px-1.5 pb-1.5">
+                  <Button asChild size="icon" variant="ghost" className="size-7 shrink-0 rounded-lg">
                     <Link to="/create" search={{ post: post.id }} aria-label="Edit">
-                      <Pencil className="size-4" />
-                    </Link>
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="size-9 shrink-0 rounded-xl"
-                    aria-label="Duplicate"
-                    onClick={() => void handleDuplicate(post)}
-                  >
-                    <Copy className="size-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="size-9 shrink-0 rounded-xl"
-                    aria-label="Copy caption"
-                    onClick={() => void handleCopyCaption(post)}
-                  >
-                    <Clipboard className="size-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="size-9 shrink-0 rounded-xl"
-                    aria-label="Download"
-                    onClick={() => void handleDownload(post)}
-                  >
-                    <Download className="size-4" />
-                  </Button>
-                  <Button asChild size="icon" variant="outline" className="size-9 shrink-0 rounded-xl">
-                    <Link to="/schedule" aria-label="Schedule">
-                      <CalendarClock className="size-4" />
+                      <Pencil className="size-3.5" />
                     </Link>
                   </Button>
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="ml-auto size-9 shrink-0 rounded-xl"
+                    className="size-7 shrink-0 rounded-lg"
+                    aria-label="Duplicate"
+                    onClick={() => void handleDuplicate(post)}
+                  >
+                    <Copy className="size-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-7 shrink-0 rounded-lg"
+                    aria-label="Copy caption"
+                    onClick={() => void handleCopyCaption(post)}
+                  >
+                    <Clipboard className="size-3.5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="size-7 shrink-0 rounded-lg"
+                    aria-label="Download"
+                    onClick={() => void handleDownload(post)}
+                  >
+                    <Download className="size-3.5" />
+                  </Button>
+                  <Button asChild size="icon" variant="ghost" className="hidden size-7 shrink-0 rounded-lg sm:inline-flex">
+                    <Link to="/schedule" search={{ post: post.id }} aria-label="Schedule">
+                      <CalendarClock className="size-3.5" />
+                    </Link>
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="ml-auto size-7 shrink-0 rounded-lg"
                     aria-label={t("posts.delete")}
                     onClick={() => removePost(post.id)}
                   >
-                    <Trash2 className="size-4" />
+                    <Trash2 className="size-3.5" />
                   </Button>
                 </div>
               </article>

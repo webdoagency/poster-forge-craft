@@ -141,7 +141,7 @@ function OnboardingPage() {
     <div className="page-bg min-h-screen">
       <header className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-5">
         <Link to="/">
-          <Logo height={24} />
+          <Logo height={36} />
         </Link>
         <span className="ml-auto text-xs font-semibold text-muted-foreground">
           {t("onb.step")} {step + 1} {t("onb.of")} {STEP_KEYS.length}

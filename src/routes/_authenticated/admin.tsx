@@ -171,7 +171,7 @@ function AdminPage() {
       <header className="glass-panel sticky top-0 z-40 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
           <Link to="/">
-            <Logo height={24} />
+            <Logo height={36} />
           </Link>
           <span className="rounded-lg bg-primary-soft px-2 py-1 text-xs font-bold">Admin</span>
           <p className="ml-auto truncate text-xs text-muted-foreground">{user?.email}</p>

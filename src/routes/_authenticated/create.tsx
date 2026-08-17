@@ -21,12 +21,7 @@ import { useRafty } from "@/lib/rafty/store";
 import { generateCaption } from "@/lib/rafty/caption";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
 import { recommendedFirst, templatesForFormat } from "@/lib/rafty/templates";
-import {
-  clampDuration,
-  CTA_PRESETS,
-  FORMAT_SPECS,
-  TYPE_FIELDS,
-} from "@/lib/rafty/constants";
+import { clampDuration, CTA_PRESETS, FORMAT_SPECS, TYPE_FIELDS } from "@/lib/rafty/constants";
 import {
   emptyContent,
   type ContentFormat,
@@ -236,7 +231,6 @@ function CreatePage() {
       ),
     );
   }
-
 
   function generate() {
     if (locked) {
@@ -506,7 +500,6 @@ function CreatePage() {
                   ))}
                 </div>
               </div>
-
 
               <div className="grid gap-2">
                 <Label>{t("create.services")}</Label>

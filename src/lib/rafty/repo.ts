@@ -88,7 +88,10 @@ export async function currentUser(): Promise<User | null> {
   const { data } = await supabase.auth.getUser();
   const authUser = data.user;
   if (!authUser) return null;
-  const { data: isAdmin } = await supabase.rpc("is_super_admin");
+  // Database decides admin rights. The function grants the platform role only
+  // when the verified account email is on the server side allowlist, and
+  // otherwise just reports the existing role. No client side email checks.
+  const { data: isAdmin } = await supabase.rpc("claim_admin_role");
   const { data: profile } = await supabase
     .from("profiles")
     .select("display_name")

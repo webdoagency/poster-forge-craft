@@ -118,7 +118,9 @@ function ContactPage() {
             >
               <h2 className="font-display text-xl font-bold">Thanks, we have it</h2>
               <p className="text-sm text-muted-foreground">
-                Your request is with us. We will reply to {email.trim()} shortly.
+                {emailed
+                  ? `Your request is with us. We will reply to ${email.trim()} shortly.`
+                  : `Your request is saved, but our email notification did not go through. To be safe, also write to ${CONTACT_EMAIL}.`}
               </p>
               <a
                 href={`mailto:${CONTACT_EMAIL}`}

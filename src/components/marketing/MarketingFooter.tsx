@@ -1,18 +1,20 @@
 import { Link } from "@tanstack/react-router";
 import { Logo } from "@/components/rafty/Logo";
 
+/**
+ * Deliberately minimal. One row of links, one credit line, nothing else.
+ * The agency credit carries a slow animated gradient so it reads as premium
+ * rather than as an ad block.
+ */
 export function MarketingFooter() {
   return (
     <footer className="border-t border-border">
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-        <div className="grid gap-8 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
-          <div>
-            <Logo height={34} />
-            <p className="mt-3 max-w-xs text-sm text-muted-foreground">
-              Professional branded content, created quickly and consistently.
-            </p>
-          </div>
-          <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground sm:justify-end">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <Link to="/" aria-label="krijo24 home">
+            <Logo height={30} />
+          </Link>
+          <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
             <Link to="/how-it-works" className="hover:text-foreground">
               How it works
             </Link>
@@ -28,28 +30,29 @@ export function MarketingFooter() {
           </nav>
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            Powered by{" "}
+        <div className="mt-8 flex flex-col gap-2 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 Anexio Group LLC. All rights reserved.</p>
+          <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
             <a
               href="https://webdoagency.com"
               target="_blank"
               rel="noreferrer"
-              className="font-medium text-foreground hover:underline"
+              className="shine-link font-semibold"
             >
-              Webdo Agency
+              Powered by Webdo Agency
             </a>
-            . Need a website too?{" "}
+            <span aria-hidden className="text-muted-foreground/40">
+              ·
+            </span>
             <a
               href="https://webdoagency.com"
               target="_blank"
               rel="noreferrer"
-              className="font-medium text-foreground hover:underline"
+              className="hover:text-foreground"
             >
-              We build those as well.
+              Need a website too? We build it for you.
             </a>
           </p>
-          <p className="text-muted-foreground/70">Anexio Group LLC</p>
         </div>
       </div>
     </footer>

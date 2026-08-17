@@ -47,8 +47,8 @@ function GalleryPage() {
           A look inside the template library
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-          krijo24 ships with 50 global templates built as visual families, not
-          industry boxes. Here is a curated sample from a few of them.
+          krijo24 ships with 50 global templates built as visual families, not industry boxes. Here
+          is a curated sample from a few of them.
         </p>
       </section>
 
@@ -63,7 +63,8 @@ function GalleryPage() {
             <div className="flex items-end justify-between gap-3">
               <h2 className="font-display text-xl font-extrabold">{family.label}</h2>
               <span className="text-xs font-medium text-muted-foreground">
-                {globalTemplates.filter((tpl) => tpl.tags.includes(family.tag)).length} templates in krijo24
+                {globalTemplates.filter((tpl) => tpl.tags.includes(family.tag)).length} templates in
+                krijo24
               </span>
             </div>
             <div className="mt-4 grid gap-5 sm:grid-cols-3">
@@ -93,8 +94,8 @@ function GalleryPage() {
             See all 50 templates, plus your own.
           </h2>
           <p className="max-w-xl text-sm text-primary-foreground/85">
-            Once inside krijo24 you can browse the full library and even
-            request a custom template built for your brand.
+            Once inside krijo24 you can browse the full library and even request a custom template
+            built for your brand.
           </p>
           <Button asChild size="lg" variant="secondary" className="rounded-xl">
             <Link to="/auth">

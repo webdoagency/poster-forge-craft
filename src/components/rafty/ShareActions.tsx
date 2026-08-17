@@ -101,7 +101,12 @@ export function ShareActions({
           {saveLabel}
         </Button>
         {exportable ? (
-          <Button variant="outline" className="h-12 rounded-xl" onClick={exportAll} disabled={sharing}>
+          <Button
+            variant="outline"
+            className="h-12 rounded-xl"
+            onClick={exportAll}
+            disabled={sharing}
+          >
             <Share2 className="mr-1 size-4" />
             {multi ? "Save all slides" : "Save to device"}
           </Button>
@@ -143,12 +148,13 @@ export function ShareActions({
         </p>
       </div>
 
-
       {exportable && !slideNodes ? (
         <Button
           variant="ghost"
           className="h-9 rounded-xl text-xs text-muted-foreground"
-          onClick={() => canvasRef.current && downloadNode(canvasRef.current, slugify(filename), size)}
+          onClick={() =>
+            canvasRef.current && downloadNode(canvasRef.current, slugify(filename), size)
+          }
         >
           <Download className="mr-1 size-3.5" />
           Download PNG

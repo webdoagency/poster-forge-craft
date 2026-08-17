@@ -8,7 +8,11 @@ import type { BusinessType, ContentInstructions, CurrencyCode, PostContent } fro
  */
 
 const OPENERS: Partial<Record<BusinessType, string[]>> = {
-  travel_agency: ["Pack light, stay longer.", "This one books out fast.", "Your next trip, sorted."],
+  travel_agency: [
+    "Pack light, stay longer.",
+    "This one books out fast.",
+    "Your next trip, sorted.",
+  ],
   real_estate: ["Just listed.", "Room to breathe.", "A place worth seeing in person."],
   car_dealership: ["Ready to drive today.", "Just arrived on the lot.", "Keys are waiting."],
   restaurant: ["On the menu now.", "Fresh out of the kitchen.", "Tonight tastes good."],
@@ -21,7 +25,11 @@ const OPENERS: Partial<Record<BusinessType, string[]>> = {
   cleaning: ["Spotless, on schedule.", "Booked in minutes.", "Fresh start for your space."],
   events: ["Dates are opening up.", "Every detail planned.", "Let's make it memorable."],
   education: ["Enrolment is open.", "New course starting.", "Learn at your own pace."],
-  professional_services: ["Now taking new clients.", "Straight answers, fast.", "Let's get it sorted."],
+  professional_services: [
+    "Now taking new clients.",
+    "Straight answers, fast.",
+    "Let's get it sorted.",
+  ],
   ecommerce: ["New in the shop.", "Back in stock.", "Ships today."],
   automotive_service: ["Service slots open.", "In and out the same day.", "Keep it running right."],
   other: ["Something new from us.", "Now available.", "Worth a closer look."],
@@ -145,7 +153,9 @@ export function generateCaption(input: {
 
   if (instructions.contact.trim()) parts.push(instructions.contact.trim());
 
-  let body = filterAvoided(parts.join(" "), instructions.phrasesAvoid).replace(/\s{2,}/g, " ").trim();
+  let body = filterAvoided(parts.join(" "), instructions.phrasesAvoid)
+    .replace(/\s{2,}/g, " ")
+    .trim();
 
   const tags = buildHashtags({
     hashtags: instructions.hashtags,

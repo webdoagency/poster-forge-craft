@@ -20,7 +20,10 @@ export const Route = createFileRoute("/contact")({
           "Tell us about your business and we will get in touch to show you krijo24 and talk through pricing.",
       },
       { property: "og:title", content: "Book a demo with krijo24" },
-      { property: "og:description", content: "Tell us about your business and we will get in touch." },
+      {
+        property: "og:description",
+        content: "Tell us about your business and we will get in touch.",
+      },
       { property: "og:url", content: "https://krijo24.com/contact" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -76,10 +79,12 @@ function ContactPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">Book a demo</h1>
+          <h1 className="font-display text-4xl font-bold tracking-tight sm:text-5xl">
+            Book a demo
+          </h1>
           <p className="mt-5 text-base text-muted-foreground sm:text-lg">
-            Tell us a little about your business. We read every request and reply personally, usually
-            within a day.
+            Tell us a little about your business. We read every request and reply personally,
+            usually within a day.
           </p>
         </motion.div>
 
@@ -103,7 +108,10 @@ function ContactPage() {
               </a>
             </motion.div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5 border-t border-border pt-8">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col gap-5 border-t border-border pt-8"
+            >
               <div>
                 <Label htmlFor="contact-name">Name</Label>
                 <Input
@@ -158,7 +166,10 @@ function ContactPage() {
               </Button>
               <p className="text-xs text-muted-foreground">
                 Prefer email directly? Write to{" "}
-                <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-foreground hover:underline">
+                <a
+                  href={`mailto:${CONTACT_EMAIL}`}
+                  className="font-medium text-foreground hover:underline"
+                >
                   {CONTACT_EMAIL}
                 </a>
                 .

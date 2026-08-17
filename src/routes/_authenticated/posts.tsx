@@ -16,7 +16,10 @@ export const Route = createFileRoute("/_authenticated/posts")({
   head: () => ({
     meta: [
       { title: "Your posts | krijo24" },
-      { name: "description", content: "Every post your business created, ready to reopen or download." },
+      {
+        name: "description",
+        content: "Every post your business created, ready to reopen or download.",
+      },
       { property: "og:title", content: "Your posts | krijo24" },
       { property: "og:description", content: "Reopen, edit or download your saved posts." },
     ],
@@ -38,7 +41,8 @@ function PostsPage() {
     const q = query.trim().toLowerCase();
     if (!q) return posts;
     return posts.filter(
-      (p) => p.content.title.toLowerCase().includes(q) || p.content.caption.toLowerCase().includes(q),
+      (p) =>
+        p.content.title.toLowerCase().includes(q) || p.content.caption.toLowerCase().includes(q),
     );
   }, [posts, query]);
 
@@ -99,7 +103,9 @@ function PostsPage() {
       {posts.length === 0 ? (
         <div className="card-soft p-6 text-sm text-muted-foreground">{t("posts.empty")}</div>
       ) : filtered.length === 0 ? (
-        <div className="card-soft p-6 text-sm text-muted-foreground">No posts match this search.</div>
+        <div className="card-soft p-6 text-sm text-muted-foreground">
+          No posts match this search.
+        </div>
       ) : (
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 xl:grid-cols-5">
           {filtered.map((post) => {
@@ -131,11 +137,18 @@ function PostsPage() {
                   </LazyMount>
                 </div>
                 <div className="px-2 pb-1">
-                  <p className="truncate text-[11px] font-bold">{post.content.title || "Untitled"}</p>
+                  <p className="truncate text-[11px] font-bold">
+                    {post.content.title || "Untitled"}
+                  </p>
                   <p className="truncate text-[10px] text-muted-foreground">{template.name}</p>
                 </div>
                 <div className="flex items-center gap-0.5 px-1.5 pb-1.5">
-                  <Button asChild size="icon" variant="ghost" className="size-7 shrink-0 rounded-lg">
+                  <Button
+                    asChild
+                    size="icon"
+                    variant="ghost"
+                    className="size-7 shrink-0 rounded-lg"
+                  >
                     <Link to="/create" search={{ post: post.id }} aria-label="Edit">
                       <Pencil className="size-3.5" />
                     </Link>
@@ -167,7 +180,12 @@ function PostsPage() {
                   >
                     <Download className="size-3.5" />
                   </Button>
-                  <Button asChild size="icon" variant="ghost" className="hidden size-7 shrink-0 rounded-lg sm:inline-flex">
+                  <Button
+                    asChild
+                    size="icon"
+                    variant="ghost"
+                    className="hidden size-7 shrink-0 rounded-lg sm:inline-flex"
+                  >
                     <Link to="/schedule" search={{ post: post.id }} aria-label="Schedule">
                       <CalendarClock className="size-3.5" />
                     </Link>

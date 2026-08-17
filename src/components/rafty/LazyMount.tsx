@@ -32,7 +32,11 @@ export function LazyMount({
 
   return (
     <div ref={ref} className={className ?? "w-full"}>
-      {visible ? children : <div className="w-full rounded-lg bg-muted" style={{ aspectRatio: ratio }} />}
+      {visible ? (
+        children
+      ) : (
+        <div className="w-full rounded-lg bg-muted" style={{ aspectRatio: ratio }} />
+      )}
     </div>
   );
 }

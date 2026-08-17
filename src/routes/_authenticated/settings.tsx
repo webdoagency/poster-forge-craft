@@ -68,7 +68,11 @@ function SettingsPage() {
   async function saveLabel(platform: SocialPlatform) {
     if (savingPlatform) return;
     setSavingPlatform(platform);
-    const res = await repo.saveConnectionLabel(business!.id, platform, (labels[platform] ?? "").trim());
+    const res = await repo.saveConnectionLabel(
+      business!.id,
+      platform,
+      (labels[platform] ?? "").trim(),
+    );
     setSavingPlatform(null);
     if (res.error) {
       toast.error("Could not save that handle.");
@@ -155,13 +159,17 @@ function SettingsPage() {
           <p>Video: {plan?.allowVideo ? "included" : "not included"}</p>
           {plan && plan.partnershipPostsLimit > 0 ? (
             <p>
-              Partnership posts: {plan.partnershipPostsUsed} of {plan.partnershipPostsLimit} this month
+              Partnership posts: {plan.partnershipPostsUsed} of {plan.partnershipPostsLimit} this
+              month
             </p>
           ) : null}
         </div>
         <p className="text-xs text-muted-foreground">
           Plans are managed by the krijo24 team. Write to{" "}
-          <a href="mailto:contact@webdoagency.com" className="font-semibold text-foreground hover:underline">
+          <a
+            href="mailto:contact@webdoagency.com"
+            className="font-semibold text-foreground hover:underline"
+          >
             contact@webdoagency.com
           </a>{" "}
           to change your plan.
@@ -235,7 +243,10 @@ function SettingsPage() {
         <p className="text-sm font-bold">Support</p>
         <p className="text-sm text-muted-foreground">
           Questions, custom templates or plan changes:{" "}
-          <a href="mailto:contact@webdoagency.com" className="font-semibold text-foreground hover:underline">
+          <a
+            href="mailto:contact@webdoagency.com"
+            className="font-semibold text-foreground hover:underline"
+          >
             contact@webdoagency.com
           </a>
         </p>

@@ -31,7 +31,11 @@ export type FitTextOptions = {
  * Both elements must already be attached to the document with layout resolved
  * (cqw units require a sized ancestor with containerType set).
  */
-export function fitTextToBox(container: HTMLElement, text: HTMLElement, opts: FitTextOptions): void {
+export function fitTextToBox(
+  container: HTMLElement,
+  text: HTMLElement,
+  opts: FitTextOptions,
+): void {
   const { maxSize, minSize, maxLines, lineHeight, tightLineHeight, iterations = 8 } = opts;
 
   const setSize = (size: number, lh: number) => {

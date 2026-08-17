@@ -47,16 +47,28 @@ function PricingPage() {
           Simple pricing, no surprises
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-          Three plans, built around how many brands you manage. Every plan
-          includes unlimited templates and the ability to build your own.
+          Three plans, built around how many brands you manage. Every plan includes unlimited
+          templates and the ability to build your own.
         </p>
 
         <div className="mt-8 inline-flex items-center gap-3 rounded-full border border-border px-4 py-2">
-          <span className={cn("text-sm font-medium", !annual && "text-foreground", annual && "text-muted-foreground")}>
+          <span
+            className={cn(
+              "text-sm font-medium",
+              !annual && "text-foreground",
+              annual && "text-muted-foreground",
+            )}
+          >
             Monthly
           </span>
           <Switch checked={annual} onCheckedChange={setAnnual} aria-label="Toggle annual pricing" />
-          <span className={cn("text-sm font-medium", annual && "text-foreground", !annual && "text-muted-foreground")}>
+          <span
+            className={cn(
+              "text-sm font-medium",
+              annual && "text-foreground",
+              !annual && "text-muted-foreground",
+            )}
+          >
             Annual
           </span>
           <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-accent-foreground">
@@ -101,12 +113,22 @@ function PricingPage() {
 
                 <div>
                   <span className="font-display text-4xl font-bold">{euro(effective)}</span>
-                  <span className={cn("text-sm", isPartnership ? "text-background/70" : "text-muted-foreground")}>
+                  <span
+                    className={cn(
+                      "text-sm",
+                      isPartnership ? "text-background/70" : "text-muted-foreground",
+                    )}
+                  >
                     {" "}
                     / month
                   </span>
                   {annual ? (
-                    <p className={cn("mt-1 text-xs", isPartnership ? "text-background/60" : "text-muted-foreground")}>
+                    <p
+                      className={cn(
+                        "mt-1 text-xs",
+                        isPartnership ? "text-background/60" : "text-muted-foreground",
+                      )}
+                    >
                       Billed annually
                     </p>
                   ) : null}
@@ -123,9 +145,9 @@ function PricingPage() {
 
                 {isPartnership ? (
                   <p className="text-xs text-background/70">
-                    krijo24 creates up to {plan.partnershipPosts} posts a month
-                    from the pictures and information you send us, alongside
-                    the unlimited posts you can still make yourself.
+                    krijo24 creates up to {plan.partnershipPosts} posts a month from the pictures
+                    and information you send us, alongside the unlimited posts you can still make
+                    yourself.
                   </p>
                 ) : null}
 
@@ -143,8 +165,8 @@ function PricingPage() {
         </div>
 
         <p className="mx-auto mt-8 max-w-lg text-center text-sm text-muted-foreground">
-          Online checkout is not live yet. Choosing a plan starts a
-          conversation with us, it does not charge you anything.
+          Online checkout is not live yet. Choosing a plan starts a conversation with us, it does
+          not charge you anything.
         </p>
       </section>
     </MarketingLayout>

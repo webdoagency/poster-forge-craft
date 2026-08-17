@@ -28,7 +28,6 @@ export type BusinessType =
   | "automotive_service"
   | "other";
 
-
 /**
  * Content formats. One shared template model drives all of them, so a
  * template only declares which format it belongs to plus the extra rules that
@@ -65,7 +64,6 @@ export type Slide = {
 };
 
 export type LanguageCode = "en" | "de" | "sq";
-
 
 export type CurrencyCode = "EUR" | "CHF" | "GBP" | "USD" | "ALL" | "SEK" | "NOK" | "DKK";
 
@@ -186,7 +184,6 @@ export type BrandProfile = {
   language: LanguageCode;
 };
 
-
 export type BusinessService = {
   id: string;
   businessId: string;
@@ -278,7 +275,6 @@ export type Template = {
   lockedDesign?: boolean;
 };
 
-
 export type CustomTemplateRequestStatus = "processing" | "ready" | "rejected";
 
 export type CustomTemplateRequest = {
@@ -344,7 +340,6 @@ export type Post = {
   slides?: Slide[];
 };
 
-
 export type TrialUsage = {
   businessId: string;
   postsCreated: number;
@@ -390,11 +385,7 @@ export type ScheduledPost = {
 };
 
 export type SocialConnectionStatus =
-  | "unavailable"
-  | "not_connected"
-  | "connected"
-  | "ready"
-  | "failed";
+  "unavailable" | "not_connected" | "connected" | "ready" | "failed";
 
 export type SocialConnection = {
   id: string;

@@ -124,7 +124,9 @@ function AdminPage() {
     return businesses.filter((b) => {
       if (statusFilter !== "all" && b.status !== statusFilter) return false;
       if (!q) return true;
-      return b.name.toLowerCase().includes(q) || BUSINESS_TYPE_NAMES[b.type].toLowerCase().includes(q);
+      return (
+        b.name.toLowerCase().includes(q) || BUSINESS_TYPE_NAMES[b.type].toLowerCase().includes(q)
+      );
     });
   }, [businesses, query, statusFilter]);
 
@@ -195,7 +197,10 @@ function AdminPage() {
                 { label: "Pending approval", value: byStatus("pending") },
                 { label: "Approved", value: byStatus("approved") },
                 { label: "Approved this week", value: approvedThisWeek },
-                { label: "Suspended or rejected", value: byStatus("suspended") + byStatus("rejected") },
+                {
+                  label: "Suspended or rejected",
+                  value: byStatus("suspended") + byStatus("rejected"),
+                },
                 { label: "Active brands", value: activeBrands },
                 { label: "Posts created", value: posts.length },
                 {
@@ -218,7 +223,9 @@ function AdminPage() {
                     <div key={b.id} className="flex items-center gap-3 text-sm">
                       <span className="min-w-0 flex-1 truncate font-semibold">{b.name}</span>
                       <Badge variant={statusTone(b.status)}>{b.status}</Badge>
-                      <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(b.createdAt)}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {timeAgo(b.createdAt)}
+                      </span>
                     </div>
                   ))}
                   {recentSignups.length === 0 ? (
@@ -237,7 +244,9 @@ function AdminPage() {
                       <span className="shrink-0 truncate text-xs text-muted-foreground">
                         {postBusinessName(p.businessId)}
                       </span>
-                      <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(p.createdAt)}</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {timeAgo(p.createdAt)}
+                      </span>
                     </div>
                   ))}
                   {recentPosts.length === 0 ? (
@@ -256,7 +265,10 @@ function AdminPage() {
                 onChange={(e) => setQuery(e.target.value)}
                 className="h-11 max-w-sm rounded-xl bg-card"
               />
-              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as BusinessStatus | "all")}>
+              <Select
+                value={statusFilter}
+                onValueChange={(v) => setStatusFilter(v as BusinessStatus | "all")}
+              >
                 <SelectTrigger className="h-11 w-40 rounded-xl bg-card">
                   <SelectValue />
                 </SelectTrigger>
@@ -268,7 +280,9 @@ function AdminPage() {
                   ))}
                 </SelectContent>
               </Select>
-              {loading ? <span className="self-center text-xs text-muted-foreground">Loading...</span> : null}
+              {loading ? (
+                <span className="self-center text-xs text-muted-foreground">Loading...</span>
+              ) : null}
             </div>
             <div className="grid gap-3">
               {filtered.map((b) => {
@@ -312,12 +326,15 @@ function AdminPage() {
                 const price = plan?.monthlyPrice ?? 50;
                 const active = plan?.active ?? false;
                 return (
-                  <div key={owner.ownerUserId} className="card-soft flex flex-wrap items-center gap-3 p-4">
+                  <div
+                    key={owner.ownerUserId}
+                    className="card-soft flex flex-wrap items-center gap-3 p-4"
+                  >
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-bold">{owner.names.join(", ")}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {owner.businessIds.length} brand{owner.businessIds.length === 1 ? "" : "s"} | limit{" "}
-                        {plan?.brandLimit ?? 1} | {PLAN_NAMES[plan?.plan ?? "starter"]}
+                        {owner.businessIds.length} brand{owner.businessIds.length === 1 ? "" : "s"}{" "}
+                        | limit {plan?.brandLimit ?? 1} | {PLAN_NAMES[plan?.plan ?? "starter"]}
                         {plan && plan.partnershipPostsLimit > 0
                           ? ` | ${plan.partnershipPostsUsed}/${plan.partnershipPostsLimit} done for you posts`
                           : ""}
@@ -362,7 +379,11 @@ function AdminPage() {
               {requests.map((r) => (
                 <div key={r.id} className="card-soft flex flex-wrap items-center gap-3 p-4">
                   {r.previewDataUrl ? (
-                    <img src={r.previewDataUrl} alt="" className="size-14 rounded-lg object-cover" />
+                    <img
+                      src={r.previewDataUrl}
+                      alt=""
+                      className="size-14 rounded-lg object-cover"
+                    />
                   ) : null}
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-bold">{r.fileName}</p>
@@ -411,17 +432,21 @@ function AdminPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-bold">{b?.name ?? row.businessId}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {PLATFORM_LABELS[row.platform]} · {new Date(row.scheduledAt).toLocaleString()} ·{" "}
-                        {row.timezone}
+                        {PLATFORM_LABELS[row.platform]} ·{" "}
+                        {new Date(row.scheduledAt).toLocaleString()} · {row.timezone}
                         {row.note ? ` · ${row.note}` : ""}
                       </p>
                     </div>
-                    <Badge variant={row.status === "queued" ? "default" : "outline"}>{row.status}</Badge>
+                    <Badge variant={row.status === "queued" ? "default" : "outline"}>
+                      {row.status}
+                    </Badge>
                   </div>
                 );
               })}
               {schedules.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nothing scheduled across the platform.</p>
+                <p className="text-sm text-muted-foreground">
+                  Nothing scheduled across the platform.
+                </p>
               ) : null}
             </div>
           </TabsContent>
@@ -436,7 +461,11 @@ function useMemoOwners(businesses: Business[]) {
   return useMemo(() => {
     const map = new Map<string, { ownerUserId: string; names: string[]; businessIds: string[] }>();
     for (const b of businesses) {
-      const entry = map.get(b.ownerUserId) ?? { ownerUserId: b.ownerUserId, names: [], businessIds: [] };
+      const entry = map.get(b.ownerUserId) ?? {
+        ownerUserId: b.ownerUserId,
+        names: [],
+        businessIds: [],
+      };
       entry.names.push(b.name);
       entry.businessIds.push(b.id);
       map.set(b.ownerUserId, entry);

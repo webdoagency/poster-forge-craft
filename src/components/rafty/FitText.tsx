@@ -37,7 +37,13 @@ export function FitText({
     const box = boxRef.current;
     const el = textRef.current;
     if (!box || !el) return;
-    fitTextToBox(box, el, { maxSize, minSize, maxLines, lineHeight, ...(tightLineHeight !== undefined ? { tightLineHeight } : {}) });
+    fitTextToBox(box, el, {
+      maxSize,
+      minSize,
+      maxLines,
+      lineHeight,
+      ...(tightLineHeight !== undefined ? { tightLineHeight } : {}),
+    });
   }, [text, maxSize, minSize, maxLines, lineHeight, tightLineHeight]);
 
   if (!text) return null;

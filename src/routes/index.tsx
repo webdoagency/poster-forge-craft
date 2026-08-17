@@ -69,8 +69,8 @@ function Hero() {
             on brand.
           </h1>
           <p className="mt-6 max-w-md text-lg text-muted-foreground">
-            One image, a few details, a finished post. krijo24 turns what your
-            business already has into content worth sharing.
+            One image, a few details, a finished post. krijo24 turns what your business already has
+            into content worth sharing.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-6">
             <Button asChild size="lg" className="rounded-full px-7">
@@ -124,8 +124,7 @@ function TryItDemo() {
           Try it yourself
         </h2>
         <p className="mt-2 max-w-lg text-sm text-muted-foreground">
-          Swap the photo, change the headline, pick a color. No account
-          needed.
+          Swap the photo, change the headline, pick a color. No account needed.
         </p>
         <div className="mt-8">
           <MiniDemo />

@@ -52,11 +52,7 @@ export function AdjustControls({ adjustments, onChange }: Props) {
 
   const resetAll = () => onChange({});
 
-  const dirButton = (
-    icon: React.ReactNode,
-    onClick: () => void,
-    label: string,
-  ) => (
+  const dirButton = (icon: React.ReactNode, onClick: () => void, label: string) => (
     <Button
       type="button"
       variant="outline"
@@ -91,7 +87,11 @@ export function AdjustControls({ adjustments, onChange }: Props) {
         {dirButton(<ArrowLeft className="size-4" />, () => nudgeText(-1, 0), "Move text left")}
         {dirButton(<ArrowRight className="size-4" />, () => nudgeText(1, 0), "Move text right")}
         <div className="mx-1 h-8 w-px bg-border" />
-        {dirButton(<Minus className="size-4" />, () => resizeText(-STEP / 100), "Decrease text size")}
+        {dirButton(
+          <Minus className="size-4" />,
+          () => resizeText(-STEP / 100),
+          "Decrease text size",
+        )}
         {dirButton(<Plus className="size-4" />, () => resizeText(STEP / 100), "Increase text size")}
       </div>
 
@@ -129,7 +129,11 @@ export function AdjustControls({ adjustments, onChange }: Props) {
         {dirButton(<ArrowLeft className="size-4" />, () => nudgeImage(-1, 0), "Move image left")}
         {dirButton(<ArrowRight className="size-4" />, () => nudgeImage(1, 0), "Move image right")}
         <div className="mx-1 h-8 w-px bg-border" />
-        {dirButton(<ZoomOut className="size-4" />, () => resizeImage(-STEP / 100), "Zoom image out")}
+        {dirButton(
+          <ZoomOut className="size-4" />,
+          () => resizeImage(-STEP / 100),
+          "Zoom image out",
+        )}
         {dirButton(<ZoomIn className="size-4" />, () => resizeImage(STEP / 100), "Zoom image in")}
       </div>
 

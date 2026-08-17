@@ -193,8 +193,7 @@ const de: Record<string, string> = {
   "onb.servicesHint": "Vorschläge wählen oder eigene hinzufügen. Jederzeit änderbar.",
   "onb.addService": "Hinzufügen",
   "onb.customHint": "Lade ein Referenzdesign als PNG, JPG oder PDF hoch. Optional.",
-  "onb.done":
-    "Unternehmen gesendet. Während der Prüfung kannst du einen Beitrag gratis erstellen.",
+  "onb.done": "Unternehmen gesendet. Während der Prüfung kannst du einen Beitrag gratis erstellen.",
 
   "create.title": "Erstellen",
   "create.image": "Bild",

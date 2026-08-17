@@ -17,7 +17,6 @@ import { cn } from "@/lib/utils";
 
 type Filter = "all" | "favorites" | "used";
 
-
 /**
  * Visual template chooser. Opens over the Create page, so the draft in the
  * form is never lost: tapping a thumbnail only opens a larger preview, and
@@ -106,9 +105,7 @@ export function TemplatePicker({
 
       <DialogContent className="max-h-[88vh] max-w-3xl overflow-hidden p-0">
         <DialogHeader className="border-b px-4 py-3">
-          <DialogTitle className="text-base">
-            {preview ? preview.name : "Templates"}
-          </DialogTitle>
+          <DialogTitle className="text-base">{preview ? preview.name : "Templates"}</DialogTitle>
         </DialogHeader>
 
         {preview ? (
@@ -125,7 +122,12 @@ export function TemplatePicker({
               />
             </div>
             <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" className="rounded-xl" onClick={() => setPreview(null)}>
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => setPreview(null)}
+              >
                 Back
               </Button>
               <Button type="button" className="flex-1 rounded-xl" onClick={() => use(preview)}>
@@ -169,7 +171,9 @@ export function TemplatePicker({
                         onClick={() => setPreview(tpl)}
                         className={cn(
                           "block w-full overflow-hidden rounded-lg border p-1 text-left transition",
-                          tpl.id === value ? "border-primary ring-2 ring-primary/40" : "border-border",
+                          tpl.id === value
+                            ? "border-primary ring-2 ring-primary/40"
+                            : "border-border",
                         )}
                       >
                         <LazyMount>

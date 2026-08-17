@@ -22,7 +22,7 @@ import type { ScheduledPost, SocialConnection, SocialPlatform } from "@/lib/raft
 
 export const Route = createFileRoute("/_authenticated/schedule")({
   validateSearch: (search: Record<string, unknown>): { post?: string } =>
-    typeof search['post'] === "string" && search['post'] ? { post: search['post'] } : {},
+    typeof search["post"] === "string" && search["post"] ? { post: search["post"] } : {},
   head: () => ({
     meta: [
       { title: "Schedule | krijo24" },
@@ -94,9 +94,16 @@ function SchedulePage() {
   const Thumb = useCallback(
     ({ id, className }: { id: string; className?: string }) => {
       const post = posts.find((p) => p.id === id);
-      const template = post ? templates.find((x) => x.id === post.templateId) ?? templates[0] : null;
+      const template = post
+        ? (templates.find((x) => x.id === post.templateId) ?? templates[0])
+        : null;
       if (!post || !template || !brand || !business) {
-        return <div className={`w-full rounded-md bg-muted ${className ?? ""}`} style={{ aspectRatio: "4 / 5" }} />;
+        return (
+          <div
+            className={`w-full rounded-md bg-muted ${className ?? ""}`}
+            style={{ aspectRatio: "4 / 5" }}
+          />
+        );
       }
       return (
         <LazyMount {...(className ? { className } : {})}>
@@ -204,7 +211,6 @@ function SchedulePage() {
             )}
           </div>
 
-
           <label className="grid gap-1.5">
             <span className="text-xs font-bold text-muted-foreground">Platform</span>
             <Select value={platform} onValueChange={(v) => setPlatform(v as SocialPlatform)}>
@@ -257,7 +263,11 @@ function SchedulePage() {
             />
           </label>
 
-          <Button className="h-11 rounded-xl sm:col-span-2" onClick={() => void add()} disabled={saving}>
+          <Button
+            className="h-11 rounded-xl sm:col-span-2"
+            onClick={() => void add()}
+            disabled={saving}
+          >
             Add to queue
           </Button>
         </div>
@@ -289,8 +299,8 @@ function SchedulePage() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold">{postTitle(row.postId)}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {PLATFORM_LABELS[row.platform]} ·{" "}
-                  {new Date(row.scheduledAt).toLocaleString()} · {row.timezone}
+                  {PLATFORM_LABELS[row.platform]} · {new Date(row.scheduledAt).toLocaleString()} ·{" "}
+                  {row.timezone}
                   {row.note ? ` · ${row.note}` : ""}
                 </p>
               </div>
@@ -351,6 +361,5 @@ function SchedulePage() {
         </Button>
       </aside>
     </div>
-
   );
 }

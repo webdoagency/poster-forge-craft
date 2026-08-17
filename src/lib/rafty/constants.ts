@@ -8,7 +8,6 @@ import type {
   SocialPlatform,
 } from "./types";
 
-
 export const BUSINESS_TYPES: BusinessType[] = [
   "travel_agency",
   "real_estate",
@@ -78,11 +77,7 @@ export const CUSTOM_TYPE_SUGGESTIONS = [
 /* --------------------------------- fonts ---------------------------------- */
 
 export type FontCategory =
-  | "Modern Sans"
-  | "Editorial Serif"
-  | "Luxury"
-  | "Bold Display"
-  | "Clean Business";
+  "Modern Sans" | "Editorial Serif" | "Luxury" | "Bold Display" | "Clean Business";
 
 export type FontOption = { family: string; category: FontCategory; weights: string };
 
@@ -181,7 +176,12 @@ export const PLANS: {
     brands: 1,
     partnershipPosts: 0,
     formats: "Image posts",
-    features: ["1 brand", "Image posts", "Unlimited ready made templates", "Your own uploaded templates"],
+    features: [
+      "1 brand",
+      "Image posts",
+      "Unlimited ready made templates",
+      "Your own uploaded templates",
+    ],
   },
   {
     tier: "growth",
@@ -582,10 +582,25 @@ export const CTA_PRESETS = [
 
 /** Light occasion presets that only add text, never layout. */
 export const OCCASION_PRESETS: { id: string; label: string; title: string; extra: string }[] = [
-  { id: "weekend", label: "Weekend offer", title: "Weekend offer", extra: "Valid this weekend only" },
+  {
+    id: "weekend",
+    label: "Weekend offer",
+    title: "Weekend offer",
+    extra: "Valid this weekend only",
+  },
   { id: "new", label: "New arrival", title: "Just arrived", extra: "Available from today" },
-  { id: "summer", label: "Summer season", title: "Summer season", extra: "Book early for the best dates" },
-  { id: "holiday", label: "Holiday special", title: "Holiday special", extra: "Limited holiday availability" },
+  {
+    id: "summer",
+    label: "Summer season",
+    title: "Summer season",
+    extra: "Book early for the best dates",
+  },
+  {
+    id: "holiday",
+    label: "Holiday special",
+    title: "Holiday special",
+    extra: "Limited holiday availability",
+  },
   { id: "lastminute", label: "Last minute", title: "Last minute", extra: "Only a few places left" },
 ];
 

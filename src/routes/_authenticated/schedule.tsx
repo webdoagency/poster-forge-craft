@@ -56,10 +56,11 @@ function statusTone(status: ScheduledPost["status"]) {
 }
 
 function SchedulePage() {
-  const { business, posts } = useRafty();
+  const { business, brand, posts, templates } = useRafty();
+  const search = Route.useSearch();
   const [rows, setRows] = useState<ScheduledPost[]>([]);
   const [connections, setConnections] = useState<SocialConnection[]>([]);
-  const [postId, setPostId] = useState("");
+  const [postId, setPostId] = useState(search.post ?? "");
   const [platform, setPlatform] = useState<SocialPlatform>("instagram");
   const [when, setWhen] = useState(() => localInputValue(new Date(Date.now() + 3600_000)));
   const [timezone, setTimezone] = useState("Europe/Tirane");

@@ -7,7 +7,7 @@ export function MarketingFooter() {
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="grid gap-8 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
           <div>
-            <Logo height={22} />
+            <Logo height={34} />
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
               Professional branded content, created quickly and consistently.
             </p>

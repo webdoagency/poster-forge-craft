@@ -63,7 +63,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="glass-panel sticky top-0 z-40 border-x-0 border-t-0">
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6">
           <Link to="/create" className="shrink-0">
-            <Logo height={26} />
+            <Logo height={44} />
           </Link>
           <nav className="ml-3 hidden items-center gap-1 md:flex">
             {nav.map((item) => (

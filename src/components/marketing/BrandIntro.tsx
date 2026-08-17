@@ -41,7 +41,7 @@ export function BrandIntro() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            <Logo height={40} tone="light" />
+            <Logo height={64} tone="light" />
           </motion.div>
         </motion.div>
       ) : null}

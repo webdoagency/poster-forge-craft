@@ -52,7 +52,7 @@ function AuthPage() {
     <div className="page-bg flex min-h-screen flex-col">
       <header className="mx-auto flex w-full max-w-6xl items-center px-4 py-5 sm:px-6">
         <Link to="/">
-          <Logo height={26} />
+          <Logo height={36} />
         </Link>
       </header>
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 pb-16">

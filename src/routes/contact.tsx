@@ -11,12 +11,12 @@ import { usePrefersReducedMotion } from "@/components/marketing/usePrefersReduce
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Book a demo with Rafty" },
+      { title: "Book a demo with krijo24" },
       {
         name: "description",
-        content: "Tell us about your business and we will get in touch to show you Rafty and talk through pricing.",
+        content: "Tell us about your business and we will get in touch to show you krijo24 and talk through pricing.",
       },
-      { property: "og:title", content: "Book a demo with Rafty" },
+      { property: "og:title", content: "Book a demo with krijo24" },
       { property: "og:description", content: "Tell us about your business and we will get in touch." },
       { property: "og:url", content: "https://rafty.webdoagency.com/contact" },
       { property: "og:type", content: "website" },

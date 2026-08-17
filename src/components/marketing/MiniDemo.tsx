@@ -14,7 +14,7 @@ const ACCENTS = [
 /**
  * A tightly scoped pre-login demo: visitors can swap the photo, edit the
  * headline and pick a brand color, and see the 4:5 post update instantly.
- * Everything else stays fixed so it reads as a taste of Rafty, not a full
+ * Everything else stays fixed so it reads as a taste of krijo24, not a full
  * editor.
  */
 export function MiniDemo() {
@@ -99,7 +99,7 @@ export function MiniDemo() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          This is a quick preview. Inside Rafty you control every detail of
+          This is a quick preview. Inside krijo24 you control every detail of
           your post, with more templates and options than shown here.
         </p>
       </div>

@@ -12,13 +12,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/pricing")({
   head: () => ({
     meta: [
-      { title: "Rafty pricing | Simple plans for branded content" },
+      { title: "krijo24 pricing | Simple plans for branded content" },
       {
         name: "description",
         content:
-          "Three straightforward Rafty plans built around brands and templates, from 50 euro per month. Annual billing saves 20 percent. Checkout is not live yet, every plan starts a conversation.",
+          "Three straightforward krijo24 plans built around brands and templates, from 50 euro per month. Annual billing saves 20 percent. Checkout is not live yet, every plan starts a conversation.",
       },
-      { property: "og:title", content: "Rafty pricing | Simple plans for branded content" },
+      { property: "og:title", content: "krijo24 pricing | Simple plans for branded content" },
       {
         property: "og:description",
         content: "Three plans, clear features, no payment surprises.",
@@ -85,7 +85,7 @@ function PricingPage() {
                 <div>
                   {isPartnership ? (
                     <span className="mb-2 inline-block rounded-full border border-background/30 px-3 py-1 text-xs font-semibold uppercase tracking-wide">
-                      Rafty Partnership
+                      krijo24 Partnership
                     </span>
                   ) : null}
                   <h2 className="font-display text-xl font-bold">{plan.name}</h2>
@@ -123,7 +123,7 @@ function PricingPage() {
 
                 {isPartnership ? (
                   <p className="text-xs text-background/70">
-                    Rafty creates up to {plan.partnershipPosts} posts a month
+                    krijo24 creates up to {plan.partnershipPosts} posts a month
                     from the pictures and information you send us, alongside
                     the unlimited posts you can still make yourself.
                   </p>

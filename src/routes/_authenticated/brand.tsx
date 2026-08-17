@@ -31,12 +31,12 @@ import { emptyContact, type BrandContact, type BusinessType, type ContentInstruc
 export const Route = createFileRoute("/_authenticated/brand")({
   head: () => ({
     meta: [
-      { title: "Brand settings | Rafty" },
+      { title: "Brand settings | krijo24" },
       {
         name: "description",
         content: "Colors, fonts, logo, services and how you talk about your business.",
       },
-      { property: "og:title", content: "Brand settings | Rafty" },
+      { property: "og:title", content: "Brand settings | krijo24" },
       { property: "og:description", content: "Everything your templates use to stay on brand." },
     ],
   }),
@@ -411,7 +411,7 @@ function BrandPage() {
           />
         </div>
         <p className="text-xs text-muted-foreground">
-          Business name and type can only be changed by a Rafty admin. Contact support if these are wrong.
+          Business name and type can only be changed by a krijo24 admin. Contact support if these are wrong.
         </p>
       </div>
 
@@ -427,7 +427,7 @@ function BrandPage() {
             <div className="flex items-start gap-2 text-xs text-muted-foreground">
               <Lock className="mt-0.5 size-3.5 shrink-0" />
               <p>
-                This logo is locked. Only a Rafty admin can change it, the database enforces this rule.
+                This logo is locked. Only a krijo24 admin can change it, the database enforces this rule.
               </p>
             </div>
           ) : (
@@ -450,7 +450,7 @@ function BrandPage() {
                 </span>
               </label>
               <p className="text-xs text-muted-foreground">
-                A logo can only be set once. After saving, only a Rafty admin can replace it.
+                A logo can only be set once. After saving, only a krijo24 admin can replace it.
               </p>
             </div>
           )}

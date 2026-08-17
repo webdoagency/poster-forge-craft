@@ -26,7 +26,7 @@ const nav = [
 /** Business chrome. Most accounts have one brand, a switcher only appears
  * once the plan grants more than one. */
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { ready, user, business, brands, selectBrand, isAdmin, t, signOut } = useRafty();
+  const { ready, user, business, brands, selectBrand, isAdmin, t, signOut, trial } = useRafty();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -50,6 +50,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const statusLabel = t(`status.${business.status}`);
   const hasMultipleBrands = brands.length > 1;
+  // Trial counter belongs in the chrome, not in the Create form: it is account
+  // state, not something the user fills in.
+  const trialLeft =
+    business.status === "approved"
+      ? null
+      : Math.max(0, (trial?.freePostLimit ?? 1) - (trial?.postsCreated ?? 0));
+
 
   return (
     <div className="page-bg min-h-screen">
@@ -84,6 +91,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Select>
           ) : null}
           <div className="ml-auto flex min-w-0 items-center gap-3">
+            {trialLeft !== null ? (
+              <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-bold text-accent-foreground">
+                {t("trial.remaining")}: {trialLeft}
+              </span>
+            ) : null}
             <Link
               to="/schedule"
               className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground sm:flex sm:items-center sm:gap-1.5"
@@ -91,6 +103,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <CalendarClock className="size-4" />
               {t("nav.schedule")}
             </Link>
+
             {isAdmin ? (
               <Link
                 to="/admin"

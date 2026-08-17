@@ -10,13 +10,13 @@ import { demoPosts } from "@/lib/rafty/demo";
 export const Route = createFileRoute("/how-it-works")({
   head: () => ({
     meta: [
-      { title: "How Rafty works | From one image to a branded post" },
+      { title: "How krijo24 works | From one image to a branded post" },
       {
         name: "description",
         content:
           "See the real four step flow: pick a template, add your details and one image, generate your post and caption, then adjust and save, download or share it.",
       },
-      { property: "og:title", content: "How Rafty works | From one image to a branded post" },
+      { property: "og:title", content: "How krijo24 works | From one image to a branded post" },
       {
         property: "og:description",
         content: "Four steps, one finished branded post. No design skills needed.",
@@ -46,7 +46,7 @@ const STEPS = [
   {
     icon: Sparkles,
     title: "Generate your post and caption",
-    body: "Rafty lays out your image and text in your brand colors, and writes a caption to match.",
+    body: "krijo24 lays out your image and text in your brand colors, and writes a caption to match.",
     postIndex: 2,
   },
   {

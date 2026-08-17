@@ -1,16 +1,15 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import iconAsset from "@/assets/rafty-icon.png.asset.json";
 import { usePrefersReducedMotion } from "./usePrefersReducedMotion";
 
-const SESSION_KEY = "rafty-intro-shown";
+const SESSION_KEY = "krijo24-intro-shown";
 
 /**
  * Quick, once-per-session brand intro shown before the marketing home
  * finishes revealing. Skipped entirely under reduced motion or on repeat
  * visits within the same session.
  */
-export function RaftyIntro() {
+export function BrandIntro() {
   const reduced = usePrefersReducedMotion();
   const [visible, setVisible] = useState(false);
 
@@ -30,20 +29,20 @@ export function RaftyIntro() {
     <AnimatePresence>
       {visible ? (
         <motion.div
-          key="rafty-intro"
+          key="krijo24-intro"
           className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.28, ease: "easeInOut" }}
         >
-          <motion.img
-            src={iconAsset.url}
-            alt="Rafty"
-            className="h-10 w-auto"
-            initial={{ opacity: 0, scale: 0.9 }}
+          <motion.span
+            className="font-display text-3xl font-extrabold tracking-tight text-background"
+            initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-          />
+          >
+            krijo24
+          </motion.span>
         </motion.div>
       ) : null}
     </AnimatePresence>

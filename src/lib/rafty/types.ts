@@ -1,5 +1,5 @@
 /**
- * Rafty data model.
+ * krijo24 data model.
  * Every business owned record carries businessId (tenant id). Authorization is
  * enforced in Supabase with row level security, this layer only mirrors it.
  */
@@ -66,7 +66,7 @@ export type UserRole = "owner" | "admin";
 export type PlanTier = "starter" | "growth" | "studio" | "partnership";
 
 /**
- * Entitlements are owned by the database and activated by a Rafty admin.
+ * Entitlements are owned by the database and activated by a krijo24 admin.
  * The client only reflects them, it never grants them.
  */
 export type AccountPlan = {
@@ -161,7 +161,7 @@ export type BrandProfile = {
   logoPath?: string | null;
   /** Short lived signed url used for rendering only. */
   logoDataUrl: string | null;
-  /** Once a logo is saved only a Rafty admin can replace it. */
+  /** Once a logo is saved only a krijo24 admin can replace it. */
   logoLocked: boolean;
   primary: string;
   secondary: string;
@@ -364,7 +364,7 @@ export type SocialPlatform = "instagram" | "facebook" | "linkedin" | "tiktok" | 
 
 export type ScheduleStatus = "queued" | "cancelled" | "published" | "failed";
 
-/** A real queue entry. Rafty never claims a social publish it cannot perform:
+/** A real queue entry. krijo24 never claims a social publish it cannot perform:
  * queued items are prepared content with a time, not a promised post. */
 export type ScheduledPost = {
   id: string;

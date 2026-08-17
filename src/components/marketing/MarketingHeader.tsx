@@ -19,7 +19,7 @@ export function MarketingHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-4 sm:px-6">
-        <Link to="/" className="flex items-center" aria-label="Rafty home">
+        <Link to="/" className="flex items-center" aria-label="krijo24 home">
           <Logo height={24} />
         </Link>
 

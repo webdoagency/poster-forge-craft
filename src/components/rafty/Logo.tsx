@@ -1,10 +1,12 @@
 import { cn } from "@/lib/utils";
-import logoAsset from "@/assets/rafty-logo.png.asset.json";
-import iconAsset from "@/assets/rafty-icon.png.asset.json";
 
 /**
- * Official Rafty logo.
- * showWordmark renders the full lockup, otherwise the icon mark alone.
+ * krijo24 wordmark.
+ *
+ * The final krijo24 logo file is not in the project yet, so the mark is set
+ * typographically rather than invented. When the asset lands, drop it in
+ * src/assets and swap the <span> for an <img src={logoAsset.url} /> here, this
+ * is the only place the mark is rendered.
  */
 export function Logo({
   className,
@@ -16,12 +18,17 @@ export function Logo({
   height?: number;
 }) {
   return (
-    <span className={cn("flex items-center gap-2", className)}>
-      <img
-        src={showWordmark ? logoAsset.url : iconAsset.url}
-        alt="Rafty"
-        style={{ height, width: "auto", objectFit: "contain" }}
-      />
+    <span
+      className={cn("inline-flex items-center leading-none", className)}
+      style={{ height }}
+      aria-label="krijo24"
+    >
+      <span
+        className="font-display font-extrabold tracking-tight"
+        style={{ fontSize: height * 0.82 }}
+      >
+        {showWordmark ? "krijo24" : "k24"}
+      </span>
     </span>
   );
 }

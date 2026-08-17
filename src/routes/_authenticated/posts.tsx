@@ -14,9 +14,9 @@ import type { Post } from "@/lib/rafty/types";
 export const Route = createFileRoute("/_authenticated/posts")({
   head: () => ({
     meta: [
-      { title: "Your posts | Rafty" },
+      { title: "Your posts | krijo24" },
       { name: "description", content: "Every post your business created, ready to reopen or download." },
-      { property: "og:title", content: "Your posts | Rafty" },
+      { property: "og:title", content: "Your posts | krijo24" },
       { property: "og:description", content: "Reopen, edit or download your saved posts." },
     ],
   }),

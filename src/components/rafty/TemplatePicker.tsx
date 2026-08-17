@@ -37,14 +37,15 @@ function Lazy({ children }: { children: React.ReactNode }) {
 
   return (
     <div ref={ref} className="w-full">
-      {visible ? children : <div className="aspect-[4/5] w-full rounded-lg bg-muted" />}
+      {visible ? children : <div className="w-full rounded-lg bg-muted" style={{ aspectRatio: "4 / 5" }} />}
     </div>
   );
 }
 
 /**
  * Visual template chooser. Opens over the Create page, so the draft in the
- * form is never lost: picking a template only changes the selected id.
+ * form is never lost: tapping a thumbnail only opens a larger preview, and
+ * nothing changes until "Use template" is pressed.
  */
 export function TemplatePicker({
   templates,
@@ -66,8 +67,10 @@ export function TemplatePicker({
   const { favorites, templateUsage, toggleFavorite } = useRafty();
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
+  const [preview, setPreview] = useState<Template | null>(null);
 
   const content = useMemo(() => placeholderContent(businessType), [businessType]);
+
   const selected = templates.find((x) => x.id === value) ?? templates[0];
 
   const list = useMemo(() => {
@@ -85,14 +88,26 @@ export function TemplatePicker({
     { key: "used", label: "Most used" },
   ];
 
+  function use(tpl: Template) {
+    onSelect(tpl.id);
+    setPreview(null);
+    setOpen(false);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) setPreview(null);
+      }}
+    >
       <DialogTrigger asChild>
         <button
           type="button"
           className="flex w-full items-center gap-3 rounded-xl border border-border bg-card p-2 text-left transition hover:border-primary/60"
         >
-          <span className="w-12 shrink-0 overflow-hidden rounded-lg">
+          <span className="w-11 shrink-0 overflow-hidden rounded-md">
             {selected ? (
               <PostCanvas
                 template={selected}
@@ -113,87 +128,114 @@ export function TemplatePicker({
         </button>
       </DialogTrigger>
 
-      <DialogContent className="max-h-[85vh] max-w-3xl overflow-hidden p-0">
+      <DialogContent className="max-h-[88vh] max-w-3xl overflow-hidden p-0">
         <DialogHeader className="border-b px-4 py-3">
-          <DialogTitle className="text-base">Templates</DialogTitle>
+          <DialogTitle className="text-base">
+            {preview ? preview.name : "Templates"}
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="flex gap-2 px-4 pt-3">
-          {tabs.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => setFilter(tab.key)}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
-                filter === tab.key
-                  ? "border-primary bg-primary-soft"
-                  : "border-border bg-card text-muted-foreground",
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="max-h-[62vh] overflow-y-auto px-4 pb-4 pt-3">
-          {list.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              {filter === "favorites"
-                ? "No favourites yet. Tap the star on a template."
-                : "No templates used yet."}
-            </p>
-          ) : (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-              {list.map((tpl) => (
-                <div key={tpl.id} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onSelect(tpl.id);
-                      setOpen(false);
-                    }}
-                    className={cn(
-                      "block w-full overflow-hidden rounded-lg border p-1 text-left transition",
-                      tpl.id === value ? "border-primary ring-2 ring-primary/40" : "border-border",
-                    )}
-                  >
-                    <Lazy>
-                      <PostCanvas
-                        template={tpl}
-                        content={content}
-                        brand={brand}
-                        businessName={businessName}
-                        businessType={businessType}
-                        format={format}
-                        className="rounded-md"
-                      />
-                    </Lazy>
-                    <span className="mt-1 block truncate text-[11px] font-semibold">
-                      {tpl.name}
-                      {tpl.scope === "custom" ? " • yours" : ""}
-                    </span>
-                  </button>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    aria-label="Favourite"
-                    className="absolute right-1 top-1 size-7 rounded-full bg-background/80"
-                    onClick={() => void toggleFavorite(tpl.id)}
-                  >
-                    <Star
-                      className={cn(
-                        "size-3.5",
-                        favorites.includes(tpl.id) ? "fill-primary text-primary" : "text-muted-foreground",
-                      )}
-                    />
-                  </Button>
-                </div>
+        {preview ? (
+          <div className="flex max-h-[74vh] flex-col gap-4 overflow-y-auto p-4">
+            <div className="mx-auto w-full max-w-[320px]">
+              <PostCanvas
+                template={preview}
+                content={content}
+                brand={brand}
+                businessName={businessName}
+                businessType={businessType}
+                format={format}
+                className="rounded-xl"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button type="button" variant="outline" className="rounded-xl" onClick={() => setPreview(null)}>
+                Back
+              </Button>
+              <Button type="button" className="flex-1 rounded-xl" onClick={() => use(preview)}>
+                Use template
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex gap-2 px-4 pt-3">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setFilter(tab.key)}
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                    filter === tab.key
+                      ? "border-primary bg-primary-soft"
+                      : "border-border bg-card text-muted-foreground",
+                  )}
+                >
+                  {tab.label}
+                </button>
               ))}
             </div>
-          )}
-        </div>
+
+            <div className="max-h-[66vh] overflow-y-auto px-4 pb-4 pt-3">
+              {list.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">
+                  {filter === "favorites"
+                    ? "No favourites yet. Tap the star on a template."
+                    : "No templates used yet."}
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+                  {list.map((tpl) => (
+                    <div key={tpl.id} className="relative">
+                      <button
+                        type="button"
+                        onClick={() => setPreview(tpl)}
+                        className={cn(
+                          "block w-full overflow-hidden rounded-lg border p-1 text-left transition",
+                          tpl.id === value ? "border-primary ring-2 ring-primary/40" : "border-border",
+                        )}
+                      >
+                        <Lazy>
+                          <PostCanvas
+                            template={tpl}
+                            content={content}
+                            brand={brand}
+                            businessName={businessName}
+                            businessType={businessType}
+                            format={format}
+                            className="rounded-md"
+                          />
+                        </Lazy>
+                        <span className="mt-1 block truncate text-[11px] font-semibold">
+                          {tpl.name}
+                          {tpl.scope === "custom" ? " • yours" : ""}
+                        </span>
+                      </button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        aria-label="Favourite"
+                        className="absolute right-1 top-1 size-7 rounded-full bg-background/80"
+                        onClick={() => void toggleFavorite(tpl.id)}
+                      >
+                        <Star
+                          className={cn(
+                            "size-3.5",
+                            favorites.includes(tpl.id)
+                              ? "fill-primary text-primary"
+                              : "text-muted-foreground",
+                          )}
+                        />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

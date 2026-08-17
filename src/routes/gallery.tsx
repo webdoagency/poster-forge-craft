@@ -10,16 +10,16 @@ import type { TemplateTag } from "@/lib/rafty/types";
 export const Route = createFileRoute("/gallery")({
   head: () => ({
     meta: [
-      { title: "Rafty template gallery | A taste of the library" },
+      { title: "krijo24 template gallery | A taste of the library" },
       {
         name: "description",
         content:
-          "Browse a curated selection of Rafty's global templates grouped by visual family. There are many more inside the app.",
+          "Browse a curated selection of krijo24's global templates grouped by visual family. There are many more inside the app.",
       },
-      { property: "og:title", content: "Rafty template gallery | A taste of the library" },
+      { property: "og:title", content: "krijo24 template gallery | A taste of the library" },
       {
         property: "og:description",
-        content: "A curated look at Rafty's global template library, grouped by visual family.",
+        content: "A curated look at krijo24's global template library, grouped by visual family.",
       },
       { property: "og:url", content: "https://rafty.webdoagency.com/gallery" },
       { property: "og:type", content: "website" },
@@ -47,7 +47,7 @@ function GalleryPage() {
           A look inside the template library
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
-          Rafty ships with 50 global templates built as visual families, not
+          krijo24 ships with 50 global templates built as visual families, not
           industry boxes. Here is a curated sample from a few of them.
         </p>
       </section>
@@ -63,7 +63,7 @@ function GalleryPage() {
             <div className="flex items-end justify-between gap-3">
               <h2 className="font-display text-xl font-extrabold">{family.label}</h2>
               <span className="text-xs font-medium text-muted-foreground">
-                {globalTemplates.filter((tpl) => tpl.tags.includes(family.tag)).length} templates in Rafty
+                {globalTemplates.filter((tpl) => tpl.tags.includes(family.tag)).length} templates in krijo24
               </span>
             </div>
             <div className="mt-4 grid gap-5 sm:grid-cols-3">
@@ -93,7 +93,7 @@ function GalleryPage() {
             See all 50 templates, plus your own.
           </h2>
           <p className="max-w-xl text-sm text-primary-foreground/85">
-            Once inside Rafty you can browse the full library and even
+            Once inside krijo24 you can browse the full library and even
             request a custom template built for your brand.
           </p>
           <Button asChild size="lg" variant="secondary" className="rounded-xl">

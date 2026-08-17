@@ -49,12 +49,12 @@ export const Route = createFileRoute("/_authenticated/create")({
   },
   head: () => ({
     meta: [
-      { title: "Create a post | Rafty" },
+      { title: "Create a post | krijo24" },
       {
         name: "description",
         content: "Upload one image, add a few details and generate a branded post in seconds.",
       },
-      { property: "og:title", content: "Create a post | Rafty" },
+      { property: "og:title", content: "Create a post | krijo24" },
       { property: "og:description", content: "One image in, a finished branded post out." },
     ],
   }),
@@ -85,7 +85,6 @@ function CreatePage() {
     services,
     posts,
     templates,
-    trial,
     formats,
     canCreatePost,
     createPost,
@@ -158,7 +157,6 @@ function CreatePage() {
   const primaryFields = fields.slice(0, 2);
   const secondaryFields = fields.slice(2);
 
-  const trialLeft = Math.max(0, (trial?.freePostLimit ?? 1) - (trial?.postsCreated ?? 0));
   const locked = !canCreatePost && !postId;
 
   /** Patches only the active frame. */
@@ -174,24 +172,35 @@ function CreatePage() {
       prev.map((slide, i) => (i === activeIndex ? { ...slide, adjustments: next } : slide)),
     );
 
-  /** Switching format resets the frames to that format's defaults so content
-   * from a different shape never leaks into the new one. */
+  /** Switching format keeps what the user already typed. Extra frames are
+   * dropped or added to match the new format, the first frame always carries
+   * over so nobody retypes an offer just to see it as a story. */
   function changeFormat(next: ContentFormat) {
+    if (next === format) return;
     const nextSpec = FORMAT_SPECS[next];
     const nextTemplate = templatesForFormat(templates, next)[0];
+    const nextMax = nextTemplate?.slides?.max ?? nextSpec.maxSlides;
     setFormat(next);
     setTemplateId(nextTemplate?.id ?? "");
-    setSlides(
-      Array.from({ length: nextSpec.defaultSlides }, () =>
-        newSlide(next === "video" ? nextSpec.defaultDuration : undefined),
-      ),
-    );
+    setSlides((prev) => {
+      const kept = prev.slice(0, Math.max(1, Math.min(nextSpec.defaultSlides, nextMax))).map((slide) => ({
+        ...slide,
+        content: { ...slide.content },
+        adjustments: { ...slide.adjustments },
+        ...(next === "video" ? { durationMs: slide.durationMs ?? nextSpec.defaultDuration } : {}),
+      }));
+      while (kept.length < nextSpec.defaultSlides && kept.length < nextMax) {
+        kept.push(newSlide(next === "video" ? nextSpec.defaultDuration : undefined));
+      }
+      return kept;
+    });
     setActiveIndex(0);
     setPostId(null);
     setGenerated(false);
     setShowAdjust(false);
     slideNodes.current = [];
   }
+
 
   async function onImage(file: File) {
     set({ imageDataUrl: await readFileAsDataUrl(file) });
@@ -328,16 +337,8 @@ function CreatePage() {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
       <section className={`flex flex-col gap-4 ${generated ? "order-2 lg:order-1" : ""}`}>
-        <div>
-          <h1 className="font-display text-2xl font-extrabold">{t("create.title")}</h1>
-          <p className="text-sm text-muted-foreground">
-            {business.status === "approved"
-              ? business.name
-              : `${t(`status.${business.status}`)} | ${t("trial.remaining")}: ${trialLeft}`}
-          </p>
-        </div>
-
         <FormatPicker value={format} onChange={changeFormat} allowed={formats} />
+
 
         {locked ? (
           <div className="card-soft p-4 text-sm">

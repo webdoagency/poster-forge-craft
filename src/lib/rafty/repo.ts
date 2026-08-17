@@ -975,4 +975,50 @@ export async function saveConnectionLabel(
   return error ? { error: error.message } : {};
 }
 
+/* ----------------------------- demo requests ------------------------------ */
+
+/**
+ * Public demo request. Length and email checks are enforced again by the
+ * database policy, so a crafted client cannot store junk.
+ */
+export async function submitContactRequest(input: {
+  name: string;
+  email: string;
+  business: string;
+  message: string;
+}): Promise<{ error?: string }> {
+  const name = input.name.trim().slice(0, 100);
+  const email = input.email.trim().slice(0, 255);
+  const business = input.business.trim().slice(0, 120);
+  const message = input.message.trim().slice(0, 2000);
+  if (!name) return { error: "Please enter your name." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Please enter a valid email address." };
+  const { error } = await supabase
+    .from("contact_requests")
+    .insert({ name, email, business, message });
+  return error ? { error: error.message } : {};
+}
+
+export async function adminListContactRequests(): Promise<
+  { id: string; name: string; email: string; business: string; message: string; handled: boolean; createdAt: string }[]
+> {
+  const { data } = await supabase
+    .from("contact_requests")
+    .select("*")
+    .order("created_at", { ascending: false });
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    business: row.business,
+    message: row.message,
+    handled: row.handled,
+    createdAt: row.created_at,
+  }));
+}
+
+export async function adminSetContactHandled(requestId: string, handled: boolean) {
+  await supabase.from("contact_requests").update({ handled }).eq("id", requestId);
+}
+
 export const DEFAULTS = DEFAULT_BRAND;

@@ -580,29 +580,6 @@ export const CTA_PRESETS = [
   "Limited availability",
 ];
 
-/** Light occasion presets that only add text, never layout. */
-export const OCCASION_PRESETS: { id: string; label: string; title: string; extra: string }[] = [
-  {
-    id: "weekend",
-    label: "Weekend offer",
-    title: "Weekend offer",
-    extra: "Valid this weekend only",
-  },
-  { id: "new", label: "New arrival", title: "Just arrived", extra: "Available from today" },
-  {
-    id: "summer",
-    label: "Summer season",
-    title: "Summer season",
-    extra: "Book early for the best dates",
-  },
-  {
-    id: "holiday",
-    label: "Holiday special",
-    title: "Holiday special",
-    extra: "Limited holiday availability",
-  },
-  { id: "lastminute", label: "Last minute", title: "Last minute", extra: "Only a few places left" },
-];
 
 export const DEFAULT_BRAND = {
   primary: "#6d4dff",

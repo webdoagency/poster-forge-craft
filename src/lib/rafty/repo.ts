@@ -122,8 +122,10 @@ export async function signUp(input: { name: string; email: string; password: str
   if (input.name.trim()) {
     await supabase
       .from("profiles")
-      .update({ display_name: input.name.trim() })
-      .eq("id", data.user!.id);
+      .upsert(
+        { id: data.user!.id, email: data.user!.email ?? null, display_name: input.name.trim() },
+        { onConflict: "id" },
+      );
   }
   return { ok: true as const };
 }

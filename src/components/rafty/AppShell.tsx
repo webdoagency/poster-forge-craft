@@ -26,7 +26,7 @@ const nav = [
 /** Business chrome. Most accounts have one brand, a switcher only appears
  * once the plan grants more than one. */
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { ready, user, business, brands, selectBrand, isAdmin, t, signOut } = useRafty();
+  const { ready, user, business, brands, selectBrand, isAdmin, t, signOut, trial } = useRafty();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 

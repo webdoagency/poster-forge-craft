@@ -185,21 +185,37 @@ function SchedulePage() {
         </header>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="grid gap-1.5 sm:col-span-2">
+          <div className="grid gap-1.5 sm:col-span-2">
             <span className="text-xs font-bold text-muted-foreground">Saved post</span>
-            <Select value={postId} onValueChange={setPostId}>
-              <SelectTrigger className="h-11 rounded-xl bg-card">
-                <SelectValue placeholder={posts.length ? "Choose a post" : "No saved posts yet"} />
-              </SelectTrigger>
-              <SelectContent>
+            {posts.length === 0 ? (
+              <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                No saved posts yet.{" "}
+                <Link to="/create" className="font-semibold text-primary">
+                  Create one
+                </Link>
+                .
+              </p>
+            ) : (
+              <div className="grid max-h-[320px] grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-5">
                 {posts.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.content.title || "Untitled post"}
-                  </SelectItem>
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPostId(p.id)}
+                    className={`rounded-lg border p-1 text-left transition ${
+                      postId === p.id ? "border-primary ring-2 ring-primary/40" : "border-border"
+                    }`}
+                  >
+                    <Thumb id={p.id} />
+                    <span className="mt-1 block truncate text-[10px] font-semibold">
+                      {p.content.title || "Untitled"}
+                    </span>
+                  </button>
                 ))}
-              </SelectContent>
-            </Select>
-          </label>
+              </div>
+            )}
+          </div>
+
 
           <label className="grid gap-1.5">
             <span className="text-xs font-bold text-muted-foreground">Platform</span>

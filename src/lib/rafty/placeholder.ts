@@ -4,7 +4,7 @@ import { emptyContent, type BusinessType, type PostContent } from "./types";
  * Neutral placeholder content used only for template thumbnails. No invented
  * company, person or customer data: labels describe the business type itself.
  */
-const BY_TYPE: Record<BusinessType, Partial<PostContent>> = {
+const BY_TYPE: Partial<Record<BusinessType, Partial<PostContent>>> = {
   travel_agency: {
     title: "Summer offer",
     subject: "Destination",

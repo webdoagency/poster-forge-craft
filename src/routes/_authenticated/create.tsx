@@ -21,13 +21,7 @@ import { useRafty } from "@/lib/rafty/store";
 import { generateCaption } from "@/lib/rafty/caption";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
 import { recommendedFirst, templatesForFormat } from "@/lib/rafty/templates";
-import {
-  clampDuration,
-  CTA_PRESETS,
-  FORMAT_SPECS,
-  OCCASION_PRESETS,
-  TYPE_FIELDS,
-} from "@/lib/rafty/constants";
+import { clampDuration, CTA_PRESETS, FORMAT_SPECS, TYPE_FIELDS } from "@/lib/rafty/constants";
 import {
   emptyContent,
   type ContentFormat,
@@ -236,15 +230,6 @@ function CreatePage() {
         i === 0 ? { ...slide, content: { ...slide.content, caption } } : slide,
       ),
     );
-  }
-
-  function applyOccasion(occasionId: string) {
-    const preset = OCCASION_PRESETS.find((o) => o.id === occasionId);
-    if (!preset) return;
-    set({
-      title: content.title || preset.title,
-      additionalText: content.additionalText || preset.extra,
-    });
   }
 
   function generate() {
@@ -511,22 +496,6 @@ function CreatePage() {
                       }`}
                     >
                       {preset}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label>Occasion</Label>
-                <div className="flex flex-wrap gap-2">
-                  {OCCASION_PRESETS.map((o) => (
-                    <button
-                      key={o.id}
-                      type="button"
-                      onClick={() => applyOccasion(o.id)}
-                      className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-primary hover:text-foreground"
-                    >
-                      {o.label}
                     </button>
                   ))}
                 </div>

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { usePrefersReducedMotion } from "@/components/marketing/usePrefersReducedMotion";
-import { submitContactRequest } from "@/lib/rafty/repo";
+import { submitContactRequestFn } from "@/lib/contact.functions";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
@@ -38,6 +39,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function ContactPage() {
   const [sent, setSent] = useState(false);
+  const [emailed, setEmailed] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -45,6 +47,7 @@ function ContactPage() {
   const [business, setBusiness] = useState("");
   const [message, setMessage] = useState("");
   const reduced = usePrefersReducedMotion();
+  const submitRequest = useServerFn(submitContactRequestFn);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -61,14 +64,31 @@ function ContactPage() {
     }
 
     setBusy(true);
-    const res = await submitContactRequest({ name, email, business, message });
-    setBusy(false);
-    if (res.error) {
+    try {
+      const res = await submitRequest({
+        data: {
+          name: name.trim(),
+          email: email.trim(),
+          business: business.trim(),
+          message: message.trim(),
+        },
+      });
+      if (!res.saved) {
+        setError("We could not send your request. Please try again, or email us directly.");
+        return;
+      }
+      setSent(true);
+      setEmailed(res.emailed);
+      toast.success(
+        res.emailed
+          ? "Request sent. We will be in touch."
+          : "Request saved. Email delivery is delayed — you can also write to us directly.",
+      );
+    } catch {
       setError("We could not send your request. Please try again, or email us directly.");
-      return;
+    } finally {
+      setBusy(false);
     }
-    setSent(true);
-    toast.success("Request sent. We will be in touch.");
   }
 
   return (
@@ -98,7 +118,9 @@ function ContactPage() {
             >
               <h2 className="font-display text-xl font-bold">Thanks, we have it</h2>
               <p className="text-sm text-muted-foreground">
-                Your request is with us. We will reply to {email.trim()} shortly.
+                {emailed
+                  ? `Your request is with us. We will reply to ${email.trim()} shortly.`
+                  : `Your request is saved, but our email notification did not go through. To be safe, also write to ${CONTACT_EMAIL}.`}
               </p>
               <a
                 href={`mailto:${CONTACT_EMAIL}`}

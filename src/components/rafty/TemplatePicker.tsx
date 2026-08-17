@@ -69,10 +69,8 @@ export function TemplatePicker({
   const [filter, setFilter] = useState<Filter>("all");
   const [preview, setPreview] = useState<Template | null>(null);
 
-  const content = useMemo(
-    () => placeholderContent(businessType, businessName),
-    [businessType, businessName],
-  );
+  const content = useMemo(() => placeholderContent(businessType), [businessType]);
+
   const selected = templates.find((x) => x.id === value) ?? templates[0];
 
   const list = useMemo(() => {

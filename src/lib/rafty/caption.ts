@@ -111,7 +111,7 @@ export function generateCaption(input: {
   const punctuation = toneHint(instructions.tone) ?? ".";
 
   const title = content.title.trim() || "New offer";
-  const openers = OPENERS[businessType];
+  const openers = OPENERS[businessType] ?? OPENERS.other!;
   const opener = openers[(title.length + seed) % openers.length]!;
   const parts: string[] = [opener];
 

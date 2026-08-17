@@ -91,6 +91,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Select>
           ) : null}
           <div className="ml-auto flex min-w-0 items-center gap-3">
+            {trialLeft !== null ? (
+              <span className="rounded-full bg-primary-soft px-2.5 py-1 text-[11px] font-bold text-accent-foreground">
+                {t("trial.remaining")}: {trialLeft}
+              </span>
+            ) : null}
             <Link
               to="/schedule"
               className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground sm:flex sm:items-center sm:gap-1.5"
@@ -98,6 +103,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <CalendarClock className="size-4" />
               {t("nav.schedule")}
             </Link>
+
             {isAdmin ? (
               <Link
                 to="/admin"

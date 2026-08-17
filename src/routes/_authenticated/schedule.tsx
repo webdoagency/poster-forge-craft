@@ -293,8 +293,11 @@ function SchedulePage() {
           {rows.map((row) => (
             <article
               key={row.id}
-              className="flex items-center gap-3 rounded-2xl border bg-card/70 px-4 py-3"
+              className="flex items-center gap-3 rounded-2xl border bg-card/70 px-3 py-3"
             >
+              <div className="w-12 shrink-0">
+                <Thumb id={row.postId} />
+              </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold">{postTitle(row.postId)}</p>
                 <p className="truncate text-xs text-muted-foreground">
@@ -331,44 +334,35 @@ function SchedulePage() {
       </section>
 
       <aside className="glass-panel h-fit rounded-3xl p-5 sm:p-6">
-        <h2 className="text-base font-black tracking-tight">Social accounts</h2>
+        <h2 className="text-base font-black tracking-tight">Publishing</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Save the handle krijo24 should use. Connecting opens up as each platform becomes available.
+          Queued items are timed inside krijo24. Automatic publishing turns on per platform once its
+          connection is available, so nothing is ever marked as published by mistake.
         </p>
-        <div className="mt-4 grid gap-3">
+        <div className="mt-4 grid gap-2">
           {SOCIAL_PLATFORMS.map((p) => {
             const conn = connections.find((c) => c.platform === p.platform);
             return (
-              <div key={p.platform} className="rounded-2xl border bg-card/70 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-bold">{p.label}</span>
-                  <Badge variant="outline" className="text-[10px]">
-                    {p.available ? (conn?.status ?? "not connected") : "Connect when available"}
-                  </Badge>
-                </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">{p.note}</p>
-                <div className="mt-2 flex gap-2">
-                  <Input
-                    value={labels[p.platform] ?? ""}
-                    onChange={(e) =>
-                      setLabels((prev) => ({ ...prev, [p.platform]: e.target.value }))
-                    }
-                    placeholder="@handle"
-                    className="h-9 rounded-xl bg-card text-sm"
-                  />
-                  <Button
-                    variant="outline"
-                    className="h-9 rounded-xl"
-                    onClick={() => void saveLabel(p.platform)}
-                  >
-                    Save
-                  </Button>
-                </div>
+              <div
+                key={p.platform}
+                className="flex items-center gap-2 rounded-xl border bg-card/70 px-3 py-2"
+              >
+                <span className="min-w-0 truncate text-sm font-semibold">
+                  {p.label}
+                  {conn?.accountLabel ? ` · ${conn.accountLabel}` : ""}
+                </span>
+                <Badge variant="outline" className="ml-auto shrink-0 text-[10px]">
+                  {p.available ? (conn?.status ?? "not connected") : "Connect when available"}
+                </Badge>
               </div>
             );
           })}
         </div>
+        <Button asChild variant="outline" className="mt-4 h-10 w-full rounded-xl">
+          <Link to="/settings">Manage connections</Link>
+        </Button>
       </aside>
     </div>
+
   );
 }

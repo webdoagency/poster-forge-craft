@@ -335,7 +335,7 @@ function CreatePage() {
     );
     setActiveIndex(0);
     setShowBrandName(brand!.showBrandName);
-    setShowContact(false);
+    setShowContact(brandHasContact);
     setGenerated(false);
     setShowAdjust(false);
     slideNodes.current = [];

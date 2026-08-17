@@ -19,17 +19,19 @@ import { PLATFORM_LABELS, SOCIAL_PLATFORMS, TIMEZONES } from "@/lib/rafty/consta
 import type { ScheduledPost, SocialConnection, SocialPlatform } from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/_authenticated/schedule")({
+  validateSearch: (search: Record<string, unknown>): { post?: string } =>
+    typeof search.post === "string" && search.post ? { post: search.post } : {},
   head: () => ({
     meta: [
-      { title: "Schedule & social | krijo24" },
+      { title: "Schedule | krijo24" },
       {
         name: "description",
-        content: "Queue saved posts for a date and time, and manage your brand social accounts.",
+        content: "Pick a saved post visually and queue it for a date and time.",
       },
-      { property: "og:title", content: "Schedule & social | krijo24" },
+      { property: "og:title", content: "Schedule | krijo24" },
       {
         property: "og:description",
-        content: "Plan when your saved posts go out and keep your social handles on your brand.",
+        content: "Plan when your saved posts go out, chosen visually.",
       },
     ],
   }),

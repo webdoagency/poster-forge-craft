@@ -121,7 +121,17 @@ function CreatePage() {
   const [showBrandName, setShowBrandName] = useState<boolean>(
     existing?.showBrandName ?? brand?.showBrandName ?? false,
   );
-  const [showContact, setShowContact] = useState<boolean>(existing?.showContact ?? false);
+  // Contact details are brand data, so posts show them by default whenever the
+  // brand actually saved some. The toggle stays available per post.
+  const brandHasContact = Boolean(
+    brand &&
+      (brand.contact.phones.some((p) => p.trim()) ||
+        brand.contact.email.trim() ||
+        brand.contact.website.trim() ||
+        brand.contact.address.trim() ||
+        brand.contact.social.trim()),
+  );
+  const [showContact, setShowContact] = useState<boolean>(existing?.showContact ?? brandHasContact);
   const [postId, setPostId] = useState<string | null>(isDuplicate ? null : existing?.id ?? null);
   const [generated, setGenerated] = useState(Boolean(existing) && !isDuplicate);
   const [showAdjust, setShowAdjust] = useState(false);

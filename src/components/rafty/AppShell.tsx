@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, Images, LayoutTemplate, Palette, Sparkles, LogOut } from "lucide-react";
+import { CalendarClock, Images, LayoutTemplate, Palette, Settings, Sparkles, LogOut } from "lucide-react";
 import { useRafty } from "@/lib/rafty/store";
 import { Logo } from "@/components/rafty/Logo";
 import { Button } from "@/components/ui/button";

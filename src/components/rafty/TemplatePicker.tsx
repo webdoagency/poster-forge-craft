@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Star } from "lucide-react";
 import {
   Dialog,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
+import { LazyMount } from "@/components/rafty/LazyMount";
 import { placeholderContent } from "@/lib/rafty/placeholder";
 import { useRafty } from "@/lib/rafty/store";
 import type { BrandProfile, BusinessType, ContentFormat, Template } from "@/lib/rafty/types";
@@ -16,31 +17,6 @@ import { cn } from "@/lib/utils";
 
 type Filter = "all" | "favorites" | "used";
 
-/** Renders its child only once it is close to the viewport, so a long library
- * never renders a hundred live canvases at the same time. */
-function Lazy({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || visible) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) setVisible(true);
-      },
-      { rootMargin: "300px" },
-    );
-    io.observe(node);
-    return () => io.disconnect();
-  }, [visible]);
-
-  return (
-    <div ref={ref} className="w-full">
-      {visible ? children : <div className="w-full rounded-lg bg-muted" style={{ aspectRatio: "4 / 5" }} />}
-    </div>
-  );
-}
 
 /**
  * Visual template chooser. Opens over the Create page, so the draft in the

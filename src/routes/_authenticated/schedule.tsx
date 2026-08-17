@@ -272,11 +272,6 @@ function SchedulePage() {
           </Button>
         </div>
 
-        <p className="mt-4 flex gap-2 rounded-xl border border-dashed bg-muted/40 p-3 text-xs text-muted-foreground">
-          <Info className="mt-0.5 size-3.5 shrink-0" />
-          Queued items are prepared and timed inside krijo24. Automatic posting starts only once a
-          platform connection is available, so nothing is ever marked as published by mistake.
-        </p>
 
         <div className="mt-5 grid gap-2">
           {rows.length === 0 ? (

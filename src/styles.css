@@ -178,7 +178,7 @@
 }
 
 /* Subtle card transition used by the storyboard preview. */
-@keyframes rafty-card-in {
+@keyframes krijo-card-in {
   from {
     opacity: 0;
     transform: scale(1.02);
@@ -189,8 +189,8 @@
   }
 }
 
-.rafty-card-in {
-  animation: rafty-card-in 320ms ease-out both;
+.krijo-card-in {
+  animation: krijo-card-in 320ms ease-out both;
 }
 
 /* Premium agency credit: a slow gradient sheen instead of a loud badge. */

@@ -62,7 +62,7 @@ export function StoryboardPreview({
   return (
     <div className="flex flex-col gap-3">
       <div className="card-soft mx-auto w-full max-w-[320px] overflow-hidden p-2">
-        <div key={`${slide.id}-${transition}`} className="rafty-card-in">
+        <div key={`${slide.id}-${transition}`} className="krijo-card-in">
           <PostCanvas
             template={template}
             content={slide.content}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePrefersReducedMotion } from "./usePrefersReducedMotion";
+import { Logo } from "@/components/rafty/Logo";
 
 const SESSION_KEY = "krijo24-intro-shown";
 

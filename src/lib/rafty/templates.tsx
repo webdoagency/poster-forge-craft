@@ -50,7 +50,15 @@ const accentColor = (ctx: RenderCtx) =>
       : ctx.brand.primary;
 
 /** Clamped translate/scale/align applied only to the dynamic content block. */
-function AdjustBox({ ctx, children, style }: { ctx: RenderCtx; children: React.ReactNode; style?: React.CSSProperties }) {
+function AdjustBox({
+  ctx,
+  children,
+  style,
+}: {
+  ctx: RenderCtx;
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}) {
   const adjust = ctx.adjustments?.text;
   const x = clamp(adjust?.x ?? 0, -12, 12);
   const y = clamp(adjust?.y ?? 0, -12, 12);
@@ -60,7 +68,8 @@ function AdjustBox({ ctx, children, style }: { ctx: RenderCtx; children: React.R
     <div
       style={{
         transform: `translate(${x}cqw, ${y}cqw) scale(${scale})`,
-        transformOrigin: align === "right" ? "right center" : align === "center" ? "center" : "left center",
+        transformOrigin:
+          align === "right" ? "right center" : align === "center" ? "center" : "left center",
         textAlign: align,
         alignItems: align === "center" ? "center" : align === "right" ? "flex-end" : undefined,
         ...style,
@@ -71,13 +80,7 @@ function AdjustBox({ ctx, children, style }: { ctx: RenderCtx; children: React.R
   );
 }
 
-function Img({
-  src,
-  style,
-}: {
-  src: string | null;
-  style?: React.CSSProperties;
-}) {
+function Img({ src, style }: { src: string | null; style?: React.CSSProperties }) {
   if (!src)
     return (
       <div
@@ -94,7 +97,14 @@ function Img({
       src={src}
       alt=""
       crossOrigin="anonymous"
-      style={{ position: "absolute", inset: 0, height: "100%", width: "100%", objectFit: "cover", ...style }}
+      style={{
+        position: "absolute",
+        inset: 0,
+        height: "100%",
+        width: "100%",
+        objectFit: "cover",
+        ...style,
+      }}
     />
   );
 }
@@ -334,7 +344,12 @@ function BizRow({ ctx, tone }: { ctx: RenderCtx; tone: "light" | "dark" }) {
   );
 }
 
-type Engine = { id: string; label: string; tags: TemplateTag[]; render: (ctx: RenderCtx) => React.ReactNode };
+type Engine = {
+  id: string;
+  label: string;
+  tags: TemplateTag[];
+  render: (ctx: RenderCtx) => React.ReactNode;
+};
 
 const base = (brand: BrandProfile): React.CSSProperties => ({
   position: "absolute",
@@ -380,12 +395,21 @@ const engines: Engine[] = [
             </div>
             <AdjustBox
               ctx={ctx}
-              style={{ display: "flex", flexDirection: "column", gap: px(2.2), alignItems: align, width: "100%" }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: px(2.2),
+                alignItems: align,
+                width: "100%",
+              }}
             >
               <Kicker ctx={ctx} color="rgba(255,255,255,0.92)" />
               <Title ctx={ctx} size={9.4} color="#fff" />
               <AdditionalText ctx={ctx} size={2.9} opacity={0.9} />
-              <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
+              <Chips
+                items={[...metaItems(content, ctx.businessType), ...content.services]}
+                tone="light"
+              />
               <div style={{ display: "flex", gap: px(2), alignItems: "center", flexWrap: "wrap" }}>
                 <PriceBadge ctx={ctx} tone="light" />
                 <CtaTag ctx={ctx} tone="light" />
@@ -404,7 +428,14 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand, variant } = ctx;
       return (
-        <div style={{ ...base(brand), background: bgOr(brand, "#fff"), display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            ...base(brand),
+            background: bgOr(brand, "#fff"),
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <div style={{ position: "relative", flex: "0 0 58%" }}>
             <Img src={content.imageDataUrl} />
           </div>
@@ -424,10 +455,23 @@ const engines: Engine[] = [
             <Kicker ctx={ctx} color={accentColor(ctx)} />
             <Title ctx={ctx} size={7.4} color="#1a1225" />
             <AdditionalText ctx={ctx} size={2.8} opacity={0.62} />
-            <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="dark" />
-            <div style={{ marginTop: "auto", display: "flex", width: "100%", alignItems: "center", gap: px(2.2) }}>
+            <Chips
+              items={[...metaItems(content, ctx.businessType), ...content.services]}
+              tone="dark"
+            />
+            <div
+              style={{
+                marginTop: "auto",
+                display: "flex",
+                width: "100%",
+                alignItems: "center",
+                gap: px(2.2),
+              }}
+            >
               <BizRow ctx={ctx} tone="dark" />
-              <span style={{ marginLeft: "auto", display: "flex", gap: px(1.6), alignItems: "center" }}>
+              <span
+                style={{ marginLeft: "auto", display: "flex", gap: px(1.6), alignItems: "center" }}
+              >
                 <CtaTag ctx={ctx} tone="dark" />
                 <PriceBadge ctx={ctx} tone="dark" />
               </span>
@@ -446,7 +490,10 @@ const engines: Engine[] = [
       const { content, brand } = ctx;
       return (
         <div style={{ ...base(brand), background: brand.primary }}>
-          <Img src={content.imageDataUrl} style={{ filter: "blur(3px) saturate(115%)", transform: "scale(1.1)" }} />
+          <Img
+            src={content.imageDataUrl}
+            style={{ filter: "blur(3px) saturate(115%)", transform: "scale(1.1)" }}
+          />
           <div
             style={{
               position: "absolute",
@@ -454,9 +501,26 @@ const engines: Engine[] = [
               background: `linear-gradient(160deg, ${brand.primary}88, ${brand.secondary}99)`,
             }}
           />
-          <div style={{ position: "absolute", inset: 0, padding: px(6), display: "flex", flexDirection: "column", gap: px(3.6) }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(6),
+              display: "flex",
+              flexDirection: "column",
+              gap: px(3.6),
+            }}
+          >
             <BizRow ctx={ctx} tone="light" />
-            <div style={{ position: "relative", flex: 1, borderRadius: px(5), overflow: "hidden", boxShadow: "0 30px 60px -30px rgba(0,0,0,.5)" }}>
+            <div
+              style={{
+                position: "relative",
+                flex: 1,
+                borderRadius: px(5),
+                overflow: "hidden",
+                boxShadow: "0 30px 60px -30px rgba(0,0,0,.5)",
+              }}
+            >
               <Img src={content.imageDataUrl} />
             </div>
             <AdjustBox
@@ -481,7 +545,10 @@ const engines: Engine[] = [
               </div>
               <Title ctx={ctx} size={6.2} color="#181026" />
               <AdditionalText ctx={ctx} size={2.6} opacity={0.62} />
-              <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="dark" />
+              <Chips
+                items={[...metaItems(content, ctx.businessType), ...content.services]}
+                tone="dark"
+              />
             </AdjustBox>
           </div>
         </div>
@@ -508,7 +575,10 @@ const engines: Engine[] = [
             }}
           >
             <BizRow ctx={ctx} tone="light" />
-            <AdjustBox ctx={ctx} style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: px(2) }}>
+            <AdjustBox
+              ctx={ctx}
+              style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: px(2) }}
+            >
               <Kicker ctx={ctx} color="rgba(255,255,255,0.85)" />
               <Title ctx={ctx} size={6.6} color="#fff" />
               <AdditionalText ctx={ctx} size={2.5} opacity={0.85} />
@@ -518,9 +588,26 @@ const engines: Engine[] = [
           </div>
           <div style={{ position: "relative", flex: 1 }}>
             <Img src={content.imageDataUrl} />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(10,4,24,.55), transparent 55%)" }} />
-            <div style={{ position: "absolute", inset: 0, padding: px(4), display: "flex", alignItems: "flex-end" }}>
-              <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(to top, rgba(10,4,24,.55), transparent 55%)",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                padding: px(4),
+                display: "flex",
+                alignItems: "flex-end",
+              }}
+            >
+              <Chips
+                items={[...metaItems(content, ctx.businessType), ...content.services]}
+                tone="light"
+              />
             </div>
           </div>
         </div>
@@ -534,7 +621,16 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand } = ctx;
       return (
-        <div style={{ ...base(brand), background: bgOr(brand, "#faf8ff"), padding: px(4.5), display: "flex", flexDirection: "column", gap: px(3) }}>
+        <div
+          style={{
+            ...base(brand),
+            background: bgOr(brand, "#faf8ff"),
+            padding: px(4.5),
+            display: "flex",
+            flexDirection: "column",
+            gap: px(3),
+          }}
+        >
           <div
             style={{
               position: "relative",
@@ -545,8 +641,25 @@ const engines: Engine[] = [
             }}
           >
             <Img src={content.imageDataUrl} />
-            <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${brand.primary}aa, transparent 60%)` }} />
-            <AdjustBox ctx={ctx} style={{ position: "absolute", left: px(4), right: px(4), bottom: px(4), display: "flex", flexDirection: "column", gap: px(1.6) }}>
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: `linear-gradient(to top, ${brand.primary}aa, transparent 60%)`,
+              }}
+            />
+            <AdjustBox
+              ctx={ctx}
+              style={{
+                position: "absolute",
+                left: px(4),
+                right: px(4),
+                bottom: px(4),
+                display: "flex",
+                flexDirection: "column",
+                gap: px(1.6),
+              }}
+            >
               <Kicker ctx={ctx} color="rgba(255,255,255,0.9)" />
               <Title ctx={ctx} size={7} color="#fff" />
             </AdjustBox>
@@ -557,7 +670,10 @@ const engines: Engine[] = [
               <PriceBadge ctx={ctx} tone="dark" />
             </span>
           </div>
-          <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="dark" />
+          <Chips
+            items={[...metaItems(content, ctx.businessType), ...content.services]}
+            tone="dark"
+          />
         </div>
       );
     },
@@ -571,7 +687,13 @@ const engines: Engine[] = [
       return (
         <div style={{ ...base(brand), background: brand.primary, color: "#fff" }}>
           <Img src={content.imageDataUrl} style={{ mixBlendMode: "luminosity", opacity: 0.9 }} />
-          <div style={{ position: "absolute", inset: 0, background: `linear-gradient(210deg, ${brand.secondary}66, ${brand.primary}dd)` }} />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: `linear-gradient(210deg, ${brand.secondary}66, ${brand.primary}dd)`,
+            }}
+          />
           <AdjustBox
             ctx={ctx}
             style={{
@@ -606,19 +728,45 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand } = ctx;
       return (
-        <div style={{ ...base(brand), background: bgOr(brand, "#fff"), display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            ...base(brand),
+            background: bgOr(brand, "#fff"),
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <div style={{ position: "relative", flex: "0 0 52%" }}>
             <Img src={content.imageDataUrl} />
-            <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${brand.primary}55, transparent 55%)` }} />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: `linear-gradient(to top, ${brand.primary}55, transparent 55%)`,
+              }}
+            />
             <div style={{ position: "absolute", left: px(4.5), top: px(4.5) }}>
               <BizRow ctx={ctx} tone="light" />
             </div>
           </div>
           <div style={{ height: 0, borderTop: `${px(0.5)} dashed ${brand.primary}55` }} />
-          <AdjustBox ctx={ctx} style={{ flex: 1, padding: px(5.5), display: "flex", flexDirection: "column", gap: px(1.8), color: "#181026" }}>
+          <AdjustBox
+            ctx={ctx}
+            style={{
+              flex: 1,
+              padding: px(5.5),
+              display: "flex",
+              flexDirection: "column",
+              gap: px(1.8),
+              color: "#181026",
+            }}
+          >
             <Kicker ctx={ctx} color={accentColor(ctx)} />
             <Title ctx={ctx} size={6.8} color="#181026" />
-            <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="dark" />
+            <Chips
+              items={[...metaItems(content, ctx.businessType), ...content.services]}
+              tone="dark"
+            />
             <div style={{ marginTop: "auto", display: "flex", alignItems: "flex-end" }}>
               <AdditionalText ctx={ctx} size={2.5} opacity={0.6} style={{ maxWidth: "62%" }} />
               <span style={{ marginLeft: "auto" }}>
@@ -637,12 +785,31 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand } = ctx;
       return (
-        <div style={{ ...base(brand), background: bgOr(brand, "#fff"), padding: px(7), display: "flex", flexDirection: "column", gap: px(3.4) }}>
+        <div
+          style={{
+            ...base(brand),
+            background: bgOr(brand, "#fff"),
+            padding: px(7),
+            display: "flex",
+            flexDirection: "column",
+            gap: px(3.4),
+          }}
+        >
           <BizRow ctx={ctx} tone="dark" />
-          <div style={{ position: "relative", flex: "0 0 44%", borderRadius: px(3), overflow: "hidden" }}>
+          <div
+            style={{
+              position: "relative",
+              flex: "0 0 44%",
+              borderRadius: px(3),
+              overflow: "hidden",
+            }}
+          >
             <Img src={content.imageDataUrl} />
           </div>
-          <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", gap: px(1.8), color: "#131020" }}>
+          <AdjustBox
+            ctx={ctx}
+            style={{ display: "flex", flexDirection: "column", gap: px(1.8), color: "#131020" }}
+          >
             <Kicker ctx={ctx} color={accentColor(ctx)} />
             <Title ctx={ctx} size={7.2} color="#131020" />
             <AdditionalText ctx={ctx} size={2.7} opacity={0.55} />
@@ -667,15 +834,34 @@ const engines: Engine[] = [
       return (
         <div style={{ ...base(brand), color: "#fff" }}>
           <Img src={content.imageDataUrl} />
-          <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to bottom, ${brand.primary}e6 0%, ${brand.primary}33 45%, rgba(8,4,20,.6) 100%)` }} />
-          <div style={{ position: "absolute", inset: 0, padding: px(6), display: "flex", flexDirection: "column" }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: `linear-gradient(to bottom, ${brand.primary}e6 0%, ${brand.primary}33 45%, rgba(8,4,20,.6) 100%)`,
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(6),
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
             <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", gap: px(2) }}>
               <Kicker ctx={ctx} color="rgba(255,255,255,0.88)" />
               <Title ctx={ctx} size={10} color="#fff" />
               <AdditionalText ctx={ctx} size={2.9} opacity={0.9} />
             </AdjustBox>
-            <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: px(2.4) }}>
-              <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
+            <div
+              style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: px(2.4) }}
+            >
+              <Chips
+                items={[...metaItems(content, ctx.businessType), ...content.services]}
+                tone="light"
+              />
               <div style={{ display: "flex", alignItems: "center", gap: px(2.2) }}>
                 <BizRow ctx={ctx} tone="light" />
                 <span style={{ marginLeft: "auto" }}>
@@ -696,7 +882,14 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand } = ctx;
       return (
-        <div style={{ ...base(brand), display: "flex", flexDirection: "column", background: "#0e0820" }}>
+        <div
+          style={{
+            ...base(brand),
+            display: "flex",
+            flexDirection: "column",
+            background: "#0e0820",
+          }}
+        >
           <div
             style={{
               flex: "0 0 42%",
@@ -716,11 +909,35 @@ const engines: Engine[] = [
           </div>
           <div style={{ position: "relative", flex: 1 }}>
             <Img src={content.imageDataUrl} />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(8,4,20,.7), transparent 60%)" }} />
-            <div style={{ position: "absolute", inset: 0, padding: px(5), display: "flex", flexDirection: "column", justifyContent: "flex-end", gap: px(2) }}>
-              <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: "linear-gradient(to top, rgba(8,4,20,.7), transparent 60%)",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                padding: px(5),
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-end",
+                gap: px(2),
+              }}
+            >
+              <Chips
+                items={[...metaItems(content, ctx.businessType), ...content.services]}
+                tone="light"
+              />
               <div style={{ display: "flex", alignItems: "center" }}>
-                <AdditionalText ctx={ctx} size={2.5} opacity={0.85} style={{ maxWidth: "60%", color: "#fff" }} />
+                <AdditionalText
+                  ctx={ctx}
+                  size={2.5}
+                  opacity={0.85}
+                  style={{ maxWidth: "60%", color: "#fff" }}
+                />
                 <span style={{ marginLeft: "auto" }}>
                   <PriceBadge ctx={ctx} tone="light" />
                 </span>
@@ -738,8 +955,27 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand } = ctx;
       return (
-        <div style={{ ...base(brand), background: bgOr(brand, `radial-gradient(120% 80% at 50% 0%, ${brand.secondary}33, #ffffff 62%)`) }}>
-          <div style={{ position: "absolute", inset: 0, padding: px(6), display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: px(2.6) }}>
+        <div
+          style={{
+            ...base(brand),
+            background: bgOr(
+              brand,
+              `radial-gradient(120% 80% at 50% 0%, ${brand.secondary}33, #ffffff 62%)`,
+            ),
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(6),
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              gap: px(2.6),
+            }}
+          >
             <BizRow ctx={ctx} tone="dark" />
             <div
               style={{
@@ -754,7 +990,15 @@ const engines: Engine[] = [
             >
               <Img src={content.imageDataUrl} />
             </div>
-            <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: px(2.6) }}>
+            <AdjustBox
+              ctx={ctx}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: px(2.6),
+              }}
+            >
               <Kicker ctx={ctx} color={accentColor(ctx)} />
               <Title ctx={ctx} size={7} color="#141024" />
               <Chips items={metaItems(content, ctx.businessType)} tone="dark" />
@@ -774,23 +1018,61 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand } = ctx;
       return (
-        <div style={{ ...base(brand), display: "flex", flexDirection: "column", background: bgOr(brand, "#fff") }}>
-          <AdjustBox ctx={ctx} style={{ padding: px(5.5), display: "flex", flexDirection: "column", gap: px(1.6), color: "#141024" }}>
+        <div
+          style={{
+            ...base(brand),
+            display: "flex",
+            flexDirection: "column",
+            background: bgOr(brand, "#fff"),
+          }}
+        >
+          <AdjustBox
+            ctx={ctx}
+            style={{
+              padding: px(5.5),
+              display: "flex",
+              flexDirection: "column",
+              gap: px(1.6),
+              color: "#141024",
+            }}
+          >
             <Kicker ctx={ctx} color={accentColor(ctx)} />
             <Title ctx={ctx} size={6.6} color="#141024" />
           </AdjustBox>
-          <div style={{ position: "relative", flex: 1, margin: `0 ${px(5.5)}`, borderRadius: px(3.6), overflow: "hidden" }}>
+          <div
+            style={{
+              position: "relative",
+              flex: 1,
+              margin: `0 ${px(5.5)}`,
+              borderRadius: px(3.6),
+              overflow: "hidden",
+            }}
+          >
             <Img src={content.imageDataUrl} />
-            <div style={{ position: "absolute", inset: 0, background: `linear-gradient(to top, ${brand.primary}66, transparent 55%)` }} />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: `linear-gradient(to top, ${brand.primary}66, transparent 55%)`,
+              }}
+            />
             <div style={{ position: "absolute", right: px(3.4), top: px(3.4) }}>
               <PriceBadge ctx={ctx} tone="light" />
             </div>
           </div>
           <div style={{ padding: px(5.5), display: "flex", flexDirection: "column", gap: px(2) }}>
-            <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="dark" />
+            <Chips
+              items={[...metaItems(content, ctx.businessType), ...content.services]}
+              tone="dark"
+            />
             <div style={{ display: "flex", alignItems: "center", gap: px(2.2) }}>
               <BizRow ctx={ctx} tone="dark" />
-              <AdditionalText ctx={ctx} size={2.4} opacity={0.55} style={{ maxWidth: "55%", textAlign: "right", marginLeft: "auto" }} />
+              <AdditionalText
+                ctx={ctx}
+                size={2.4}
+                opacity={0.55}
+                style={{ maxWidth: "55%", textAlign: "right", marginLeft: "auto" }}
+              />
             </div>
           </div>
         </div>
@@ -806,7 +1088,14 @@ const engines: Engine[] = [
       return (
         <div style={{ ...base(brand), background: "#0b0810" }}>
           <Img src={content.imageDataUrl} style={{ opacity: 0.55 }} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, #0b0810 20%, rgba(11,8,16,.35) 60%, rgba(11,8,16,.75))" }} />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(to top, #0b0810 20%, rgba(11,8,16,.35) 60%, rgba(11,8,16,.75))",
+            }}
+          />
           <div
             style={{
               position: "absolute",
@@ -838,12 +1127,30 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand } = ctx;
       return (
-        <div style={{ ...base(brand), background: bgOr(brand, "#faf7f2"), display: "flex", flexDirection: "column", padding: px(7), gap: px(4) }}>
+        <div
+          style={{
+            ...base(brand),
+            background: bgOr(brand, "#faf7f2"),
+            display: "flex",
+            flexDirection: "column",
+            padding: px(7),
+            gap: px(4),
+          }}
+        >
           <BizRow ctx={ctx} tone="dark" />
           <div style={{ position: "relative", flex: 1, borderRadius: px(2), overflow: "hidden" }}>
             <Img src={content.imageDataUrl} />
           </div>
-          <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: px(1.8) }}>
+          <AdjustBox
+            ctx={ctx}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              textAlign: "center",
+              gap: px(1.8),
+            }}
+          >
             <Kicker ctx={ctx} color={accentColor(ctx)} />
             <Title ctx={ctx} size={6.4} color="#241c30" />
             <PriceBadge ctx={ctx} tone="dark" />
@@ -859,7 +1166,13 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand, variant } = ctx;
       return (
-        <div style={{ ...base(brand), background: `linear-gradient(155deg, ${brand.primary}, #0c0716)`, color: "#fff" }}>
+        <div
+          style={{
+            ...base(brand),
+            background: `linear-gradient(155deg, ${brand.primary}, #0c0716)`,
+            color: "#fff",
+          }}
+        >
           <div
             style={{
               position: "absolute",
@@ -896,7 +1209,16 @@ const engines: Engine[] = [
       const { content, brand } = ctx;
       return (
         <div style={{ ...base(brand), background: bgOr(brand, "#ffffff"), display: "flex" }}>
-          <div style={{ flex: "0 0 62%", padding: px(7), display: "flex", flexDirection: "column", justifyContent: "center", gap: px(2.4) }}>
+          <div
+            style={{
+              flex: "0 0 62%",
+              padding: px(7),
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              gap: px(2.4),
+            }}
+          >
             <BizRow ctx={ctx} tone="dark" />
             <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", gap: px(2.4) }}>
               <Kicker ctx={ctx} color={accentColor(ctx)} />
@@ -920,11 +1242,28 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand } = ctx;
       return (
-        <div style={{ ...base(brand), background: bgOr(brand, "#fff"), display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            ...base(brand),
+            background: bgOr(brand, "#fff"),
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <div style={{ position: "relative", flex: "0 0 40%" }}>
             <Img src={content.imageDataUrl} />
           </div>
-          <AdjustBox ctx={ctx} style={{ flex: 1, padding: px(5), display: "flex", flexDirection: "column", gap: px(1.6), color: "#151020" }}>
+          <AdjustBox
+            ctx={ctx}
+            style={{
+              flex: 1,
+              padding: px(5),
+              display: "flex",
+              flexDirection: "column",
+              gap: px(1.6),
+              color: "#151020",
+            }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: px(2) }}>
               <Kicker ctx={ctx} color={accentColor(ctx)} />
               <span style={{ marginLeft: "auto" }}>
@@ -932,9 +1271,19 @@ const engines: Engine[] = [
               </span>
             </div>
             <Title ctx={ctx} size={6} color="#151020" />
-            <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="dark" />
+            <Chips
+              items={[...metaItems(content, ctx.businessType), ...content.services]}
+              tone="dark"
+            />
             <AdditionalText ctx={ctx} size={2.4} opacity={0.6} />
-            <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div
+              style={{
+                marginTop: "auto",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
               <BizRow ctx={ctx} tone="dark" />
               <CtaTag ctx={ctx} tone="dark" />
             </div>
@@ -951,13 +1300,34 @@ const engines: Engine[] = [
       const { content, brand } = ctx;
       return (
         <div style={{ ...base(brand), background: "#100a1c" }}>
-          <div style={{ position: "absolute", inset: 0, clipPath: "polygon(0 0, 62% 0, 46% 100%, 0 100%)" }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              clipPath: "polygon(0 0, 62% 0, 46% 100%, 0 100%)",
+            }}
+          >
             <Img src={content.imageDataUrl} />
           </div>
-          <div style={{ position: "absolute", inset: 0, padding: px(6), display: "flex", justifyContent: "flex-end" }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(6),
+              display: "flex",
+              justifyContent: "flex-end",
+            }}
+          >
             <AdjustBox
               ctx={ctx}
-              style={{ width: "56%", display: "flex", flexDirection: "column", gap: px(2.2), color: "#fff", justifyContent: "center" }}
+              style={{
+                width: "56%",
+                display: "flex",
+                flexDirection: "column",
+                gap: px(2.2),
+                color: "#fff",
+                justifyContent: "center",
+              }}
             >
               <BizRow ctx={ctx} tone="light" />
               <Kicker ctx={ctx} color={brand.accent} />
@@ -987,16 +1357,35 @@ const engines: Engine[] = [
               background: `linear-gradient(to top, rgba(6,3,14,.92) 6%, rgba(6,3,14,.5) 34%, transparent 62%)`,
             }}
           />
-          <div style={{ position: "absolute", inset: 0, padding: px(6), display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(6),
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
             <BizRow ctx={ctx} tone="light" />
             <AdjustBox
               ctx={ctx}
-              style={{ display: "flex", flexDirection: "column", gap: px(2.2), alignItems: align, textAlign: variant.align, width: "100%" }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: px(2.2),
+                alignItems: align,
+                textAlign: variant.align,
+                width: "100%",
+              }}
             >
               <Kicker ctx={ctx} color={brand.accent} />
               <Title ctx={ctx} size={9.8} color="#fff" />
               <AdditionalText ctx={ctx} size={2.8} opacity={0.88} />
-              <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
+              <Chips
+                items={[...metaItems(content, ctx.businessType), ...content.services]}
+                tone="light"
+              />
               <div style={{ display: "flex", gap: px(2), alignItems: "center" }}>
                 <PriceBadge ctx={ctx} tone="light" />
                 <CtaTag ctx={ctx} tone="light" />
@@ -1016,19 +1405,56 @@ const engines: Engine[] = [
       const { content, brand } = ctx;
       return (
         <div style={{ ...base(brand), background: "#0c0916" }}>
-          <Img src={content.imageDataUrl} style={{ filter: "blur(18px) saturate(120%) brightness(.6)", transform: "scale(1.25)" }} />
-          <div style={{ position: "absolute", inset: 0, padding: px(5), display: "flex", flexDirection: "column", gap: px(3) }}>
+          <Img
+            src={content.imageDataUrl}
+            style={{ filter: "blur(18px) saturate(120%) brightness(.6)", transform: "scale(1.25)" }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(5),
+              display: "flex",
+              flexDirection: "column",
+              gap: px(3),
+            }}
+          >
             <BizRow ctx={ctx} tone="light" />
-            <div style={{ position: "relative", flex: 1, borderRadius: px(3), overflow: "hidden", boxShadow: "0 40px 70px -30px rgba(0,0,0,.65)" }}>
+            <div
+              style={{
+                position: "relative",
+                flex: 1,
+                borderRadius: px(3),
+                overflow: "hidden",
+                boxShadow: "0 40px 70px -30px rgba(0,0,0,.65)",
+              }}
+            >
               <Img src={content.imageDataUrl} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(6,3,14,.85), transparent 45%)" }} />
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "linear-gradient(to top, rgba(6,3,14,.85), transparent 45%)",
+                }}
+              />
               <AdjustBox
                 ctx={ctx}
-                style={{ position: "absolute", left: px(4), right: px(4), bottom: px(4), display: "flex", flexDirection: "column", gap: px(1.8) }}
+                style={{
+                  position: "absolute",
+                  left: px(4),
+                  right: px(4),
+                  bottom: px(4),
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: px(1.8),
+                }}
               >
                 <Kicker ctx={ctx} color="rgba(255,255,255,0.88)" />
                 <Title ctx={ctx} size={7.4} color="#fff" />
-                <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
+                <Chips
+                  items={[...metaItems(content, ctx.businessType), ...content.services]}
+                  tone="light"
+                />
                 <div style={{ display: "flex", gap: px(2), alignItems: "center" }}>
                   <PriceBadge ctx={ctx} tone="light" />
                   <CtaTag ctx={ctx} tone="light" />
@@ -1057,14 +1483,29 @@ const engines: Engine[] = [
               background: `linear-gradient(120deg, ${brand.primary}f0, ${brand.secondary}e6)`,
             }}
           />
-          <div style={{ position: "absolute", inset: 0, padding: px(6), display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-            <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", gap: px(2), color: "#fff" }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(6),
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            <AdjustBox
+              ctx={ctx}
+              style={{ display: "flex", flexDirection: "column", gap: px(2), color: "#fff" }}
+            >
               <BizRow ctx={ctx} tone="light" />
               <Kicker ctx={ctx} color="rgba(255,255,255,0.85)" />
               <Title ctx={ctx} size={8.4} color="#fff" />
             </AdjustBox>
             <div style={{ display: "flex", flexDirection: "column", gap: px(2), color: "#fff" }}>
-              <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
+              <Chips
+                items={[...metaItems(content, ctx.businessType), ...content.services]}
+                tone="light"
+              />
               <div style={{ display: "flex", gap: px(2), alignItems: "center" }}>
                 <PriceBadge ctx={ctx} tone="light" />
                 <CtaTag ctx={ctx} tone="light" />
@@ -1082,7 +1523,14 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand } = ctx;
       return (
-        <div style={{ ...base(brand), background: bgOr(brand, "#fff"), display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            ...base(brand),
+            background: bgOr(brand, "#fff"),
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <div style={{ position: "relative", flex: "0 0 62%" }}>
             <Img src={content.imageDataUrl} />
           </div>
@@ -1123,9 +1571,34 @@ const engines: Engine[] = [
       return (
         <div style={{ ...base(brand), background: "#000" }}>
           <Img src={content.imageDataUrl} style={{ top: "12%", height: "76%" }} />
-          <div style={{ position: "absolute", left: 0, right: 0, top: 0, height: "12%", background: "#000" }} />
-          <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: "12%", background: "#000" }} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,.55), transparent 40%, transparent 60%, rgba(0,0,0,.35))" }} />
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              top: 0,
+              height: "12%",
+              background: "#000",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: "12%",
+              background: "#000",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(to top, rgba(0,0,0,.55), transparent 40%, transparent 60%, rgba(0,0,0,.35))",
+            }}
+          />
           <div
             style={{
               position: "absolute",
@@ -1138,7 +1611,10 @@ const engines: Engine[] = [
               textAlign: variant.align,
             }}
           >
-            <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", gap: px(2), color: "#fff" }}>
+            <AdjustBox
+              ctx={ctx}
+              style={{ display: "flex", flexDirection: "column", gap: px(2), color: "#fff" }}
+            >
               <Kicker ctx={ctx} color="rgba(255,255,255,0.85)" />
               <Title ctx={ctx} size={8.6} color="#fff" />
               <div style={{ display: "flex", gap: px(2), alignItems: "center" }}>
@@ -1170,9 +1646,21 @@ const engines: Engine[] = [
               background: `linear-gradient(25deg, ${brand.primary}f2 32%, ${brand.primary}55 55%, transparent 78%)`,
             }}
           />
-          <div style={{ position: "absolute", inset: 0, padding: px(6), display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(6),
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
             <BizRow ctx={ctx} tone="light" />
-            <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", gap: px(2.2), width: "58%" }}>
+            <AdjustBox
+              ctx={ctx}
+              style={{ display: "flex", flexDirection: "column", gap: px(2.2), width: "58%" }}
+            >
               <Kicker ctx={ctx} color="rgba(255,255,255,0.88)" />
               <Title ctx={ctx} size={8} color="#fff" />
               <AdditionalText ctx={ctx} size={2.7} opacity={0.85} />
@@ -1193,14 +1681,41 @@ const engines: Engine[] = [
       return (
         <div style={{ ...base(brand), background: "#0a0714" }}>
           <Img src={content.imageDataUrl} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(6,3,14,.82), transparent 50%)" }} />
-          <div style={{ position: "absolute", inset: px(3.4), border: "1px solid rgba(255,255,255,0.55)" }} />
-          <div style={{ position: "absolute", inset: 0, padding: px(6), display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "linear-gradient(to top, rgba(6,3,14,.82), transparent 50%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: px(3.4),
+              border: "1px solid rgba(255,255,255,0.55)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(6),
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
             <BizRow ctx={ctx} tone="light" />
-            <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", gap: px(2), color: "#fff" }}>
+            <AdjustBox
+              ctx={ctx}
+              style={{ display: "flex", flexDirection: "column", gap: px(2), color: "#fff" }}
+            >
               <Kicker ctx={ctx} color={brand.accent} />
               <Title ctx={ctx} size={7.6} color="#fff" />
-              <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
+              <Chips
+                items={[...metaItems(content, ctx.businessType), ...content.services]}
+                tone="light"
+              />
               <div style={{ display: "flex", gap: px(2), alignItems: "center" }}>
                 <PriceBadge ctx={ctx} tone="light" />
                 <CtaTag ctx={ctx} tone="light" />
@@ -1238,8 +1753,13 @@ const engines: Engine[] = [
             <Kicker ctx={ctx} color="rgba(255,255,255,0.85)" />
             <Title ctx={ctx} size={5.8} color="#fff" />
             <AdditionalText ctx={ctx} size={2.3} opacity={0.85} />
-            <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
-            <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: px(1.4) }}>
+            <Chips
+              items={[...metaItems(content, ctx.businessType), ...content.services]}
+              tone="light"
+            />
+            <div
+              style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: px(1.4) }}
+            >
               <PriceBadge ctx={ctx} tone="light" />
               <CtaTag ctx={ctx} tone="light" />
               <ContactLine ctx={ctx} tone="light" />
@@ -1280,7 +1800,10 @@ const engines: Engine[] = [
           >
             <Kicker ctx={ctx} color="rgba(255,255,255,0.85)" />
             <Title ctx={ctx} size={6.6} color="#fff" />
-            <Chips items={[...metaItems(content, ctx.businessType), ...content.services]} tone="light" />
+            <Chips
+              items={[...metaItems(content, ctx.businessType), ...content.services]}
+              tone="light"
+            />
             <div style={{ display: "flex", gap: px(2), alignItems: "center" }}>
               <PriceBadge ctx={ctx} tone="light" />
               <CtaTag ctx={ctx} tone="light" />
@@ -1297,7 +1820,14 @@ const engines: Engine[] = [
     render: (ctx) => {
       const { content, brand } = ctx;
       return (
-        <div style={{ ...base(brand), background: bgOr(brand, "#ffffff"), display: "flex", flexDirection: "column" }}>
+        <div
+          style={{
+            ...base(brand),
+            background: bgOr(brand, "#ffffff"),
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <div style={{ position: "relative", flex: "0 0 58%" }}>
             <Img src={content.imageDataUrl} />
           </div>
@@ -1332,8 +1862,17 @@ const engines: Engine[] = [
       return (
         <div style={{ ...base(brand), background: "#0a0712" }}>
           <Img src={content.imageDataUrl} style={{ opacity: 0.62 }} />
-          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(120% 90% at 50% 40%, transparent 30%, rgba(10,7,18,.85) 90%)" }} />
-          <div style={{ position: "absolute", inset: px(4.2), border: `1px solid ${brand.accent}88` }} />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(120% 90% at 50% 40%, transparent 30%, rgba(10,7,18,.85) 90%)",
+            }}
+          />
+          <div
+            style={{ position: "absolute", inset: px(4.2), border: `1px solid ${brand.accent}88` }}
+          />
           <div
             style={{
               position: "absolute",
@@ -1347,7 +1886,15 @@ const engines: Engine[] = [
             }}
           >
             <BizRow ctx={ctx} tone="light" />
-            <AdjustBox ctx={ctx} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: px(2.2) }}>
+            <AdjustBox
+              ctx={ctx}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: px(2.2),
+              }}
+            >
               <Kicker ctx={ctx} color={brand.accent} />
               <Title ctx={ctx} size={7.6} color="#f7f2ff" />
               <AdditionalText ctx={ctx} size={2.5} opacity={0.7} />
@@ -1368,8 +1915,24 @@ const engines: Engine[] = [
       return (
         <div style={{ ...base(brand), color: "#fff" }}>
           <Img src={content.imageDataUrl} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(5,2,12,.92) 10%, rgba(5,2,12,.25) 55%, transparent 75%)" }} />
-          <div style={{ position: "absolute", inset: 0, padding: px(6), display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "linear-gradient(to top, rgba(5,2,12,.92) 10%, rgba(5,2,12,.25) 55%, transparent 75%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(6),
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <BizRow ctx={ctx} tone="light" />
               <CtaTag ctx={ctx} tone="light" />
@@ -1414,7 +1977,14 @@ const engines: Engine[] = [
               <Kicker ctx={ctx} color="rgba(255,255,255,0.85)" />
               <Title ctx={ctx} size={5.2} color="#fff" />
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: px(1), alignItems: "flex-end" }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: px(1),
+                alignItems: "flex-end",
+              }}
+            >
               <PriceBadge ctx={ctx} tone="light" />
               <CtaTag ctx={ctx} tone="light" />
             </div>
@@ -1526,7 +2096,13 @@ function renderCustomTemplate(template: Template, ctx: RenderCtx): React.ReactNo
           src={template.backgroundUrl}
           alt=""
           crossOrigin="anonymous"
-          style={{ position: "absolute", inset: 0, height: "100%", width: "100%", objectFit: "cover" }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            height: "100%",
+            width: "100%",
+            objectFit: "cover",
+          }}
         />
       ) : null}
       <div
@@ -1590,7 +2166,6 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const templateName = (index: number, engineId: string, prefix = "") =>
   `${prefix}${pad(index)} ${styleName(engineId)}`;
 
-
 /** Which business types a template design tends to fit best. Purely a soft
  * sort hint, every template stays available to every business. */
 const ENGINE_SUGGESTED: Partial<Record<string, BusinessType[]>> = {
@@ -1627,21 +2202,48 @@ const ENGINE_SUGGESTED: Partial<Record<string, BusinessType[]>> = {
   splitstack: ["car_dealership", "retail"],
 };
 
-const suggestedForEngine = (engineId: string): BusinessType[] | undefined => ENGINE_SUGGESTED[engineId];
+const suggestedForEngine = (engineId: string): BusinessType[] | undefined =>
+  ENGINE_SUGGESTED[engineId];
 
 /** The original 18 render engines, in their original order. Kept as an
  * explicit id list (rather than reading engines.length) so global_1..50 keep
  * their original engine mapping even as new engines are appended above. */
 const LEGACY_ENGINE_IDS: string[] = [
-  "aurora", "editorial", "glass", "split", "frame", "duotone", "ticket", "minimal",
-  "poster", "banner", "spotlight", "stack", "darkluxury", "lightluxury", "typeblast",
-  "whitespacepanel", "densegrid", "asymmetricoffer",
+  "aurora",
+  "editorial",
+  "glass",
+  "split",
+  "frame",
+  "duotone",
+  "ticket",
+  "minimal",
+  "poster",
+  "banner",
+  "spotlight",
+  "stack",
+  "darkluxury",
+  "lightluxury",
+  "typeblast",
+  "whitespacepanel",
+  "densegrid",
+  "asymmetricoffer",
 ];
 
 /** The newer engines added for the 100 template expansion. */
 const NEW_ENGINE_IDS: string[] = [
-  "fullbleed", "blurbackdrop", "diagonalslash", "serifcolumn", "letterbox", "colorwash",
-  "thinframe", "offerblock", "glassstrip", "quietwhite", "duskframe", "typeoffer", "splitstack",
+  "fullbleed",
+  "blurbackdrop",
+  "diagonalslash",
+  "serifcolumn",
+  "letterbox",
+  "colorwash",
+  "thinframe",
+  "offerblock",
+  "glassstrip",
+  "quietwhite",
+  "duskframe",
+  "typeoffer",
+  "splitstack",
 ];
 
 /** 50 original premium global templates, tag driven, never locked to an
@@ -1655,7 +2257,8 @@ function buildGlobalTemplates(): Template[] {
   while (out.length < total) {
     const remaining = total - out.length;
     const enginesLeft = legacyEngines.length - engineCursor;
-    const perEngine = enginesLeft > 0 ? Math.max(2, Math.round(remaining / enginesLeft)) : remaining;
+    const perEngine =
+      enginesLeft > 0 ? Math.max(2, Math.round(remaining / enginesLeft)) : remaining;
     const engine = legacyEngines[engineCursor % legacyEngines.length]!;
     const count = Math.min(perEngine, remaining);
     for (let k = 0; k < count; k++) {
@@ -1712,15 +2315,50 @@ function buildNewGlobalTemplates(): Template[] {
  */
 const FORMAT_ENGINES: Record<"carousel" | "video" | "story", string[]> = {
   carousel: [
-    "aurora", "editorial", "spotlight", "darkluxury", "glass", "poster",
-    "split", "ticket", "minimal", "banner", "stack", "lightluxury",
-    "whitespacepanel", "densegrid", "asymmetricoffer", "fullbleed",
-    "blurbackdrop", "serifcolumn", "letterbox", "splitstack",
+    "aurora",
+    "editorial",
+    "spotlight",
+    "darkluxury",
+    "glass",
+    "poster",
+    "split",
+    "ticket",
+    "minimal",
+    "banner",
+    "stack",
+    "lightluxury",
+    "whitespacepanel",
+    "densegrid",
+    "asymmetricoffer",
+    "fullbleed",
+    "blurbackdrop",
+    "serifcolumn",
+    "letterbox",
+    "splitstack",
   ],
-  video: ["aurora", "spotlight", "darkluxury", "typeblast", "fullbleed", "colorwash", "letterbox", "typeoffer"],
+  video: [
+    "aurora",
+    "spotlight",
+    "darkluxury",
+    "typeblast",
+    "fullbleed",
+    "colorwash",
+    "letterbox",
+    "typeoffer",
+  ],
   story: [
-    "aurora", "glass", "darkluxury", "typeblast", "fullbleed", "letterbox",
-    "colorwash", "duskframe", "quietwhite", "thinframe", "diagonalslash", "typeoffer",
+    "aurora",
+    "glass",
+    "darkluxury",
+    "typeblast",
+    "fullbleed",
+    "letterbox",
+    "colorwash",
+    "duskframe",
+    "quietwhite",
+    "thinframe",
+    "diagonalslash",
+    "typeoffer",
   ],
 };
 
@@ -1756,9 +2394,7 @@ function buildFormatTemplates(format: "carousel" | "video" | "story"): Template[
               maxDuration: spec.maxDuration,
               defaultDuration: spec.defaultDuration,
               transition: (index % 3 === 0 ? "fade" : index % 3 === 1 ? "slide" : "zoom") as
-                | "fade"
-                | "slide"
-                | "zoom",
+                "fade" | "slide" | "zoom",
             },
           }
         : {}),

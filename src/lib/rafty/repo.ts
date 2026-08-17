@@ -31,7 +31,6 @@ import {
   type User,
 } from "./types";
 
-
 /**
  * Supabase data access boundary.
  * Authorization lives in the database (RLS plus security definer functions).
@@ -88,7 +87,10 @@ export async function currentUser(): Promise<User | null> {
   const { data } = await supabase.auth.getUser();
   const authUser = data.user;
   if (!authUser) return null;
-  const { data: isAdmin } = await supabase.rpc("is_super_admin");
+  // Database decides admin rights. The function grants the platform role only
+  // when the verified account email is on the server side allowlist, and
+  // otherwise just reports the existing role. No client side email checks.
+  const { data: isAdmin } = await supabase.rpc("claim_admin_role");
   const { data: profile } = await supabase
     .from("profiles")
     .select("display_name")
@@ -119,8 +121,10 @@ export async function signUp(input: { name: string; email: string; password: str
   if (input.name.trim()) {
     await supabase
       .from("profiles")
-      .update({ display_name: input.name.trim() })
-      .eq("id", data.user!.id);
+      .upsert(
+        { id: data.user!.id, email: data.user!.email ?? null, display_name: input.name.trim() },
+        { onConflict: "id" },
+      );
   }
   return { ok: true as const };
 }
@@ -196,7 +200,10 @@ export async function updateBusiness(businessId: string, patch: Partial<Business
   if (patch.onboarded !== undefined) row["onboarded"] = patch.onboarded;
   if (patch.status !== undefined) row["status"] = patch.status;
   if (Object.keys(row).length === 0) return;
-  await supabase.from("businesses").update(row as never).eq("id", businessId);
+  await supabase
+    .from("businesses")
+    .update(row as never)
+    .eq("id", businessId);
 }
 
 /* ---------------------------------- brand --------------------------------- */
@@ -238,7 +245,10 @@ export async function getBrand(businessId: string): Promise<BrandProfile | null>
     fontSecondary: row.font_secondary ?? null,
     showBrandName: !!row.show_brand_name,
     instructions: { ...emptyInstructions, ...(row.content_instructions ?? {}) },
-    contact: { ...emptyContact, ...((row as unknown as { contact_info?: Partial<typeof emptyContact> }).contact_info ?? {}) },
+    contact: {
+      ...emptyContact,
+      ...((row as unknown as { contact_info?: Partial<typeof emptyContact> }).contact_info ?? {}),
+    },
     currency: row.currency as CurrencyCode,
     language: row.language as LanguageCode,
   };
@@ -366,7 +376,6 @@ export async function createBrand(input: {
   if (error) return { id: null, error: error.message };
   return { id: data as string };
 }
-
 
 /* -------------------------------- services -------------------------------- */
 
@@ -528,10 +537,9 @@ export async function toggleFavorite(
   if (next) {
     const { error } = await supabase
       .from("template_favorites")
-      .upsert(
-        { business_id: businessId, template_id: templateId } as never,
-        { onConflict: "business_id,template_id" },
-      );
+      .upsert({ business_id: businessId, template_id: templateId } as never, {
+        onConflict: "business_id,template_id",
+      });
     return error ? { error: error.message } : {};
   }
   const { error } = await supabase
@@ -541,8 +549,6 @@ export async function toggleFavorite(
     .eq("template_id", templateId);
   return error ? { error: error.message } : {};
 }
-
-
 
 /* --------------------------- custom template flow ------------------------- */
 
@@ -612,7 +618,10 @@ export async function updateRequest(
   if (patch.status !== undefined) row["status"] = patch.status;
   if (patch.templateId !== undefined) row["template_id"] = patch.templateId;
   if (Object.keys(row).length === 0) return;
-  await supabase.from("custom_template_requests").update(row as never).eq("id", requestId);
+  await supabase
+    .from("custom_template_requests")
+    .update(row as never)
+    .eq("id", requestId);
 }
 
 /* ---------------------------------- posts --------------------------------- */
@@ -761,7 +770,6 @@ export async function savePost(post: PostWithContact): Promise<PostWithContact |
   if (!existing.data) await supabase.rpc("register_post_usage", { _business_id: post.businessId });
   return saved;
 }
-
 
 export async function deletePost(postId: string) {
   const { data } = await supabase
@@ -973,6 +981,61 @@ export async function saveConnectionLabel(
       { onConflict: "business_id,platform" },
     );
   return error ? { error: error.message } : {};
+}
+
+/* ----------------------------- demo requests ------------------------------ */
+
+/**
+ * Public demo request. Length and email checks are enforced again by the
+ * database policy, so a crafted client cannot store junk.
+ */
+export async function submitContactRequest(input: {
+  name: string;
+  email: string;
+  business: string;
+  message: string;
+}): Promise<{ error?: string }> {
+  const name = input.name.trim().slice(0, 100);
+  const email = input.email.trim().slice(0, 255);
+  const business = input.business.trim().slice(0, 120);
+  const message = input.message.trim().slice(0, 2000);
+  if (!name) return { error: "Please enter your name." };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    return { error: "Please enter a valid email address." };
+  const { error } = await supabase
+    .from("contact_requests")
+    .insert({ name, email, business, message });
+  return error ? { error: error.message } : {};
+}
+
+export async function adminListContactRequests(): Promise<
+  {
+    id: string;
+    name: string;
+    email: string;
+    business: string;
+    message: string;
+    handled: boolean;
+    createdAt: string;
+  }[]
+> {
+  const { data } = await supabase
+    .from("contact_requests")
+    .select("*")
+    .order("created_at", { ascending: false });
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    business: row.business,
+    message: row.message,
+    handled: row.handled,
+    createdAt: row.created_at,
+  }));
+}
+
+export async function adminSetContactHandled(requestId: string, handled: boolean) {
+  await supabase.from("contact_requests").update({ handled }).eq("id", requestId);
 }
 
 export const DEFAULTS = DEFAULT_BRAND;

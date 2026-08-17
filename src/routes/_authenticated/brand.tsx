@@ -26,7 +26,14 @@ import {
   FONT_LIBRARY,
   LANGUAGES,
 } from "@/lib/rafty/constants";
-import { emptyContact, type BrandContact, type BusinessType, type ContentInstructions, type CurrencyCode, type LanguageCode } from "@/lib/rafty/types";
+import {
+  emptyContact,
+  type BrandContact,
+  type BusinessType,
+  type ContentInstructions,
+  type CurrencyCode,
+  type LanguageCode,
+} from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/_authenticated/brand")({
   head: () => ({
@@ -125,7 +132,12 @@ function FontPicker({
       <div className="flex items-center justify-between">
         <Label>{label}</Label>
         {optional && value ? (
-          <Button variant="ghost" size="sm" className="h-7 rounded-lg text-xs" onClick={() => onChange(null)}>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 rounded-lg text-xs"
+            onClick={() => onChange(null)}
+          >
             Remove
           </Button>
         ) : null}
@@ -146,7 +158,9 @@ function FontPicker({
                     onClick={() => onChange(f.family)}
                     style={{ fontFamily: `"${f.family}", sans-serif` }}
                     className={`rounded-lg border px-3 py-2 text-left text-sm font-semibold ${
-                      value === f.family ? "border-primary bg-primary-soft" : "border-border bg-background"
+                      value === f.family
+                        ? "border-primary bg-primary-soft"
+                        : "border-border bg-background"
                     }`}
                   >
                     {f.family}
@@ -236,7 +250,13 @@ function AddBrandForm({ onDone }: { onDone: () => void }) {
   );
 }
 
-function ContactForm({ value, onSave }: { value: BrandContact; onSave: (contact: BrandContact) => Promise<void> }) {
+function ContactForm({
+  value,
+  onSave,
+}: {
+  value: BrandContact;
+  onSave: (contact: BrandContact) => Promise<void>;
+}) {
   const [draft, setDraft] = useState<BrandContact>(value);
   const [saving, setSaving] = useState(false);
 
@@ -411,7 +431,8 @@ function BrandPage() {
           />
         </div>
         <p className="text-xs text-muted-foreground">
-          Business name and type can only be changed by a krijo24 admin. Contact support if these are wrong.
+          Business name and type can only be changed by a krijo24 admin. Contact support if these
+          are wrong.
         </p>
       </div>
 
@@ -427,7 +448,8 @@ function BrandPage() {
             <div className="flex items-start gap-2 text-xs text-muted-foreground">
               <Lock className="mt-0.5 size-3.5 shrink-0" />
               <p>
-                This logo is locked. Only a krijo24 admin can change it, the database enforces this rule.
+                This logo is locked. Only a krijo24 admin can change it, the database enforces this
+                rule.
               </p>
             </div>
           ) : (
@@ -460,13 +482,21 @@ function BrandPage() {
       <div className="card-soft grid gap-4 p-4">
         <p className="text-sm font-bold">Colors</p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <ColorField label="Primary color" value={brand.primary} onChange={(v) => v && saveBrand({ primary: v })} />
+          <ColorField
+            label="Primary color"
+            value={brand.primary}
+            onChange={(v) => v && saveBrand({ primary: v })}
+          />
           <ColorField
             label="Secondary color"
             value={brand.secondary}
             onChange={(v) => v && saveBrand({ secondary: v })}
           />
-          <ColorField label="Accent color" value={brand.accent} onChange={(v) => v && saveBrand({ accent: v })} />
+          <ColorField
+            label="Accent color"
+            value={brand.accent}
+            onChange={(v) => v && saveBrand({ accent: v })}
+          />
           <ColorField
             label="Background color (optional)"
             value={brand.background}
@@ -498,7 +528,10 @@ function BrandPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="grid gap-1.5">
             <Label>{t("brand.currency")}</Label>
-            <Select value={brand.currency} onValueChange={(v) => saveBrand({ currency: v as CurrencyCode })}>
+            <Select
+              value={brand.currency}
+              onValueChange={(v) => saveBrand({ currency: v as CurrencyCode })}
+            >
               <SelectTrigger className="h-11 rounded-xl bg-card">
                 <SelectValue />
               </SelectTrigger>
@@ -530,7 +563,9 @@ function BrandPage() {
         <div className="flex items-center justify-between rounded-xl border bg-card px-4 py-3">
           <div>
             <p className="text-sm font-semibold">Show brand name on posts</p>
-            <p className="text-xs text-muted-foreground">Off by default. Turn on to print your brand name on generated posts.</p>
+            <p className="text-xs text-muted-foreground">
+              Off by default. Turn on to print your brand name on generated posts.
+            </p>
           </div>
           <Switch
             checked={brand.showBrandName}
@@ -542,7 +577,10 @@ function BrandPage() {
         </div>
       </div>
 
-      <ContactForm value={brand.contact ?? emptyContact} onSave={(contact) => saveBrand({ contact })} />
+      <ContactForm
+        value={brand.contact ?? emptyContact}
+        onSave={(contact) => saveBrand({ contact })}
+      />
 
       <div className="card-soft grid gap-3 p-4">
         <Label>{t("brand.services")}</Label>
@@ -681,7 +719,8 @@ function BrandPage() {
         <div className="flex items-center justify-between">
           <p className="text-sm font-bold">Brands</p>
           <p className="text-xs text-muted-foreground">
-            {plan ? `${brands.length} of ${plan.brandLimit} used` : ""} | {brandSlotsLeft} slots left
+            {plan ? `${brands.length} of ${plan.brandLimit} used` : ""} | {brandSlotsLeft} slots
+            left
           </p>
         </div>
         <div className="grid gap-2">
@@ -701,7 +740,12 @@ function BrandPage() {
               {b.id === business.id ? (
                 <span className="text-xs font-semibold text-primary">Active</span>
               ) : (
-                <Button variant="outline" size="sm" className="rounded-xl" onClick={() => selectBrand(b.id)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl"
+                  onClick={() => selectBrand(b.id)}
+                >
                   Switch
                 </Button>
               )}

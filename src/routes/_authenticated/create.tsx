@@ -121,8 +121,18 @@ function CreatePage() {
   const [showBrandName, setShowBrandName] = useState<boolean>(
     existing?.showBrandName ?? brand?.showBrandName ?? false,
   );
-  const [showContact, setShowContact] = useState<boolean>(existing?.showContact ?? false);
-  const [postId, setPostId] = useState<string | null>(isDuplicate ? null : existing?.id ?? null);
+  // Contact details are brand data, so posts show them by default whenever the
+  // brand actually saved some. The toggle stays available per post.
+  const brandHasContact = Boolean(
+    brand &&
+    (brand.contact.phones.some((p) => p.trim()) ||
+      brand.contact.email.trim() ||
+      brand.contact.website.trim() ||
+      brand.contact.address.trim() ||
+      brand.contact.social.trim()),
+  );
+  const [showContact, setShowContact] = useState<boolean>(existing?.showContact ?? brandHasContact);
+  const [postId, setPostId] = useState<string | null>(isDuplicate ? null : (existing?.id ?? null));
   const [generated, setGenerated] = useState(Boolean(existing) && !isDuplicate);
   const [showAdjust, setShowAdjust] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -183,12 +193,14 @@ function CreatePage() {
     setFormat(next);
     setTemplateId(nextTemplate?.id ?? "");
     setSlides((prev) => {
-      const kept = prev.slice(0, Math.max(1, Math.min(nextSpec.defaultSlides, nextMax))).map((slide) => ({
-        ...slide,
-        content: { ...slide.content },
-        adjustments: { ...slide.adjustments },
-        ...(next === "video" ? { durationMs: slide.durationMs ?? nextSpec.defaultDuration } : {}),
-      }));
+      const kept = prev
+        .slice(0, Math.max(1, Math.min(nextSpec.defaultSlides, nextMax)))
+        .map((slide) => ({
+          ...slide,
+          content: { ...slide.content },
+          adjustments: { ...slide.adjustments },
+          ...(next === "video" ? { durationMs: slide.durationMs ?? nextSpec.defaultDuration } : {}),
+        }));
       while (kept.length < nextSpec.defaultSlides && kept.length < nextMax) {
         kept.push(newSlide(next === "video" ? nextSpec.defaultDuration : undefined));
       }
@@ -200,7 +212,6 @@ function CreatePage() {
     setShowAdjust(false);
     slideNodes.current = [];
   }
-
 
   async function onImage(file: File) {
     set({ imageDataUrl: await readFileAsDataUrl(file) });
@@ -221,7 +232,9 @@ function CreatePage() {
   function refreshCaption() {
     const caption = captionFor(Date.now());
     setSlides((prev) =>
-      prev.map((slide, i) => (i === 0 ? { ...slide, content: { ...slide.content, caption } } : slide)),
+      prev.map((slide, i) =>
+        i === 0 ? { ...slide, content: { ...slide.content, caption } } : slide,
+      ),
     );
   }
 
@@ -251,7 +264,9 @@ function CreatePage() {
 
   function setCardDuration(index: number, ms: number) {
     setSlides((prev) =>
-      prev.map((slide, i) => (i === index ? { ...slide, durationMs: clampDuration(ms, spec) } : slide)),
+      prev.map((slide, i) =>
+        i === index ? { ...slide, durationMs: clampDuration(ms, spec) } : slide,
+      ),
     );
   }
 
@@ -272,10 +287,7 @@ function CreatePage() {
 
   function addSlide() {
     if (slides.length >= limits.max) return;
-    setSlides((prev) => [
-      ...prev,
-      newSlide(format === "video" ? spec.defaultDuration : undefined),
-    ]);
+    setSlides((prev) => [...prev, newSlide(format === "video" ? spec.defaultDuration : undefined)]);
     setActiveIndex(slides.length);
   }
 
@@ -325,7 +337,7 @@ function CreatePage() {
     );
     setActiveIndex(0);
     setShowBrandName(brand!.showBrandName);
-    setShowContact(false);
+    setShowContact(brandHasContact);
     setGenerated(false);
     setShowAdjust(false);
     slideNodes.current = [];
@@ -338,7 +350,6 @@ function CreatePage() {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
       <section className={`flex flex-col gap-4 ${generated ? "order-2 lg:order-1" : ""}`}>
         <FormatPicker value={format} onChange={changeFormat} allowed={formats} />
-
 
         {locked ? (
           <div className="card-soft p-4 text-sm">
@@ -379,7 +390,9 @@ function CreatePage() {
                 size="icon"
                 className="size-9 rounded-xl"
                 aria-label="Shorter cards"
-                onClick={() => setDefaultDuration((active.durationMs ?? spec.defaultDuration) - 500)}
+                onClick={() =>
+                  setDefaultDuration((active.durationMs ?? spec.defaultDuration) - 500)
+                }
               >
                 -
               </Button>
@@ -392,7 +405,9 @@ function CreatePage() {
                 size="icon"
                 className="size-9 rounded-xl"
                 aria-label="Longer cards"
-                onClick={() => setDefaultDuration((active.durationMs ?? spec.defaultDuration) + 500)}
+                onClick={() =>
+                  setDefaultDuration((active.durationMs ?? spec.defaultDuration) + 500)
+                }
               >
                 +
               </Button>
@@ -534,7 +549,9 @@ function CreatePage() {
                           })
                         }
                         className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${
-                          isOn ? "border-primary bg-primary-soft text-accent-foreground" : "border-border bg-card"
+                          isOn
+                            ? "border-primary bg-primary-soft text-accent-foreground"
+                            : "border-border bg-card"
                         }`}
                       >
                         {s.name}
@@ -571,7 +588,9 @@ function CreatePage() {
               <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
                 <div>
                   <p className="text-sm font-semibold">Show brand name</p>
-                  <p className="text-xs text-muted-foreground">Off by default on the generated design.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Off by default on the generated design.
+                  </p>
                 </div>
                 <Switch checked={showBrandName} onCheckedChange={setShowBrandName} />
               </div>
@@ -587,7 +606,6 @@ function CreatePage() {
               </div>
             </div>
           ) : null}
-
 
           {generated ? (
             <div className="grid gap-1.5">
@@ -610,7 +628,9 @@ function CreatePage() {
                 onChange={(e) =>
                   setSlides((prev) =>
                     prev.map((slide, i) =>
-                      i === 0 ? { ...slide, content: { ...slide.content, caption: e.target.value } } : slide,
+                      i === 0
+                        ? { ...slide, content: { ...slide.content, caption: e.target.value } }
+                        : slide,
                     ),
                   )
                 }
@@ -622,7 +642,11 @@ function CreatePage() {
         </div>
 
         {generated ? (
-          <Button variant="outline" className="h-11 rounded-xl" onClick={() => setShowAdjust((v) => !v)}>
+          <Button
+            variant="outline"
+            className="h-11 rounded-xl"
+            onClick={() => setShowAdjust((v) => !v)}
+          >
             {showAdjust ? "Hide adjust" : "Adjust"}
           </Button>
         ) : null}
@@ -647,7 +671,6 @@ function CreatePage() {
             format={format}
           />
         </div>
-
 
         <div className="mx-auto w-full max-w-[520px]">
           {format === "carousel" ? (

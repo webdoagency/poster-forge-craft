@@ -1,6 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Minus, Plus, Star, Upload, X } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  Minus,
+  Plus,
+  Star,
+  Upload,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,12 +23,19 @@ import {
 } from "@/components/ui/select";
 import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
+import { LazyMount } from "@/components/rafty/LazyMount";
 import { placeholderContent } from "@/lib/rafty/placeholder";
 
 import { useRafty } from "@/lib/rafty/store";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
 import * as repo from "@/lib/rafty/repo";
-import type { CustomTemplateRequest, Template, TemplateTag, TemplateZone, ZoneKey } from "@/lib/rafty/types";
+import type {
+  CustomTemplateRequest,
+  Template,
+  TemplateTag,
+  TemplateZone,
+  ZoneKey,
+} from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/_authenticated/templates")({
   head: () => ({
@@ -179,7 +197,9 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
       return;
     }
     if (zones.length === 0) {
-      toast.success("Saved as a locked background. Only zones you map later can be edited per post.");
+      toast.success(
+        "Saved as a locked background. Only zones you map later can be edited per post.",
+      );
     } else {
       toast.success("Custom template saved.");
     }
@@ -198,8 +218,8 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
       {stage === "pick" ? (
         <div className="grid gap-3">
           <p className="text-sm text-muted-foreground">
-            Upload your design as a PNG or JPG. It will never be distorted, restyled, or marked with any krijo24
-            branding.
+            Upload your design as a PNG or JPG. It will never be distorted, restyled, or marked with
+            any krijo24 branding.
           </p>
           <label className="w-fit">
             <input
@@ -245,8 +265,8 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
                 <div className="flex items-start gap-2 rounded-xl border border-amber-400/60 bg-amber-50 p-3 text-amber-800">
                   <AlertTriangle className="mt-0.5 size-4 shrink-0" />
                   <p>
-                    This image is not a 4:5 ratio. It will still be saved, but it may be cropped when used on a
-                    post. For best results use 1080x1350 or another 4:5 size.
+                    This image is not a 4:5 ratio. It will still be saved, but it may be cropped
+                    when used on a post. For best results use 1080x1350 or another 4:5 size.
                   </p>
                 </div>
               ) : null}
@@ -278,8 +298,9 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
             className="h-10 rounded-xl border bg-card px-3 text-sm"
           />
           <p className="text-sm text-muted-foreground">
-            Tap a field below, then tap on the design to place it. Use the controls to fine tune position and
-            size. If you don't map any zone, this becomes a locked background image only.
+            Tap a field below, then tap on the design to place it. Use the controls to fine tune
+            position and size. If you don't map any zone, this becomes a locked background image
+            only.
           </p>
           <div className="flex flex-wrap gap-2">
             {ZONE_KEYS.map((key) => {
@@ -322,7 +343,9 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
               <div
                 key={z.key}
                 className={`absolute -translate-x-1/2 -translate-y-1/2 rounded border px-1.5 py-0.5 text-[10px] font-bold ${
-                  selectedKey === z.key ? "border-primary bg-primary text-primary-foreground" : "border-white/70 bg-black/50 text-white"
+                  selectedKey === z.key
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-white/70 bg-black/50 text-white"
                 }`}
                 style={{ left: `${z.x}%`, top: `${z.y}%` }}
               >
@@ -342,7 +365,9 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
                       variant="outline"
                       size="icon"
                       className="size-8 rounded-lg"
-                      onClick={() => updateZone(selectedZone.key, { y: Math.max(0, selectedZone.y - 3) })}
+                      onClick={() =>
+                        updateZone(selectedZone.key, { y: Math.max(0, selectedZone.y - 3) })
+                      }
                     >
                       <ArrowUp className="size-3.5" />
                     </Button>
@@ -350,7 +375,9 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
                       variant="outline"
                       size="icon"
                       className="size-8 rounded-lg"
-                      onClick={() => updateZone(selectedZone.key, { y: Math.min(100, selectedZone.y + 3) })}
+                      onClick={() =>
+                        updateZone(selectedZone.key, { y: Math.min(100, selectedZone.y + 3) })
+                      }
                     >
                       <ArrowDown className="size-3.5" />
                     </Button>
@@ -358,7 +385,9 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
                       variant="outline"
                       size="icon"
                       className="size-8 rounded-lg"
-                      onClick={() => updateZone(selectedZone.key, { x: Math.max(0, selectedZone.x - 3) })}
+                      onClick={() =>
+                        updateZone(selectedZone.key, { x: Math.max(0, selectedZone.x - 3) })
+                      }
                     >
                       <ArrowLeft className="size-3.5" />
                     </Button>
@@ -366,7 +395,9 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
                       variant="outline"
                       size="icon"
                       className="size-8 rounded-lg"
-                      onClick={() => updateZone(selectedZone.key, { x: Math.min(100, selectedZone.x + 3) })}
+                      onClick={() =>
+                        updateZone(selectedZone.key, { x: Math.min(100, selectedZone.x + 3) })
+                      }
                     >
                       <ArrowRight className="size-3.5" />
                     </Button>
@@ -379,7 +410,9 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
                       variant="outline"
                       size="icon"
                       className="size-8 rounded-lg"
-                      onClick={() => updateZone(selectedZone.key, { size: Math.max(2, selectedZone.size - 1) })}
+                      onClick={() =>
+                        updateZone(selectedZone.key, { size: Math.max(2, selectedZone.size - 1) })
+                      }
                     >
                       <Minus className="size-3.5" />
                     </Button>
@@ -387,7 +420,9 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
                       variant="outline"
                       size="icon"
                       className="size-8 rounded-lg"
-                      onClick={() => updateZone(selectedZone.key, { size: Math.min(40, selectedZone.size + 1) })}
+                      onClick={() =>
+                        updateZone(selectedZone.key, { size: Math.min(40, selectedZone.size + 1) })
+                      }
                     >
                       <Plus className="size-3.5" />
                     </Button>
@@ -400,7 +435,11 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
                       variant="outline"
                       size="icon"
                       className="size-8 rounded-lg"
-                      onClick={() => updateZone(selectedZone.key, { width: Math.max(10, selectedZone.width - 5) })}
+                      onClick={() =>
+                        updateZone(selectedZone.key, {
+                          width: Math.max(10, selectedZone.width - 5),
+                        })
+                      }
                     >
                       <Minus className="size-3.5" />
                     </Button>
@@ -408,7 +447,11 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
                       variant="outline"
                       size="icon"
                       className="size-8 rounded-lg"
-                      onClick={() => updateZone(selectedZone.key, { width: Math.min(100, selectedZone.width + 5) })}
+                      onClick={() =>
+                        updateZone(selectedZone.key, {
+                          width: Math.min(100, selectedZone.width + 5),
+                        })
+                      }
                     >
                       <Plus className="size-3.5" />
                     </Button>
@@ -440,16 +483,24 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
 
           {zones.length === 0 ? (
             <p className="text-xs text-muted-foreground">
-              No zones mapped yet. Saving now will lock this as a background only image, nothing on it will be
-              editable per post.
+              No zones mapped yet. Saving now will lock this as a background only image, nothing on
+              it will be editable per post.
             </p>
           ) : null}
 
           <div className="flex gap-2">
-            <Button variant="outline" className="h-10 rounded-xl" onClick={() => setStage("requirements")}>
+            <Button
+              variant="outline"
+              className="h-10 rounded-xl"
+              onClick={() => setStage("requirements")}
+            >
               Back
             </Button>
-            <Button className="ml-auto h-10 rounded-xl" disabled={saving} onClick={() => void save()}>
+            <Button
+              className="ml-auto h-10 rounded-xl"
+              disabled={saving}
+              onClick={() => void save()}
+            >
               {saving ? "Saving..." : "Save template"}
             </Button>
           </div>
@@ -461,7 +512,10 @@ function UploadWizard({ businessId, onDone }: { businessId: string; onDone: () =
 
 function TemplatesPage() {
   const { business, brand, templates, favorites, toggleFavorite, refresh, t } = useRafty();
-  const placeholder = useMemo(() => placeholderContent(business?.type ?? "other"), [business?.type]);
+  const placeholder = useMemo(
+    () => placeholderContent(business?.type ?? "other"),
+    [business?.type],
+  );
 
   const [tag, setTag] = useState<TemplateTag | "all">("all");
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -522,7 +576,13 @@ function TemplatesPage() {
 
       {wizardOpen ? (
         <div className="mb-6">
-          <UploadWizard businessId={business.id} onDone={() => { setWizardOpen(false); refresh(); }} />
+          <UploadWizard
+            businessId={business.id}
+            onDone={() => {
+              setWizardOpen(false);
+              refresh();
+            }}
+          />
         </div>
       ) : null}
 
@@ -532,26 +592,31 @@ function TemplatesPage() {
           {requests.map((r) => (
             <div key={r.id} className="flex items-center gap-3 text-muted-foreground">
               <span className="truncate">{r.fileName}</span>
-              <span className="ml-auto shrink-0 font-semibold text-foreground">{t(`tpl.${r.status}`)}</span>
+              <span className="ml-auto shrink-0 font-semibold text-foreground">
+                {t(`tpl.${r.status}`)}
+              </span>
             </div>
           ))}
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 xl:grid-cols-5">
         {ordered.map((tpl) => (
           <article key={tpl.id} className="card-soft relative overflow-hidden">
-            <div className="overflow-hidden">
+            <div className="overflow-hidden p-1.5">
               {brand && business ? (
-                <PostCanvas
-                  template={tpl}
-                  content={placeholder}
-                  brand={brand}
-                  businessName={business.name}
-                  businessType={business.type}
-                />
+                <LazyMount>
+                  <PostCanvas
+                    template={tpl}
+                    content={placeholder}
+                    brand={brand}
+                    businessName={business.name}
+                    businessType={business.type}
+                    className="rounded-md"
+                  />
+                </LazyMount>
               ) : (
-                <div className="aspect-[4/5] w-full bg-muted" />
+                <div className="aspect-[4/5] w-full rounded-md bg-muted" />
               )}
             </div>
             <Button
@@ -559,25 +624,32 @@ function TemplatesPage() {
               size="icon"
               variant="ghost"
               aria-label="Favourite"
-              className="absolute right-2 top-2 size-8 rounded-full bg-background/80"
+              className="absolute right-1.5 top-1.5 size-7 rounded-full bg-background/80"
               onClick={() => void toggleFavorite(tpl.id)}
             >
               <Star
                 className={
                   favorites.includes(tpl.id)
-                    ? "size-4 fill-primary text-primary"
-                    : "size-4 text-muted-foreground"
+                    ? "size-3.5 fill-primary text-primary"
+                    : "size-3.5 text-muted-foreground"
                 }
               />
             </Button>
-            <div className="flex items-center gap-3 px-3 pb-3 pt-2.5">
+            <div className="flex items-center gap-2 px-2 pb-2">
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold">{tpl.name}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {tpl.scope === "custom" ? "Your template" : (tpl.tags ?? []).map((x) => TAG_LABELS[x]).join(", ")}
+                <p className="truncate text-[11px] font-bold">{tpl.name}</p>
+                <p className="truncate text-[10px] text-muted-foreground">
+                  {tpl.scope === "custom"
+                    ? "Your template"
+                    : (tpl.tags ?? []).map((x) => TAG_LABELS[x]).join(", ")}
                 </p>
               </div>
-              <Button asChild size="sm" variant="outline" className="ml-auto shrink-0 rounded-xl">
+              <Button
+                asChild
+                size="sm"
+                variant="ghost"
+                className="ml-auto h-7 shrink-0 rounded-lg px-2 text-[11px]"
+              >
                 <Link to="/create" search={{ template: tpl.id }}>
                   {t("tpl.select")}
                 </Link>
@@ -586,7 +658,6 @@ function TemplatesPage() {
           </article>
         ))}
       </div>
-
     </div>
   );
 }

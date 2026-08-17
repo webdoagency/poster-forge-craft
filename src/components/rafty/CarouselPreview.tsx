@@ -1,11 +1,5 @@
 import { PostCanvas } from "@/components/rafty/PostCanvas";
-import type {
-  BrandProfile,
-  BusinessType,
-  ContentFormat,
-  Slide,
-  Template,
-} from "@/lib/rafty/types";
+import type { BrandProfile, BusinessType, ContentFormat, Slide, Template } from "@/lib/rafty/types";
 
 type Props = {
   slides: Slide[];

@@ -21,11 +21,11 @@ export const Route = createFileRoute("/how-it-works")({
         property: "og:description",
         content: "Four steps, one finished branded post. No design skills needed.",
       },
-      { property: "og:url", content: "https://rafty.webdoagency.com/how-it-works" },
+      { property: "og:url", content: "https://krijo24.com/how-it-works" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://rafty.webdoagency.com/how-it-works" }],
+    links: [{ rel: "canonical", href: "https://krijo24.com/how-it-works" }],
   }),
   component: HowItWorksPage,
 });
@@ -67,8 +67,7 @@ function HowItWorksPage() {
           Four steps to your first post
         </h1>
         <p className="mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-          No design software, no learning curve. Just the parts of the process
-          that actually matter.
+          No design software, no learning curve. Just the parts of the process that actually matter.
         </p>
       </section>
 
@@ -93,9 +92,7 @@ function HowItWorksPage() {
                   <p className="mt-4 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                     Step {index + 1}
                   </p>
-                  <h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">
-                    {step.title}
-                  </h2>
+                  <h2 className="mt-2 font-display text-2xl font-bold sm:text-3xl">{step.title}</h2>
                   <p className="mt-3 max-w-sm text-base text-muted-foreground">{step.body}</p>
                 </div>
                 <div className="mx-auto w-full max-w-xs">
@@ -119,8 +116,8 @@ function HowItWorksPage() {
           That is the whole process.
         </h2>
         <p className="mx-auto mt-4 max-w-md text-base text-muted-foreground">
-          No scheduling, no automated publishing. Just a fast way to make
-          something worth posting yourself.
+          No scheduling, no automated publishing. Just a fast way to make something worth posting
+          yourself.
         </p>
         <div className="mt-8">
           <Button asChild size="lg" className="rounded-full px-8">

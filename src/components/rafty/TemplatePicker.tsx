@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { Star } from "lucide-react";
 import {
   Dialog,
@@ -9,38 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
+import { LazyMount } from "@/components/rafty/LazyMount";
 import { placeholderContent } from "@/lib/rafty/placeholder";
 import { useRafty } from "@/lib/rafty/store";
 import type { BrandProfile, BusinessType, ContentFormat, Template } from "@/lib/rafty/types";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "favorites" | "used";
-
-/** Renders its child only once it is close to the viewport, so a long library
- * never renders a hundred live canvases at the same time. */
-function Lazy({ children }: { children: React.ReactNode }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || visible) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) setVisible(true);
-      },
-      { rootMargin: "300px" },
-    );
-    io.observe(node);
-    return () => io.disconnect();
-  }, [visible]);
-
-  return (
-    <div ref={ref} className="w-full">
-      {visible ? children : <div className="w-full rounded-lg bg-muted" style={{ aspectRatio: "4 / 5" }} />}
-    </div>
-  );
-}
 
 /**
  * Visual template chooser. Opens over the Create page, so the draft in the
@@ -130,9 +105,7 @@ export function TemplatePicker({
 
       <DialogContent className="max-h-[88vh] max-w-3xl overflow-hidden p-0">
         <DialogHeader className="border-b px-4 py-3">
-          <DialogTitle className="text-base">
-            {preview ? preview.name : "Templates"}
-          </DialogTitle>
+          <DialogTitle className="text-base">{preview ? preview.name : "Templates"}</DialogTitle>
         </DialogHeader>
 
         {preview ? (
@@ -149,7 +122,12 @@ export function TemplatePicker({
               />
             </div>
             <div className="flex items-center gap-2">
-              <Button type="button" variant="outline" className="rounded-xl" onClick={() => setPreview(null)}>
+              <Button
+                type="button"
+                variant="outline"
+                className="rounded-xl"
+                onClick={() => setPreview(null)}
+              >
                 Back
               </Button>
               <Button type="button" className="flex-1 rounded-xl" onClick={() => use(preview)}>
@@ -193,10 +171,12 @@ export function TemplatePicker({
                         onClick={() => setPreview(tpl)}
                         className={cn(
                           "block w-full overflow-hidden rounded-lg border p-1 text-left transition",
-                          tpl.id === value ? "border-primary ring-2 ring-primary/40" : "border-border",
+                          tpl.id === value
+                            ? "border-primary ring-2 ring-primary/40"
+                            : "border-border",
                         )}
                       >
-                        <Lazy>
+                        <LazyMount>
                           <PostCanvas
                             template={tpl}
                             content={content}
@@ -206,7 +186,7 @@ export function TemplatePicker({
                             format={format}
                             className="rounded-md"
                           />
-                        </Lazy>
+                        </LazyMount>
                         <span className="mt-1 block truncate text-[11px] font-semibold">
                           {tpl.name}
                           {tpl.scope === "custom" ? " • yours" : ""}

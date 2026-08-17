@@ -5,10 +5,9 @@
  */
 
 /**
- * Quick start types. They only decide which fields are suggested, never which
- * templates are available. Any other business uses "other" plus a custom type
- * label, so salons, gyms, clinics, hotels, trades, events and local shops all
- * fit without a separate product.
+ * Quick start categories. They only decide which fields, services and template
+ * ordering are suggested, never which templates are available. Any business
+ * that does not fit uses "other" plus its own custom category label.
  */
 export type BusinessType =
   | "travel_agency"
@@ -16,8 +15,18 @@ export type BusinessType =
   | "car_dealership"
   | "restaurant"
   | "retail"
+  | "hotel"
+  | "beauty"
+  | "fitness"
+  | "healthcare"
+  | "construction"
+  | "cleaning"
+  | "events"
+  | "education"
+  | "professional_services"
+  | "ecommerce"
+  | "automotive_service"
   | "other";
-
 
 /**
  * Content formats. One shared template model drives all of them, so a
@@ -55,7 +64,6 @@ export type Slide = {
 };
 
 export type LanguageCode = "en" | "de" | "sq";
-
 
 export type CurrencyCode = "EUR" | "CHF" | "GBP" | "USD" | "ALL" | "SEK" | "NOK" | "DKK";
 
@@ -176,7 +184,6 @@ export type BrandProfile = {
   language: LanguageCode;
 };
 
-
 export type BusinessService = {
   id: string;
   businessId: string;
@@ -268,7 +275,6 @@ export type Template = {
   lockedDesign?: boolean;
 };
 
-
 export type CustomTemplateRequestStatus = "processing" | "ready" | "rejected";
 
 export type CustomTemplateRequest = {
@@ -334,7 +340,6 @@ export type Post = {
   slides?: Slide[];
 };
 
-
 export type TrialUsage = {
   businessId: string;
   postsCreated: number;
@@ -380,11 +385,7 @@ export type ScheduledPost = {
 };
 
 export type SocialConnectionStatus =
-  | "unavailable"
-  | "not_connected"
-  | "connected"
-  | "ready"
-  | "failed";
+  "unavailable" | "not_connected" | "connected" | "ready" | "failed";
 
 export type SocialConnection = {
   id: string;

@@ -85,7 +85,11 @@ type Ctx = {
   renameService: (serviceId: string, name: string) => Promise<void>;
   removeService: (serviceId: string) => Promise<void>;
   reorderServices: (serviceIds: string[]) => Promise<void>;
-  createBrand: (input: { name: string; type: BusinessType; customType?: string | null }) => Promise<Result>;
+  createBrand: (input: {
+    name: string;
+    type: BusinessType;
+    customType?: string | null;
+  }) => Promise<Result>;
   selectBrand: (businessId: string) => void;
   createPost: (post: PostWithContact) => Promise<PostWithContact | null>;
   removePost: (postId: string) => Promise<void>;
@@ -113,7 +117,6 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
   const loading = useRef(false);
 
   const refresh = useCallback(() => setTick((n) => n + 1), []);
-
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
@@ -176,7 +179,6 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
       setTrial(nextTrial);
       setFavorites(nextFavorites);
       setReady(true);
-
     })();
 
     return () => {

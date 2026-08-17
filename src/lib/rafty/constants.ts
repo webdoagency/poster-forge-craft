@@ -8,13 +8,23 @@ import type {
   SocialPlatform,
 } from "./types";
 
-
 export const BUSINESS_TYPES: BusinessType[] = [
   "travel_agency",
   "real_estate",
   "car_dealership",
   "restaurant",
   "retail",
+  "hotel",
+  "beauty",
+  "fitness",
+  "healthcare",
+  "construction",
+  "cleaning",
+  "events",
+  "education",
+  "professional_services",
+  "ecommerce",
+  "automotive_service",
   "other",
 ];
 
@@ -25,7 +35,18 @@ export const BUSINESS_TYPE_NAMES: Record<BusinessType, string> = {
   car_dealership: "Car Dealership",
   restaurant: "Restaurant",
   retail: "Retail",
-  other: "Other business",
+  hotel: "Hotel / Accommodation",
+  beauty: "Beauty / Salon",
+  fitness: "Fitness / Gym",
+  healthcare: "Healthcare / Clinic",
+  construction: "Construction / Trades",
+  cleaning: "Cleaning Service",
+  events: "Events",
+  education: "Education",
+  professional_services: "Professional Services",
+  ecommerce: "E-commerce",
+  automotive_service: "Automotive Service",
+  other: "Other / Custom",
 };
 
 /**
@@ -56,11 +77,7 @@ export const CUSTOM_TYPE_SUGGESTIONS = [
 /* --------------------------------- fonts ---------------------------------- */
 
 export type FontCategory =
-  | "Modern Sans"
-  | "Editorial Serif"
-  | "Luxury"
-  | "Bold Display"
-  | "Clean Business";
+  "Modern Sans" | "Editorial Serif" | "Luxury" | "Bold Display" | "Clean Business";
 
 export type FontOption = { family: string; category: FontCategory; weights: string };
 
@@ -159,7 +176,12 @@ export const PLANS: {
     brands: 1,
     partnershipPosts: 0,
     formats: "Image posts",
-    features: ["1 brand", "Image posts", "Unlimited ready made templates", "Your own uploaded templates"],
+    features: [
+      "1 brand",
+      "Image posts",
+      "Unlimited ready made templates",
+      "Your own uploaded templates",
+    ],
   },
   {
     tier: "growth",
@@ -278,6 +300,93 @@ export const TYPE_FIELDS: Record<BusinessType, { key: FieldKey; labelKey: string
     { key: "meta1", labelKey: "field.offer" },
     { key: "date", labelKey: "field.validUntil" },
   ],
+  hotel: [
+    { key: "title", labelKey: "field.offer" },
+    { key: "subject", labelKey: "field.hotel" },
+    { key: "location", labelKey: "field.location" },
+    { key: "price", labelKey: "field.price" },
+    { key: "date", labelKey: "field.date" },
+    { key: "meta1", labelKey: "field.nights" },
+  ],
+  beauty: [
+    { key: "title", labelKey: "field.offer" },
+    { key: "subject", labelKey: "field.subject" },
+    { key: "price", labelKey: "field.price" },
+    { key: "date", labelKey: "field.when" },
+    { key: "location", labelKey: "field.location" },
+    { key: "meta1", labelKey: "field.detail" },
+  ],
+  fitness: [
+    { key: "title", labelKey: "field.offer" },
+    { key: "subject", labelKey: "field.subject" },
+    { key: "price", labelKey: "field.price" },
+    { key: "date", labelKey: "field.when" },
+    { key: "location", labelKey: "field.location" },
+    { key: "meta1", labelKey: "field.detail" },
+  ],
+  healthcare: [
+    { key: "title", labelKey: "field.offer" },
+    { key: "subject", labelKey: "field.subject" },
+    { key: "location", labelKey: "field.location" },
+    { key: "date", labelKey: "field.when" },
+    { key: "price", labelKey: "field.price" },
+    { key: "meta1", labelKey: "field.detail" },
+  ],
+  construction: [
+    { key: "title", labelKey: "field.offer" },
+    { key: "subject", labelKey: "field.subject" },
+    { key: "location", labelKey: "field.location" },
+    { key: "price", labelKey: "field.price" },
+    { key: "date", labelKey: "field.available" },
+    { key: "meta1", labelKey: "field.detail" },
+  ],
+  cleaning: [
+    { key: "title", labelKey: "field.offer" },
+    { key: "subject", labelKey: "field.subject" },
+    { key: "location", labelKey: "field.location" },
+    { key: "price", labelKey: "field.price" },
+    { key: "date", labelKey: "field.when" },
+    { key: "meta1", labelKey: "field.detail" },
+  ],
+  events: [
+    { key: "title", labelKey: "field.offer" },
+    { key: "subject", labelKey: "field.subject" },
+    { key: "location", labelKey: "field.location" },
+    { key: "date", labelKey: "field.when" },
+    { key: "price", labelKey: "field.price" },
+    { key: "meta1", labelKey: "field.detail" },
+  ],
+  education: [
+    { key: "title", labelKey: "field.offer" },
+    { key: "subject", labelKey: "field.subject" },
+    { key: "date", labelKey: "field.when" },
+    { key: "price", labelKey: "field.price" },
+    { key: "location", labelKey: "field.location" },
+    { key: "meta1", labelKey: "field.detail" },
+  ],
+  professional_services: [
+    { key: "title", labelKey: "field.offer" },
+    { key: "subject", labelKey: "field.subject" },
+    { key: "location", labelKey: "field.location" },
+    { key: "price", labelKey: "field.price" },
+    { key: "date", labelKey: "field.when" },
+    { key: "meta1", labelKey: "field.detail" },
+  ],
+  ecommerce: [
+    { key: "title", labelKey: "field.product" },
+    { key: "subject", labelKey: "field.category" },
+    { key: "price", labelKey: "field.price" },
+    { key: "meta1", labelKey: "field.offer" },
+    { key: "date", labelKey: "field.validUntil" },
+  ],
+  automotive_service: [
+    { key: "title", labelKey: "field.offer" },
+    { key: "subject", labelKey: "field.subject" },
+    { key: "price", labelKey: "field.price" },
+    { key: "location", labelKey: "field.location" },
+    { key: "date", labelKey: "field.when" },
+    { key: "meta1", labelKey: "field.detail" },
+  ],
   other: [
     { key: "title", labelKey: "field.offer" },
     { key: "subject", labelKey: "field.subject" },
@@ -340,6 +449,116 @@ export const SERVICE_SUGGESTIONS: Record<BusinessType, string[]> = {
     "New arrival",
     "Members price",
   ],
+  hotel: [
+    "Breakfast included",
+    "Free parking",
+    "Pool",
+    "Spa",
+    "Sea view",
+    "Family rooms",
+    "Late checkout",
+    "Airport transfer",
+  ],
+  beauty: [
+    "Consultation",
+    "Hair styling",
+    "Coloring",
+    "Manicure",
+    "Facial",
+    "Makeup",
+    "Bridal package",
+    "Products included",
+  ],
+  fitness: [
+    "Personal training",
+    "Group classes",
+    "Nutrition plan",
+    "Free trial",
+    "Sauna",
+    "Open early",
+    "No contract",
+    "Student price",
+  ],
+  healthcare: [
+    "Same day appointment",
+    "Consultation",
+    "Check up",
+    "Insurance accepted",
+    "Modern equipment",
+    "Specialists",
+    "Follow up included",
+    "Evening hours",
+  ],
+  construction: [
+    "Free estimate",
+    "Licensed team",
+    "Materials included",
+    "Warranty",
+    "Fixed price",
+    "On schedule",
+    "Renovation",
+    "Site cleanup",
+  ],
+  cleaning: [
+    "Deep cleaning",
+    "Eco products",
+    "Weekly plan",
+    "Move in and out",
+    "Office cleaning",
+    "Insured team",
+    "Flexible hours",
+    "Same day service",
+  ],
+  events: [
+    "Venue",
+    "Catering",
+    "Decoration",
+    "Photography",
+    "Music and DJ",
+    "Full planning",
+    "Custom packages",
+    "Guest support",
+  ],
+  education: [
+    "Small groups",
+    "Certified teachers",
+    "Online option",
+    "Flexible schedule",
+    "Materials included",
+    "Certificate",
+    "Free trial lesson",
+    "Exam preparation",
+  ],
+  professional_services: [
+    "Free consultation",
+    "Fixed fee",
+    "Fast turnaround",
+    "Confidential",
+    "Remote friendly",
+    "Ongoing support",
+    "Certified experts",
+    "Custom scope",
+  ],
+  ecommerce: [
+    "Free shipping",
+    "Fast delivery",
+    "Easy returns",
+    "Warranty",
+    "Secure payment",
+    "Cash on delivery",
+    "Limited stock",
+    "New arrival",
+  ],
+  automotive_service: [
+    "Free diagnostics",
+    "Oil change",
+    "Tire service",
+    "Warranty on work",
+    "Original parts",
+    "While you wait",
+    "Pickup and delivery",
+    "Fixed price",
+  ],
   other: [
     "Fast delivery",
     "Free consultation",
@@ -363,10 +582,25 @@ export const CTA_PRESETS = [
 
 /** Light occasion presets that only add text, never layout. */
 export const OCCASION_PRESETS: { id: string; label: string; title: string; extra: string }[] = [
-  { id: "weekend", label: "Weekend offer", title: "Weekend offer", extra: "Valid this weekend only" },
+  {
+    id: "weekend",
+    label: "Weekend offer",
+    title: "Weekend offer",
+    extra: "Valid this weekend only",
+  },
   { id: "new", label: "New arrival", title: "Just arrived", extra: "Available from today" },
-  { id: "summer", label: "Summer season", title: "Summer season", extra: "Book early for the best dates" },
-  { id: "holiday", label: "Holiday special", title: "Holiday special", extra: "Limited holiday availability" },
+  {
+    id: "summer",
+    label: "Summer season",
+    title: "Summer season",
+    extra: "Book early for the best dates",
+  },
+  {
+    id: "holiday",
+    label: "Holiday special",
+    title: "Holiday special",
+    extra: "Limited holiday availability",
+  },
   { id: "lastminute", label: "Last minute", title: "Last minute", extra: "Only a few places left" },
 ];
 
@@ -481,11 +715,17 @@ export const SOCIAL_PLATFORMS: {
     available: false,
     note: "Needs a Facebook Page inside a Meta business account.",
   },
-  { platform: "linkedin", label: "LinkedIn", available: false, note: "Company page publishing." },
-  { platform: "tiktok", label: "TikTok", available: false, note: "Business account publishing." },
-  { platform: "x", label: "X", available: false, note: "Account posting." },
-  { platform: "youtube", label: "YouTube", available: false, note: "Shorts publishing." },
+  {
+    platform: "linkedin",
+    label: "LinkedIn",
+    available: false,
+    note: "Needs a LinkedIn company page with posting access.",
+  },
 ];
+
+/** The only platforms offered in the product today. Older records may still
+ * reference other platforms, so PLATFORM_LABELS keeps every historic value. */
+export const PUBLISHING_PLATFORMS: SocialPlatform[] = SOCIAL_PLATFORMS.map((p) => p.platform);
 
 export const PLATFORM_LABELS: Record<SocialPlatform, string> = {
   instagram: "Instagram",

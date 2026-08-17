@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarClock, Info, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/rafty/AppShell";
+import { PostCanvas } from "@/components/rafty/PostCanvas";
+import { LazyMount } from "@/components/rafty/LazyMount";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -19,17 +21,19 @@ import { PLATFORM_LABELS, SOCIAL_PLATFORMS, TIMEZONES } from "@/lib/rafty/consta
 import type { ScheduledPost, SocialConnection, SocialPlatform } from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/_authenticated/schedule")({
+  validateSearch: (search: Record<string, unknown>): { post?: string } =>
+    typeof search["post"] === "string" && search["post"] ? { post: search["post"] } : {},
   head: () => ({
     meta: [
-      { title: "Schedule & social | krijo24" },
+      { title: "Schedule | krijo24" },
       {
         name: "description",
-        content: "Queue saved posts for a date and time, and manage your brand social accounts.",
+        content: "Pick a saved post visually and queue it for a date and time.",
       },
-      { property: "og:title", content: "Schedule & social | krijo24" },
+      { property: "og:title", content: "Schedule | krijo24" },
       {
         property: "og:description",
-        content: "Plan when your saved posts go out and keep your social handles on your brand.",
+        content: "Plan when your saved posts go out, chosen visually.",
       },
     ],
   }),
@@ -54,16 +58,16 @@ function statusTone(status: ScheduledPost["status"]) {
 }
 
 function SchedulePage() {
-  const { business, posts } = useRafty();
+  const { business, brand, posts, templates } = useRafty();
+  const search = Route.useSearch();
   const [rows, setRows] = useState<ScheduledPost[]>([]);
   const [connections, setConnections] = useState<SocialConnection[]>([]);
-  const [postId, setPostId] = useState("");
+  const [postId, setPostId] = useState(search.post ?? "");
   const [platform, setPlatform] = useState<SocialPlatform>("instagram");
   const [when, setWhen] = useState(() => localInputValue(new Date(Date.now() + 3600_000)));
   const [timezone, setTimezone] = useState("Europe/Tirane");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
-  const [labels, setLabels] = useState<Record<string, string>>({});
 
   const businessId = business?.id ?? null;
 
@@ -75,7 +79,6 @@ function SchedulePage() {
     ]);
     setRows(queue);
     setConnections(conns);
-    setLabels(Object.fromEntries(conns.map((c) => [c.platform, c.accountLabel])));
   }, [businessId]);
 
   useEffect(() => {
@@ -87,7 +90,42 @@ function SchedulePage() {
     [posts],
   );
 
-  if (!business || !businessId) return null;
+  /** Small live render of a saved post, so a queue item is recognised by sight. */
+  const Thumb = useCallback(
+    ({ id, className }: { id: string; className?: string }) => {
+      const post = posts.find((p) => p.id === id);
+      const template = post
+        ? (templates.find((x) => x.id === post.templateId) ?? templates[0])
+        : null;
+      if (!post || !template || !brand || !business) {
+        return (
+          <div
+            className={`w-full rounded-md bg-muted ${className ?? ""}`}
+            style={{ aspectRatio: "4 / 5" }}
+          />
+        );
+      }
+      return (
+        <LazyMount {...(className ? { className } : {})}>
+          <PostCanvas
+            template={template}
+            content={post.slides?.[0]?.content ?? post.content}
+            brand={brand}
+            businessName={business.name}
+            businessType={business.type}
+            showBrandName={post.showBrandName}
+            showContact={post.showContact ?? false}
+            adjustments={post.slides?.[0]?.adjustments ?? post.adjustments}
+            format={post.format ?? "post"}
+            className="rounded-md"
+          />
+        </LazyMount>
+      );
+    },
+    [posts, templates, brand, business],
+  );
+
+  if (!business || !businessId || !brand) return null;
   const bid = businessId;
 
   async function add() {
@@ -133,16 +171,6 @@ function SchedulePage() {
     await load();
   }
 
-  async function saveLabel(p: SocialPlatform) {
-    const res = await repo.saveConnectionLabel(bid, p, labels[p] ?? "");
-    if (res.error) {
-      toast.error(res.error);
-      return;
-    }
-    toast.success("Saved.");
-    await load();
-  }
-
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
       <section className="glass-panel rounded-3xl p-5 sm:p-6">
@@ -152,21 +180,36 @@ function SchedulePage() {
         </header>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <label className="grid gap-1.5 sm:col-span-2">
+          <div className="grid gap-1.5 sm:col-span-2">
             <span className="text-xs font-bold text-muted-foreground">Saved post</span>
-            <Select value={postId} onValueChange={setPostId}>
-              <SelectTrigger className="h-11 rounded-xl bg-card">
-                <SelectValue placeholder={posts.length ? "Choose a post" : "No saved posts yet"} />
-              </SelectTrigger>
-              <SelectContent>
+            {posts.length === 0 ? (
+              <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                No saved posts yet.{" "}
+                <Link to="/create" className="font-semibold text-primary">
+                  Create one
+                </Link>
+                .
+              </p>
+            ) : (
+              <div className="grid max-h-[320px] grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-5">
                 {posts.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.content.title || "Untitled post"}
-                  </SelectItem>
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => setPostId(p.id)}
+                    className={`rounded-lg border p-1 text-left transition ${
+                      postId === p.id ? "border-primary ring-2 ring-primary/40" : "border-border"
+                    }`}
+                  >
+                    <Thumb id={p.id} />
+                    <span className="mt-1 block truncate text-[10px] font-semibold">
+                      {p.content.title || "Untitled"}
+                    </span>
+                  </button>
                 ))}
-              </SelectContent>
-            </Select>
-          </label>
+              </div>
+            )}
+          </div>
 
           <label className="grid gap-1.5">
             <span className="text-xs font-bold text-muted-foreground">Platform</span>
@@ -220,7 +263,11 @@ function SchedulePage() {
             />
           </label>
 
-          <Button className="h-11 rounded-xl sm:col-span-2" onClick={() => void add()} disabled={saving}>
+          <Button
+            className="h-11 rounded-xl sm:col-span-2"
+            onClick={() => void add()}
+            disabled={saving}
+          >
             Add to queue
           </Button>
         </div>
@@ -244,13 +291,16 @@ function SchedulePage() {
           {rows.map((row) => (
             <article
               key={row.id}
-              className="flex items-center gap-3 rounded-2xl border bg-card/70 px-4 py-3"
+              className="flex items-center gap-3 rounded-2xl border bg-card/70 px-3 py-3"
             >
+              <div className="w-12 shrink-0">
+                <Thumb id={row.postId} />
+              </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-bold">{postTitle(row.postId)}</p>
                 <p className="truncate text-xs text-muted-foreground">
-                  {PLATFORM_LABELS[row.platform]} ·{" "}
-                  {new Date(row.scheduledAt).toLocaleString()} · {row.timezone}
+                  {PLATFORM_LABELS[row.platform]} · {new Date(row.scheduledAt).toLocaleString()} ·{" "}
+                  {row.timezone}
                   {row.note ? ` · ${row.note}` : ""}
                 </p>
               </div>
@@ -282,43 +332,33 @@ function SchedulePage() {
       </section>
 
       <aside className="glass-panel h-fit rounded-3xl p-5 sm:p-6">
-        <h2 className="text-base font-black tracking-tight">Social accounts</h2>
+        <h2 className="text-base font-black tracking-tight">Publishing</h2>
         <p className="mt-1 text-xs text-muted-foreground">
-          Save the handle krijo24 should use. Connecting opens up as each platform becomes available.
+          Queued items are timed inside krijo24. Automatic publishing turns on per platform once its
+          connection is available, so nothing is ever marked as published by mistake.
         </p>
-        <div className="mt-4 grid gap-3">
+        <div className="mt-4 grid gap-2">
           {SOCIAL_PLATFORMS.map((p) => {
             const conn = connections.find((c) => c.platform === p.platform);
             return (
-              <div key={p.platform} className="rounded-2xl border bg-card/70 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-bold">{p.label}</span>
-                  <Badge variant="outline" className="text-[10px]">
-                    {p.available ? (conn?.status ?? "not connected") : "Connect when available"}
-                  </Badge>
-                </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">{p.note}</p>
-                <div className="mt-2 flex gap-2">
-                  <Input
-                    value={labels[p.platform] ?? ""}
-                    onChange={(e) =>
-                      setLabels((prev) => ({ ...prev, [p.platform]: e.target.value }))
-                    }
-                    placeholder="@handle"
-                    className="h-9 rounded-xl bg-card text-sm"
-                  />
-                  <Button
-                    variant="outline"
-                    className="h-9 rounded-xl"
-                    onClick={() => void saveLabel(p.platform)}
-                  >
-                    Save
-                  </Button>
-                </div>
+              <div
+                key={p.platform}
+                className="flex items-center gap-2 rounded-xl border bg-card/70 px-3 py-2"
+              >
+                <span className="min-w-0 truncate text-sm font-semibold">
+                  {p.label}
+                  {conn?.accountLabel ? ` · ${conn.accountLabel}` : ""}
+                </span>
+                <Badge variant="outline" className="ml-auto shrink-0 text-[10px]">
+                  {p.available ? (conn?.status ?? "not connected") : "Connect when available"}
+                </Badge>
               </div>
             );
           })}
         </div>
+        <Button asChild variant="outline" className="mt-4 h-10 w-full rounded-xl">
+          <Link to="/settings">Manage connections</Link>
+        </Button>
       </aside>
     </div>
   );

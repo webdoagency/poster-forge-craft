@@ -22,6 +22,7 @@ import { Route as AuthenticatedCreateRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
 
 const IndexRoute = IndexRouteImport.update({
@@ -88,6 +89,11 @@ const AuthenticatedScheduleRoute = AuthenticatedScheduleRouteImport.update({
   path: '/schedule',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTemplatesRoute = AuthenticatedTemplatesRouteImport.update({
   id: '/templates',
   path: '/templates',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
 }
 export interface FileRoutesByTo {
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/schedule': typeof AuthenticatedScheduleRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
 }
 export interface FileRoutesById {
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
 }
 export interface FileRouteTypes {
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/posts'
     | '/schedule'
+    | '/settings'
     | '/templates'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -171,6 +181,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/posts'
     | '/schedule'
+    | '/settings'
     | '/templates'
   id:
     | '__root__'
@@ -187,6 +198,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/posts'
     | '/_authenticated/schedule'
+    | '/_authenticated/settings'
     | '/_authenticated/templates'
   fileRoutesById: FileRoutesById
 }
@@ -293,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedScheduleRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/templates': {
       id: '/_authenticated/templates'
       path: '/templates'
@@ -310,6 +329,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
 }
 
@@ -320,6 +340,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
 }
 

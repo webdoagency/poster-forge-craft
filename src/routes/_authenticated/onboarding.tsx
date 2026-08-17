@@ -77,9 +77,11 @@ function OnboardingPage() {
   const [currency, setCurrency] = useState<CurrencyCode>(DEFAULT_BRAND.currency);
   const [services, setServices] = useState<string[]>([]);
   const [customService, setCustomService] = useState("");
-  const [custom, setCustom] = useState<{ fileName: string; fileType: string; previewDataUrl: string | null } | null>(
-    null,
-  );
+  const [custom, setCustom] = useState<{
+    fileName: string;
+    fileType: string;
+    previewDataUrl: string | null;
+  } | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [submitStep, setSubmitStep] = useState(0);
@@ -133,7 +135,9 @@ function OnboardingPage() {
     } catch (err) {
       submitGuard.current = false;
       setSubmitting(false);
-      setSubmitError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setSubmitError(
+        err instanceof Error ? err.message : "Something went wrong. Please try again.",
+      );
     }
   }
 
@@ -252,7 +256,8 @@ function OnboardingPage() {
                 </span>
               </label>
               <p className="text-xs text-muted-foreground">
-                A logo can only be set once. After you finish setup, only a krijo24 admin can replace it.
+                A logo can only be set once. After you finish setup, only a krijo24 admin can
+                replace it.
               </p>
             </div>
           ) : null}
@@ -304,7 +309,9 @@ function OnboardingPage() {
                       onClick={() => setFont(f.family)}
                       style={{ fontFamily: `"${f.family}", sans-serif` }}
                       className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left text-base font-semibold ${
-                        fontFamily === f.family ? "border-primary bg-primary-soft" : "border-border bg-background"
+                        fontFamily === f.family
+                          ? "border-primary bg-primary-soft"
+                          : "border-border bg-background"
                       }`}
                     >
                       {f.family}
@@ -334,11 +341,15 @@ function OnboardingPage() {
                       onClick={() => setFontSecondary(f.family)}
                       style={{ fontFamily: `"${f.family}", sans-serif` }}
                       className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left text-base font-semibold ${
-                        fontSecondary === f.family ? "border-primary bg-primary-soft" : "border-border bg-background"
+                        fontSecondary === f.family
+                          ? "border-primary bg-primary-soft"
+                          : "border-border bg-background"
                       }`}
                     >
                       {f.family}
-                      {fontSecondary === f.family ? <Check className="size-4 text-primary" /> : null}
+                      {fontSecondary === f.family ? (
+                        <Check className="size-4 text-primary" />
+                      ) : null}
                     </button>
                   ))}
                 </div>
@@ -372,12 +383,12 @@ function OnboardingPage() {
                       key={s}
                       type="button"
                       onClick={() =>
-                        setServices((prev) =>
-                          active ? prev.filter((x) => x !== s) : [...prev, s],
-                        )
+                        setServices((prev) => (active ? prev.filter((x) => x !== s) : [...prev, s]))
                       }
                       className={`rounded-full border px-3.5 py-2 text-sm font-semibold ${
-                        active ? "border-primary bg-primary-soft text-accent-foreground" : "border-border bg-card"
+                        active
+                          ? "border-primary bg-primary-soft text-accent-foreground"
+                          : "border-border bg-card"
                       }`}
                     >
                       {s}
@@ -451,11 +462,17 @@ function OnboardingPage() {
             <div className="grid gap-4">
               <dl className="grid gap-3 text-sm">
                 {[
-                  [t("onb.type"), type === "other" && customType.trim() ? customType.trim() : t(`type.${type}`)],
+                  [
+                    t("onb.type"),
+                    type === "other" && customType.trim() ? customType.trim() : t(`type.${type}`),
+                  ],
                   [t("onb.name"), name || "-"],
                   [t("onb.font"), fontSecondary ? `${fontFamily} + ${fontSecondary}` : fontFamily],
                   [t("onb.currency"), currency],
-                  [t("onb.language"), LANGUAGES.find((l) => l.code === language)?.label ?? "English"],
+                  [
+                    t("onb.language"),
+                    LANGUAGES.find((l) => l.code === language)?.label ?? "English",
+                  ],
                   [t("onb.services"), services.length ? services.join(", ") : "-"],
                   [t("onb.custom"), custom?.fileName ?? "-"],
                 ].map(([k, v]) => (

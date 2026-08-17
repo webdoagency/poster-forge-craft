@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Check, Copy, Download, Facebook, Instagram, Save, Share2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Check, Copy, Download, Facebook, Instagram, Linkedin, Save, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -100,7 +101,12 @@ export function ShareActions({
           {saveLabel}
         </Button>
         {exportable ? (
-          <Button variant="outline" className="h-12 rounded-xl" onClick={exportAll} disabled={sharing}>
+          <Button
+            variant="outline"
+            className="h-12 rounded-xl"
+            onClick={exportAll}
+            disabled={sharing}
+          >
             <Share2 className="mr-1 size-4" />
             {multi ? "Save all slides" : "Save to device"}
           </Button>
@@ -119,32 +125,36 @@ export function ShareActions({
         Copy caption
       </Button>
 
-      <div className="grid grid-cols-2 gap-2">
-        <div
-          className="flex h-16 flex-col items-center justify-center gap-1 rounded-xl border border-dashed bg-muted/40 px-2 text-center opacity-70"
-          title="Connect a Meta business account to publish to Instagram."
-        >
-          <Instagram className="size-4 text-muted-foreground" />
-          <span className="text-[11px] font-semibold text-muted-foreground">Connect required</span>
+      <div className="rounded-xl border border-dashed bg-muted/40 p-3">
+        <p className="text-xs font-semibold">Post to</p>
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          {[
+            { key: "instagram", label: "Instagram", Icon: Instagram },
+            { key: "facebook", label: "Facebook", Icon: Facebook },
+            { key: "linkedin", label: "LinkedIn", Icon: Linkedin },
+          ].map(({ key, label, Icon }) => (
+            <Link key={key} to="/settings" className="block">
+              <span className="flex h-14 flex-col items-center justify-center gap-1 rounded-lg border border-border bg-card px-1 text-center transition hover:border-primary/60">
+                <Icon className="size-4 text-muted-foreground" />
+                <span className="text-[10px] font-semibold text-muted-foreground">Connect</span>
+                <span className="sr-only">{label}</span>
+              </span>
+            </Link>
+          ))}
         </div>
-        <div
-          className="flex h-16 flex-col items-center justify-center gap-1 rounded-xl border border-dashed bg-muted/40 px-2 text-center opacity-70"
-          title="Connect a Meta business account to publish to Facebook."
-        >
-          <Facebook className="size-4 text-muted-foreground" />
-          <span className="text-[11px] font-semibold text-muted-foreground">Connect required</span>
-        </div>
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          Direct publishing is not connected yet, so nothing is published automatically. Manage
+          connections in Settings and use Save to device meanwhile.
+        </p>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Posting to Instagram needs a professional account connected to a Facebook Page through a
-        connected Meta business account. Nothing is published automatically.
-      </p>
 
       {exportable && !slideNodes ? (
         <Button
           variant="ghost"
           className="h-9 rounded-xl text-xs text-muted-foreground"
-          onClick={() => canvasRef.current && downloadNode(canvasRef.current, slugify(filename), size)}
+          onClick={() =>
+            canvasRef.current && downloadNode(canvasRef.current, slugify(filename), size)
+          }
         >
           <Download className="mr-1 size-3.5" />
           Download PNG

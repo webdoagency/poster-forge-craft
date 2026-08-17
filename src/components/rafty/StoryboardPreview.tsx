@@ -2,13 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
-import type {
-  BrandProfile,
-  BusinessType,
-  FormatSpec,
-  Slide,
-  Template,
-} from "@/lib/rafty/types";
+import type { BrandProfile, BusinessType, FormatSpec, Slide, Template } from "@/lib/rafty/types";
 
 type Props = {
   slides: Slide[];

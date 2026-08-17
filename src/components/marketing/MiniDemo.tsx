@@ -99,8 +99,8 @@ export function MiniDemo() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          This is a quick preview. Inside krijo24 you control every detail of
-          your post, with more templates and options than shown here.
+          This is a quick preview. Inside krijo24 you control every detail of your post, with more
+          templates and options than shown here.
         </p>
       </div>
 

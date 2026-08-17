@@ -1,7 +1,15 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { CalendarClock, Images, LayoutTemplate, Palette, Sparkles, LogOut } from "lucide-react";
+import {
+  CalendarClock,
+  Images,
+  LayoutTemplate,
+  Palette,
+  Settings,
+  Sparkles,
+  LogOut,
+} from "lucide-react";
 import { useRafty } from "@/lib/rafty/store";
 import { Logo } from "@/components/rafty/Logo";
 import { Button } from "@/components/ui/button";
@@ -21,7 +29,6 @@ const nav = [
   { to: "/posts", labelKey: "nav.posts", icon: Images },
   { to: "/brand", labelKey: "nav.brand", icon: Palette },
 ] as const;
-
 
 /** Business chrome. Most accounts have one brand, a switcher only appears
  * once the plan grants more than one. */
@@ -56,7 +63,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     business.status === "approved"
       ? null
       : Math.max(0, (trial?.freePostLimit ?? 1) - (trial?.postsCreated ?? 0));
-
 
   return (
     <div className="page-bg min-h-screen">
@@ -102,6 +108,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <CalendarClock className="size-4" />
               {t("nav.schedule")}
+            </Link>
+            <Link
+              to="/settings"
+              aria-label="Account settings"
+              className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground sm:px-3"
+            >
+              <Settings className="size-4" />
+              <span className="hidden sm:inline">Settings</span>
             </Link>
 
             {isAdmin ? (

@@ -4,7 +4,7 @@ import { emptyContent, type BusinessType, type PostContent } from "./types";
  * Neutral placeholder content used only for template thumbnails. No invented
  * company, person or customer data: labels describe the business type itself.
  */
-const BY_TYPE: Record<BusinessType, Partial<PostContent>> = {
+const BY_TYPE: Partial<Record<BusinessType, Partial<PostContent>>> = {
   travel_agency: {
     title: "Summer offer",
     subject: "Destination",
@@ -58,6 +58,109 @@ const BY_TYPE: Record<BusinessType, Partial<PostContent>> = {
     services: ["Delivery", "Returns"],
     cta: "Shop now",
   },
+  hotel: {
+    title: "Stay offer",
+    subject: "Room type",
+    location: "City or area",
+    price: "120",
+    date: "This season",
+    meta1: "2 nights",
+    additionalText: "Breakfast included",
+    services: ["Breakfast", "Parking", "Pool"],
+    cta: "Check availability",
+  },
+  beauty: {
+    title: "New treatment",
+    subject: "Service",
+    price: "35",
+    date: "This week",
+    additionalText: "Limited appointments",
+    services: ["Consultation", "Styling"],
+    cta: "Book your spot",
+  },
+  fitness: {
+    title: "Membership offer",
+    subject: "Programme",
+    price: "29",
+    date: "This month",
+    additionalText: "First week free",
+    services: ["Group classes", "Trainer"],
+    cta: "Start your trial",
+  },
+  healthcare: {
+    title: "Check up offer",
+    subject: "Service",
+    price: "49",
+    date: "This week",
+    additionalText: "Appointments available",
+    services: ["Consultation", "Follow up"],
+    cta: "Book an appointment",
+  },
+  construction: {
+    title: "Project offer",
+    subject: "Service",
+    price: "On request",
+    date: "Available now",
+    additionalText: "Free site visit",
+    services: ["Materials", "Warranty"],
+    cta: "Request an estimate",
+  },
+  cleaning: {
+    title: "Cleaning offer",
+    subject: "Service",
+    price: "39",
+    date: "This week",
+    additionalText: "Flexible hours",
+    services: ["Deep clean", "Eco products"],
+    cta: "Book a cleaning",
+  },
+  events: {
+    title: "Event package",
+    subject: "Event type",
+    location: "Venue",
+    price: "On request",
+    date: "Open dates",
+    additionalText: "Full planning included",
+    services: ["Catering", "Decoration"],
+    cta: "Check your date",
+  },
+  education: {
+    title: "Course starting",
+    subject: "Course",
+    price: "150",
+    date: "Next month",
+    additionalText: "Small groups",
+    services: ["Materials", "Certificate"],
+    cta: "Enrol now",
+  },
+  professional_services: {
+    title: "Service offer",
+    subject: "Service",
+    price: "On request",
+    date: "This month",
+    additionalText: "First consultation free",
+    services: ["Consultation", "Support"],
+    cta: "Get in touch",
+  },
+  ecommerce: {
+    title: "New arrival",
+    subject: "Category",
+    price: "49",
+    meta1: "-20%",
+    date: "Until Sunday",
+    additionalText: "Ships today",
+    services: ["Free shipping", "Returns"],
+    cta: "Shop now",
+  },
+  automotive_service: {
+    title: "Service offer",
+    subject: "Service",
+    price: "59",
+    date: "This week",
+    additionalText: "Same day slots",
+    services: ["Diagnostics", "Warranty"],
+    cta: "Book a service",
+  },
   other: {
     title: "Your headline",
     subject: "Product or service",
@@ -70,5 +173,5 @@ const BY_TYPE: Record<BusinessType, Partial<PostContent>> = {
 };
 
 export function placeholderContent(type: BusinessType): PostContent {
-  return { ...emptyContent, services: [], ...BY_TYPE[type] } as PostContent;
+  return { ...emptyContent, services: [], ...(BY_TYPE[type] ?? BY_TYPE.other) } as PostContent;
 }

@@ -238,14 +238,6 @@ function CreatePage() {
     );
   }
 
-  function applyOccasion(occasionId: string) {
-    const preset = OCCASION_PRESETS.find((o) => o.id === occasionId);
-    if (!preset) return;
-    set({
-      title: content.title || preset.title,
-      additionalText: content.additionalText || preset.extra,
-    });
-  }
 
   function generate() {
     if (locked) {
@@ -516,21 +508,6 @@ function CreatePage() {
                 </div>
               </div>
 
-              <div className="grid gap-2">
-                <Label>Occasion</Label>
-                <div className="flex flex-wrap gap-2">
-                  {OCCASION_PRESETS.map((o) => (
-                    <button
-                      key={o.id}
-                      type="button"
-                      onClick={() => applyOccasion(o.id)}
-                      className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-primary hover:text-foreground"
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               <div className="grid gap-2">
                 <Label>{t("create.services")}</Label>

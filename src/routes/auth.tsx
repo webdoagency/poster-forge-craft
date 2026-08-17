@@ -7,6 +7,9 @@ import { Logo } from "@/components/rafty/Logo";
 import { useRafty } from "@/lib/rafty/store";
 
 export const Route = createFileRoute("/auth")({
+  // The form's state depends on the browser-held Supabase session, so SSR of
+  // this route only produces hydration mismatches.
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Sign in | krijo24" },

@@ -136,7 +136,11 @@ export function generateCaption(input: {
   const usedPhrase = pickPhrase(instructions.phrasesUse, seed);
   if (usedPhrase) parts.push(usedPhrase.replace(/\.$/, "") + ".");
 
-  const cta = content.cta.trim() || instructions.ctaStyle.trim() || DEFAULT_CLOSERS[businessType];
+  const cta =
+    content.cta.trim() ||
+    instructions.ctaStyle.trim() ||
+    DEFAULT_CLOSERS[businessType] ||
+    DEFAULT_CLOSERS.other!;
   parts.push(cta.replace(/\.$/, "") + ".");
 
   if (instructions.contact.trim()) parts.push(instructions.contact.trim());

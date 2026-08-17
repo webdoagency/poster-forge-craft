@@ -700,11 +700,17 @@ export const SOCIAL_PLATFORMS: {
     available: false,
     note: "Needs a Facebook Page inside a Meta business account.",
   },
-  { platform: "linkedin", label: "LinkedIn", available: false, note: "Company page publishing." },
-  { platform: "tiktok", label: "TikTok", available: false, note: "Business account publishing." },
-  { platform: "x", label: "X", available: false, note: "Account posting." },
-  { platform: "youtube", label: "YouTube", available: false, note: "Shorts publishing." },
+  {
+    platform: "linkedin",
+    label: "LinkedIn",
+    available: false,
+    note: "Needs a LinkedIn company page with posting access.",
+  },
 ];
+
+/** The only platforms offered in the product today. Older records may still
+ * reference other platforms, so PLATFORM_LABELS keeps every historic value. */
+export const PUBLISHING_PLATFORMS: SocialPlatform[] = SOCIAL_PLATFORMS.map((p) => p.platform);
 
 export const PLATFORM_LABELS: Record<SocialPlatform, string> = {
   instagram: "Instagram",

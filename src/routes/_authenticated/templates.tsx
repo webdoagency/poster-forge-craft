@@ -538,20 +538,23 @@ function TemplatesPage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 xl:grid-cols-5">
         {ordered.map((tpl) => (
           <article key={tpl.id} className="card-soft relative overflow-hidden">
-            <div className="overflow-hidden">
+            <div className="overflow-hidden p-1.5">
               {brand && business ? (
-                <PostCanvas
-                  template={tpl}
-                  content={placeholder}
-                  brand={brand}
-                  businessName={business.name}
-                  businessType={business.type}
-                />
+                <LazyMount>
+                  <PostCanvas
+                    template={tpl}
+                    content={placeholder}
+                    brand={brand}
+                    businessName={business.name}
+                    businessType={business.type}
+                    className="rounded-md"
+                  />
+                </LazyMount>
               ) : (
-                <div className="aspect-[4/5] w-full bg-muted" />
+                <div className="aspect-[4/5] w-full rounded-md bg-muted" />
               )}
             </div>
             <Button
@@ -559,25 +562,25 @@ function TemplatesPage() {
               size="icon"
               variant="ghost"
               aria-label="Favourite"
-              className="absolute right-2 top-2 size-8 rounded-full bg-background/80"
+              className="absolute right-1.5 top-1.5 size-7 rounded-full bg-background/80"
               onClick={() => void toggleFavorite(tpl.id)}
             >
               <Star
                 className={
                   favorites.includes(tpl.id)
-                    ? "size-4 fill-primary text-primary"
-                    : "size-4 text-muted-foreground"
+                    ? "size-3.5 fill-primary text-primary"
+                    : "size-3.5 text-muted-foreground"
                 }
               />
             </Button>
-            <div className="flex items-center gap-3 px-3 pb-3 pt-2.5">
+            <div className="flex items-center gap-2 px-2 pb-2">
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold">{tpl.name}</p>
-                <p className="truncate text-xs text-muted-foreground">
+                <p className="truncate text-[11px] font-bold">{tpl.name}</p>
+                <p className="truncate text-[10px] text-muted-foreground">
                   {tpl.scope === "custom" ? "Your template" : (tpl.tags ?? []).map((x) => TAG_LABELS[x]).join(", ")}
                 </p>
               </div>
-              <Button asChild size="sm" variant="outline" className="ml-auto shrink-0 rounded-xl">
+              <Button asChild size="sm" variant="ghost" className="ml-auto h-7 shrink-0 rounded-lg px-2 text-[11px]">
                 <Link to="/create" search={{ template: tpl.id }}>
                   {t("tpl.select")}
                 </Link>
@@ -586,6 +589,7 @@ function TemplatesPage() {
           </article>
         ))}
       </div>
+
 
     </div>
   );

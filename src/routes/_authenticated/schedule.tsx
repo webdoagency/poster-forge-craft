@@ -272,7 +272,6 @@ function SchedulePage() {
           </Button>
         </div>
 
-
         <div className="mt-5 grid gap-2">
           {rows.length === 0 ? (
             <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">

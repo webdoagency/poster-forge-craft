@@ -46,7 +46,7 @@ function PostsPage() {
   async function handleDownload(post: Post) {
     const node = canvasRefs.current.get(post.id);
     if (!node) return;
-    await downloadNode(node, slugify(post.content.title || "rafty-post"));
+    await downloadNode(node, slugify(post.content.title || "krijo24-post"));
   }
 
   async function handleCopyCaption(post: Post) {

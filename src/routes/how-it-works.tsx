@@ -21,11 +21,11 @@ export const Route = createFileRoute("/how-it-works")({
         property: "og:description",
         content: "Four steps, one finished branded post. No design skills needed.",
       },
-      { property: "og:url", content: "https://rafty.webdoagency.com/how-it-works" },
+      { property: "og:url", content: "https://krijo24.com/how-it-works" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://rafty.webdoagency.com/how-it-works" }],
+    links: [{ rel: "canonical", href: "https://krijo24.com/how-it-works" }],
   }),
   component: HowItWorksPage,
 });

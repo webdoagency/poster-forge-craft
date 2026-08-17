@@ -21,11 +21,11 @@ export const Route = createFileRoute("/gallery")({
         property: "og:description",
         content: "A curated look at krijo24's global template library, grouped by visual family.",
       },
-      { property: "og:url", content: "https://rafty.webdoagency.com/gallery" },
+      { property: "og:url", content: "https://krijo24.com/gallery" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://rafty.webdoagency.com/gallery" }],
+    links: [{ rel: "canonical", href: "https://krijo24.com/gallery" }],
   }),
   component: GalleryPage,
 });

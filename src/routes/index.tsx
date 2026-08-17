@@ -26,11 +26,11 @@ export const Route = createFileRoute("/")({
         content:
           "Create professional branded content quickly and consistently, no design skills required.",
       },
-      { property: "og:url", content: "https://rafty.webdoagency.com/" },
+      { property: "og:url", content: "https://krijo24.com/" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://rafty.webdoagency.com/" }],
+    links: [{ rel: "canonical", href: "https://krijo24.com/" }],
   }),
   component: LandingPage,
 });

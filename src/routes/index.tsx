@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
-import { RaftyIntro } from "@/components/marketing/RaftyIntro";
+import { BrandIntro } from "@/components/marketing/BrandIntro";
 import { ScrollStory } from "@/components/marketing/ScrollStory";
 import { MiniDemo } from "@/components/marketing/MiniDemo";
 import { TemplateShowcase } from "@/components/marketing/TemplateShowcase";
@@ -38,7 +38,7 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   return (
     <>
-      <RaftyIntro />
+      <BrandIntro />
       <MarketingLayout>
         <Hero />
         <TryItDemo />

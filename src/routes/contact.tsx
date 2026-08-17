@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MarketingLayout } from "@/components/marketing/MarketingLayout";
 import { usePrefersReducedMotion } from "@/components/marketing/usePrefersReducedMotion";
-import { submitContactRequest } from "@/lib/rafty/repo";
+import { submitContactRequestFn } from "@/lib/contact.functions";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({

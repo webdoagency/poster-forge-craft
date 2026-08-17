@@ -68,7 +68,6 @@ function SchedulePage() {
   const [timezone, setTimezone] = useState("Europe/Tirane");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
-  const [labels, setLabels] = useState<Record<string, string>>({});
 
   const businessId = business?.id ?? null;
 
@@ -80,7 +79,6 @@ function SchedulePage() {
     ]);
     setRows(queue);
     setConnections(conns);
-    setLabels(Object.fromEntries(conns.map((c) => [c.platform, c.accountLabel])));
   }, [businessId]);
 
   useEffect(() => {
@@ -163,16 +161,6 @@ function SchedulePage() {
 
   async function remove(scheduleId: string) {
     await repo.deleteSchedule(scheduleId);
-    await load();
-  }
-
-  async function saveLabel(p: SocialPlatform) {
-    const res = await repo.saveConnectionLabel(bid, p, labels[p] ?? "");
-    if (res.error) {
-      toast.error(res.error);
-      return;
-    }
-    toast.success("Saved.");
     await load();
   }
 

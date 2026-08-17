@@ -5,10 +5,9 @@
  */
 
 /**
- * Quick start types. They only decide which fields are suggested, never which
- * templates are available. Any other business uses "other" plus a custom type
- * label, so salons, gyms, clinics, hotels, trades, events and local shops all
- * fit without a separate product.
+ * Quick start categories. They only decide which fields, services and template
+ * ordering are suggested, never which templates are available. Any business
+ * that does not fit uses "other" plus its own custom category label.
  */
 export type BusinessType =
   | "travel_agency"
@@ -16,6 +15,17 @@ export type BusinessType =
   | "car_dealership"
   | "restaurant"
   | "retail"
+  | "hotel"
+  | "beauty"
+  | "fitness"
+  | "healthcare"
+  | "construction"
+  | "cleaning"
+  | "events"
+  | "education"
+  | "professional_services"
+  | "ecommerce"
+  | "automotive_service"
   | "other";
 
 

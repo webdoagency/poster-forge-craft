@@ -174,24 +174,35 @@ function CreatePage() {
       prev.map((slide, i) => (i === activeIndex ? { ...slide, adjustments: next } : slide)),
     );
 
-  /** Switching format resets the frames to that format's defaults so content
-   * from a different shape never leaks into the new one. */
+  /** Switching format keeps what the user already typed. Extra frames are
+   * dropped or added to match the new format, the first frame always carries
+   * over so nobody retypes an offer just to see it as a story. */
   function changeFormat(next: ContentFormat) {
+    if (next === format) return;
     const nextSpec = FORMAT_SPECS[next];
     const nextTemplate = templatesForFormat(templates, next)[0];
+    const nextMax = nextTemplate?.slides?.max ?? nextSpec.maxSlides;
     setFormat(next);
     setTemplateId(nextTemplate?.id ?? "");
-    setSlides(
-      Array.from({ length: nextSpec.defaultSlides }, () =>
-        newSlide(next === "video" ? nextSpec.defaultDuration : undefined),
-      ),
-    );
+    setSlides((prev) => {
+      const kept = prev.slice(0, Math.max(1, Math.min(nextSpec.defaultSlides, nextMax))).map((slide) => ({
+        ...slide,
+        content: { ...slide.content },
+        adjustments: { ...slide.adjustments },
+        ...(next === "video" ? { durationMs: slide.durationMs ?? nextSpec.defaultDuration } : {}),
+      }));
+      while (kept.length < nextSpec.defaultSlides && kept.length < nextMax) {
+        kept.push(newSlide(next === "video" ? nextSpec.defaultDuration : undefined));
+      }
+      return kept;
+    });
     setActiveIndex(0);
     setPostId(null);
     setGenerated(false);
     setShowAdjust(false);
     slideNodes.current = [];
   }
+
 
   async function onImage(file: File) {
     set({ imageDataUrl: await readFileAsDataUrl(file) });

@@ -103,6 +103,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <CalendarClock className="size-4" />
               {t("nav.schedule")}
             </Link>
+            <Link
+              to="/settings"
+              className="hidden rounded-lg px-3 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground sm:flex sm:items-center sm:gap-1.5"
+            >
+              <Settings className="size-4" />
+              Settings
+            </Link>
+
 
             {isAdmin ? (
               <Link

@@ -20,7 +20,7 @@ import type { ScheduledPost, SocialConnection, SocialPlatform } from "@/lib/raft
 
 export const Route = createFileRoute("/_authenticated/schedule")({
   validateSearch: (search: Record<string, unknown>): { post?: string } =>
-    typeof search.post === "string" && search.post ? { post: search.post } : {},
+    typeof search['post'] === "string" && search['post'] ? { post: search['post'] } : {},
   head: () => ({
     meta: [
       { title: "Schedule | krijo24" },

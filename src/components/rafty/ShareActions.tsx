@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Check, Copy, Download, Facebook, Instagram, Save, Share2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Check, Copy, Download, Facebook, Instagram, Linkedin, Save, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {

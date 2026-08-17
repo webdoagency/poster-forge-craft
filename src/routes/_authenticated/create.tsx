@@ -85,7 +85,6 @@ function CreatePage() {
     services,
     posts,
     templates,
-    trial,
     formats,
     canCreatePost,
     createPost,
@@ -158,7 +157,6 @@ function CreatePage() {
   const primaryFields = fields.slice(0, 2);
   const secondaryFields = fields.slice(2);
 
-  const trialLeft = Math.max(0, (trial?.freePostLimit ?? 1) - (trial?.postsCreated ?? 0));
   const locked = !canCreatePost && !postId;
 
   /** Patches only the active frame. */

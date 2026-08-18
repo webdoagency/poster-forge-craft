@@ -10,6 +10,7 @@ const en: Record<string, string> = {
   "nav.templates": "Templates",
   "nav.schedule": "Schedule",
   "nav.brand": "Brand",
+  "nav.website": "Website",
   "nav.signOut": "Sign out",
 
   "landing.hero": "Create branded content in seconds.",
@@ -149,6 +150,7 @@ const de: Record<string, string> = {
   "nav.templates": "Vorlagen",
   "nav.schedule": "Planung",
   "nav.brand": "Marke",
+  "nav.website": "Website",
   "nav.signOut": "Abmelden",
 
   "landing.hero": "Erstelle Marken Content in Sekunden.",
@@ -288,6 +290,7 @@ const sq: Record<string, string> = {
   "nav.templates": "Shabllonet",
   "nav.schedule": "Planifiko",
   "nav.brand": "Brendi",
+  "nav.website": "Faqja",
   "nav.signOut": "Shkëputu",
 
   "landing.hero": "Krijo përmbajtje me brendin tënd në sekonda.",

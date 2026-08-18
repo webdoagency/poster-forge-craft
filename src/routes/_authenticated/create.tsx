@@ -137,6 +137,41 @@ function CreatePage() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const slideNodes = useRef<(HTMLDivElement | null)[]>([]);
 
+  // Prefill from an item found on the brand's own website. Only the text and
+  // the picture come across: the template still owns the whole layout.
+  const loadItemImage = useServerFn(fetchDiscoveredImage);
+  const prefilled = useRef(false);
+  useEffect(() => {
+    const itemId = search.item;
+    if (!itemId || !business || existing || prefilled.current) return;
+    prefilled.current = true;
+    void (async () => {
+      const item = (await repo.listDiscovered(business.id)).find((row) => row.id === itemId);
+      if (!item) return;
+      const image = item.imageUrl
+        ? await loadItemImage({ data: { businessId: business.id, itemId } })
+        : null;
+      setSlides((prev) =>
+        prev.map((slide, i) =>
+          i === 0
+            ? {
+                ...slide,
+                content: {
+                  ...slide.content,
+                  title: item.title.slice(0, 90),
+                  price: item.price,
+                  additional: item.description.slice(0, 160),
+                  ...(image?.ok ? { imageDataUrl: image.dataUrl } : {}),
+                },
+              }
+            : slide,
+        ),
+      );
+      await repo.setDiscoveredStatus(itemId, "used");
+    })();
+  }, [search.item, business, existing, loadItemImage]);
+
+
   const spec = FORMAT_SPECS[format];
   /** Business type only reorders the list, it never removes a template. */
   const formatTemplates = useMemo(

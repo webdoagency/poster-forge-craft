@@ -7,6 +7,8 @@ import {
   emptyInstructions,
   type AccountPlan,
   type BrandProfile,
+  type BrandWebsite,
+  type DiscoveredItem,
   type Business,
   type BusinessService,
   type BusinessStatus,

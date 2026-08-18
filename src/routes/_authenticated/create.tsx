@@ -149,7 +149,9 @@ function CreatePage() {
     if (!itemId || !business || existing || prefilled.current) return;
     prefilled.current = true;
     void (async () => {
-      const item = (await repo.listDiscovered(business.id)).find((row: repo.DiscoveredItemRow) => row.id === itemId);
+      const item = (await repo.listDiscovered(business.id)).find(
+        (row) => row.id === itemId,
+      );
       if (!item) return;
       const image = item.imageUrl
         ? await loadItemImage({ data: { businessId: business.id, itemId } })

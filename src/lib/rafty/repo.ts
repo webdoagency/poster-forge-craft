@@ -844,8 +844,25 @@ export async function adminListCustomTemplates(): Promise<
   }));
 }
 
-export async function adminSetStatus(businessId: string, status: BusinessStatus) {
-  await supabase.from("businesses").update({ status }).eq("id", businessId);
+/**
+ * Approving a brand also activates its plan, in one database function that
+ * verifies the caller is a platform admin. An approved brand therefore always
+ * has the unlimited allowance its plan promises.
+ */
+export async function adminSetStatus(
+  businessId: string,
+  status: BusinessStatus,
+  monthlyPrice = 100,
+): Promise<{ error?: string }> {
+  if (status === "approved") {
+    const { error } = await supabase.rpc("admin_approve_business", {
+      _business_id: businessId,
+      _monthly_price: monthlyPrice,
+    });
+    return error ? { error: error.message } : {};
+  }
+  const { error } = await supabase.from("businesses").update({ status }).eq("id", businessId);
+  return error ? { error: error.message } : {};
 }
 
 export async function adminListPlans(): Promise<AccountPlan[]> {

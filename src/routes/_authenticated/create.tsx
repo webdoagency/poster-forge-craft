@@ -34,10 +34,11 @@ import { id as newId, type PostWithContact } from "@/lib/rafty/repo";
 export const Route = createFileRoute("/_authenticated/create")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { post?: string; template?: string; duplicate?: boolean } => {
-    const out: { post?: string; template?: string; duplicate?: boolean } = {};
+  ): { post?: string; template?: string; duplicate?: boolean; item?: string } => {
+    const out: { post?: string; template?: string; duplicate?: boolean; item?: string } = {};
     if (typeof search["post"] === "string") out.post = search["post"];
     if (typeof search["template"] === "string") out.template = search["template"];
+    if (typeof search["item"] === "string") out.item = search["item"];
     if (search["duplicate"] === "1" || search["duplicate"] === true) out.duplicate = true;
     return out;
   },

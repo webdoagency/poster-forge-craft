@@ -24,6 +24,7 @@ import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
+import { Route as AuthenticatedWebsiteRouteImport } from './routes/_authenticated/website'
 import { Route as ApiPublicCronAutomationRouteImport } from './routes/api/public/cron/automation'
 import { Route as ApiPublicOauthMetaRouteImport } from './routes/api/public/oauth/meta'
 
@@ -101,6 +102,11 @@ const AuthenticatedTemplatesRoute = AuthenticatedTemplatesRouteImport.update({
   path: '/templates',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWebsiteRoute = AuthenticatedWebsiteRouteImport.update({
+  id: '/website',
+  path: '/website',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiPublicCronAutomationRoute = ApiPublicCronAutomationRouteImport.update({
   id: '/api/public/cron/automation',
   path: '/api/public/cron/automation',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
+  '/website': typeof AuthenticatedWebsiteRoute
   '/api/public/cron/automation': typeof ApiPublicCronAutomationRoute
   '/api/public/oauth/meta': typeof ApiPublicOauthMetaRoute
 }
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
+  '/website': typeof AuthenticatedWebsiteRoute
   '/api/public/cron/automation': typeof ApiPublicCronAutomationRoute
   '/api/public/oauth/meta': typeof ApiPublicOauthMetaRoute
 }
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
+  '/_authenticated/website': typeof AuthenticatedWebsiteRoute
   '/api/public/cron/automation': typeof ApiPublicCronAutomationRoute
   '/api/public/oauth/meta': typeof ApiPublicOauthMetaRoute
 }
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/settings'
     | '/templates'
+    | '/website'
     | '/api/public/cron/automation'
     | '/api/public/oauth/meta'
   fileRoutesByTo: FileRoutesByTo
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/settings'
     | '/templates'
+    | '/website'
     | '/api/public/cron/automation'
     | '/api/public/oauth/meta'
   id:
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/_authenticated/schedule'
     | '/_authenticated/settings'
     | '/_authenticated/templates'
+    | '/_authenticated/website'
     | '/api/public/cron/automation'
     | '/api/public/oauth/meta'
   fileRoutesById: FileRoutesById
@@ -345,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTemplatesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/website': {
+      id: '/_authenticated/website'
+      path: '/website'
+      fullPath: '/website'
+      preLoaderRoute: typeof AuthenticatedWebsiteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/cron/automation': {
       id: '/api/public/cron/automation'
       path: '/api/public/cron/automation'
@@ -371,6 +390,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedScheduleRoute: typeof AuthenticatedScheduleRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTemplatesRoute: typeof AuthenticatedTemplatesRoute
+  AuthenticatedWebsiteRoute: typeof AuthenticatedWebsiteRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -382,6 +402,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedScheduleRoute: AuthenticatedScheduleRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTemplatesRoute: AuthenticatedTemplatesRoute,
+  AuthenticatedWebsiteRoute: AuthenticatedWebsiteRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

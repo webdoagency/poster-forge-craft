@@ -554,7 +554,7 @@ function RenderBooth({
               businessName={business.name}
               businessType={business.type}
               showBrandName={post.showBrandName}
-              showContact={post.showContact}
+              showContact={post.showContact ?? false}
               adjustments={post.adjustments}
               format={post.format ?? "post"}
             />

@@ -1186,5 +1186,15 @@ export async function savePostRender(
   return {};
 }
 
+/** Ids of this brand's posts that still have no rendered image stored. */
+export async function listPostsMissingRender(businessId: string): Promise<string[]> {
+  const { data } = await supabase
+    .from("posts")
+    .select("id, render_path")
+    .eq("business_id", businessId)
+    .is("render_path", null);
+  return (data ?? []).map((row) => (row as { id: string }).id);
+}
+
 export const DEFAULTS = DEFAULT_BRAND;
 

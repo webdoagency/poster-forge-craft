@@ -346,6 +346,22 @@ function CreatePage() {
       if (saved) {
         setPostId(saved.id);
         toast.success(t("create.saved"));
+        // Store the exact rendered image so scheduling and publishing send
+        // precisely what is on screen. Failure here never blocks the save.
+        const node = canvasRef.current;
+        if (node && format === "post") {
+          void (async () => {
+            try {
+              const dataUrl = await renderNodeToDataUrl(node, {
+                width: spec.width,
+                height: spec.height,
+              });
+              await repo.savePostRender(business!.id, saved.id, dataUrl);
+            } catch {
+              /* the Website page re-renders anything still missing */
+            }
+          })();
+        }
       } else {
         toast.error("Could not save the post. Please try again.");
       }

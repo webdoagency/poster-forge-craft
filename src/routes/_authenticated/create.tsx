@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Image as ImageIcon, Plus, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { StoryboardPreview } from "@/components/rafty/StoryboardPreview";
 import { useRafty } from "@/lib/rafty/store";
 import { generateCaption } from "@/lib/rafty/caption";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
+import { renderNodeToDataUrl } from "@/lib/rafty/download";
 import { recommendedFirst, templatesForFormat } from "@/lib/rafty/templates";
 import { clampDuration, CTA_PRESETS, FORMAT_SPECS, TYPE_FIELDS } from "@/lib/rafty/constants";
 import {
@@ -30,14 +31,18 @@ import {
   type Slide,
 } from "@/lib/rafty/types";
 import { id as newId, type PostWithContact } from "@/lib/rafty/repo";
+import * as repo from "@/lib/rafty/repo";
+import { useServerFn } from "@tanstack/react-start";
+import { fetchDiscoveredImage } from "@/lib/scan.functions";
 
 export const Route = createFileRoute("/_authenticated/create")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { post?: string; template?: string; duplicate?: boolean } => {
-    const out: { post?: string; template?: string; duplicate?: boolean } = {};
+  ): { post?: string; template?: string; duplicate?: boolean; item?: string } => {
+    const out: { post?: string; template?: string; duplicate?: boolean; item?: string } = {};
     if (typeof search["post"] === "string") out.post = search["post"];
     if (typeof search["template"] === "string") out.template = search["template"];
+    if (typeof search["item"] === "string") out.item = search["item"];
     if (search["duplicate"] === "1" || search["duplicate"] === true) out.duplicate = true;
     return out;
   },
@@ -135,6 +140,43 @@ function CreatePage() {
   const [saving, setSaving] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
   const slideNodes = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Prefill from an item found on the brand's own website. Only the text and
+  // the picture come across: the template still owns the whole layout.
+  const loadItemImage = useServerFn(fetchDiscoveredImage);
+  const prefilled = useRef(false);
+  useEffect(() => {
+    const itemId = search.item;
+    if (!itemId || !business || existing || prefilled.current) return;
+    prefilled.current = true;
+    void (async () => {
+      const item = (await repo.listDiscovered(business.id)).find(
+        (row) => row.id === itemId,
+      );
+      if (!item) return;
+      const image = item.imageUrl
+        ? await loadItemImage({ data: { businessId: business.id, itemId } })
+        : null;
+      setSlides((prev) =>
+        prev.map((slide, i) =>
+          i === 0
+            ? {
+                ...slide,
+                content: {
+                  ...slide.content,
+                  title: item.title.slice(0, 90),
+                  price: item.price,
+                  additional: item.description.slice(0, 160),
+                  ...(image?.ok ? { imageDataUrl: image.dataUrl } : {}),
+                },
+              }
+            : slide,
+        ),
+      );
+      await repo.setDiscoveredStatus(itemId, "used");
+    })();
+  }, [search.item, business, existing, loadItemImage]);
+
 
   const spec = FORMAT_SPECS[format];
   /** Business type only reorders the list, it never removes a template. */
@@ -305,6 +347,22 @@ function CreatePage() {
       if (saved) {
         setPostId(saved.id);
         toast.success(t("create.saved"));
+        // Store the exact rendered image so scheduling and publishing send
+        // precisely what is on screen. Failure here never blocks the save.
+        const node = canvasRef.current;
+        if (node && format === "post") {
+          void (async () => {
+            try {
+              const dataUrl = await renderNodeToDataUrl(node, {
+                width: spec.width,
+                height: spec.height,
+              });
+              await repo.savePostRender(business!.id, saved.id, dataUrl);
+            } catch {
+              /* the Website page re-renders anything still missing */
+            }
+          })();
+        }
       } else {
         toast.error("Could not save the post. Please try again.");
       }

@@ -353,13 +353,15 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
     [business, saveBrandFn],
   );
 
+  /** Mirrors the database rule exactly: an approved brand on an active plan
+   * creates without any limit, everyone else is on the trial allowance. */
   const canCreatePost = useMemo(() => {
     if (!business) return false;
-    if (business.status === "approved") return true;
     if (business.status === "rejected" || business.status === "suspended") return false;
+    if (business.status === "approved" && plan?.active) return true;
     const used = trial?.postsCreated ?? 0;
     return used < (trial?.freePostLimit ?? 1);
-  }, [business, trial]);
+  }, [business, plan, trial]);
 
   /** Real counts from this brand's own saved posts, never seeded data. */
   const templateUsage = useMemo(() => {

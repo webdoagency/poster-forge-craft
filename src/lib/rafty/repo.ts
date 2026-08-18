@@ -7,6 +7,8 @@ import {
   emptyInstructions,
   type AccountPlan,
   type BrandProfile,
+  type BrandWebsite,
+  type DiscoveredItem,
   type Business,
   type BusinessService,
   type BusinessStatus,
@@ -842,8 +844,25 @@ export async function adminListCustomTemplates(): Promise<
   }));
 }
 
-export async function adminSetStatus(businessId: string, status: BusinessStatus) {
-  await supabase.from("businesses").update({ status }).eq("id", businessId);
+/**
+ * Approving a brand also activates its plan, in one database function that
+ * verifies the caller is a platform admin. An approved brand therefore always
+ * has the unlimited allowance its plan promises.
+ */
+export async function adminSetStatus(
+  businessId: string,
+  status: BusinessStatus,
+  monthlyPrice = 100,
+): Promise<{ error?: string }> {
+  if (status === "approved") {
+    const { error } = await supabase.rpc("admin_approve_business", {
+      _business_id: businessId,
+      _monthly_price: monthlyPrice,
+    });
+    return error ? { error: error.message } : {};
+  }
+  const { error } = await supabase.from("businesses").update({ status }).eq("id", businessId);
+  return error ? { error: error.message } : {};
 }
 
 export async function adminListPlans(): Promise<AccountPlan[]> {
@@ -1038,4 +1057,161 @@ export async function adminSetContactHandled(requestId: string, handled: boolean
   await supabase.from("contact_requests").update({ handled }).eq("id", requestId);
 }
 
+/* --------------------------- website automation --------------------------- */
+/**
+ * A brand's own website is the source for automatic content. Every row here is
+ * scoped to the caller's brand by RLS, exactly like posts and schedules.
+ */
+
+const DEFAULT_WEBSITE = (businessId: string): BrandWebsite => ({
+  businessId,
+  url: "",
+  scanFrequency: "off",
+  autoMode: "off",
+  defaultTemplateId: null,
+  postTime: "10:00",
+  timezone: "UTC",
+  platforms: [],
+  lastScannedAt: null,
+});
+
+export async function getWebsite(businessId: string): Promise<BrandWebsite> {
+  const { data } = await supabase
+    .from("brand_websites")
+    .select("*")
+    .eq("business_id", businessId)
+    .maybeSingle();
+  if (!data) return DEFAULT_WEBSITE(businessId);
+  const row = data as unknown as {
+    url: string;
+    scan_frequency: string;
+    auto_mode: string;
+    default_template_id: string | null;
+    post_time: string;
+    timezone: string;
+    platforms: string[] | null;
+    last_scanned_at: string | null;
+  };
+  return {
+    businessId,
+    url: row.url ?? "",
+    scanFrequency: (row.scan_frequency as BrandWebsite["scanFrequency"]) ?? "off",
+    autoMode: (row.auto_mode as BrandWebsite["autoMode"]) ?? "off",
+    defaultTemplateId: row.default_template_id ?? null,
+    postTime: row.post_time ?? "10:00",
+    timezone: row.timezone ?? "UTC",
+    platforms: (row.platforms ?? []) as SocialPlatform[],
+    lastScannedAt: row.last_scanned_at ?? null,
+  };
+}
+
+export async function saveWebsite(
+  businessId: string,
+  patch: Partial<BrandWebsite>,
+): Promise<{ error?: string }> {
+  const row: Record<string, any> = { business_id: businessId };
+  if (patch.url !== undefined) row["url"] = patch.url.trim().slice(0, 500);
+  if (patch.scanFrequency !== undefined) row["scan_frequency"] = patch.scanFrequency;
+  if (patch.autoMode !== undefined) row["auto_mode"] = patch.autoMode;
+  if (patch.defaultTemplateId !== undefined) row["default_template_id"] = patch.defaultTemplateId;
+  if (patch.postTime !== undefined) row["post_time"] = patch.postTime;
+  if (patch.timezone !== undefined) row["timezone"] = patch.timezone;
+  if (patch.platforms !== undefined) row["platforms"] = patch.platforms;
+  const { error } = await supabase
+    .from("brand_websites")
+    .upsert(row as never, { onConflict: "business_id" });
+  return error ? { error: error.message } : {};
+}
+
+export async function listDiscovered(businessId: string): Promise<DiscoveredItem[]> {
+  const { data } = await supabase
+    .from("discovered_items")
+    .select("*")
+    .eq("business_id", businessId)
+    .order("created_at", { ascending: false })
+    .limit(60);
+  return (data ?? []).map((raw) => {
+    const row = raw as unknown as {
+      id: string;
+      business_id: string;
+      source_url: string;
+      title: string;
+      description: string;
+      price: string;
+      currency: string;
+      image_url: string | null;
+      status: string;
+      post_id: string | null;
+      created_at: string;
+    };
+    return {
+      id: row.id,
+      businessId: row.business_id,
+      sourceUrl: row.source_url,
+      title: row.title,
+      description: row.description,
+      price: row.price,
+      currency: row.currency,
+      imageUrl: row.image_url,
+      status: (row.status as DiscoveredItem["status"]) ?? "new",
+      postId: row.post_id,
+      createdAt: row.created_at,
+    };
+  });
+}
+
+export async function setDiscoveredStatus(
+  itemId: string,
+  status: DiscoveredItem["status"],
+  postId?: string | null,
+): Promise<{ error?: string }> {
+  const { error } = await supabase
+    .from("discovered_items")
+    .update({ status, ...(postId !== undefined ? { post_id: postId } : {}) } as never)
+    .eq("id", itemId);
+  return error ? { error: error.message } : {};
+}
+
+export async function removeDiscovered(itemId: string) {
+  await supabase.from("discovered_items").delete().eq("id", itemId);
+}
+
+/**
+ * Stores the exact rendered 1080 wide image for a saved post. Publishing sends
+ * this file, so what a brand sees in the preview is what goes out.
+ */
+export async function savePostRender(
+  businessId: string,
+  postId: string,
+  dataUrl: string,
+): Promise<{ error?: string }> {
+  if (!isDataUrl(dataUrl)) return { error: "Nothing to store." };
+  const path = await uploadDataUrl(businessId, "posts", dataUrl);
+  if (!path) return { error: "The rendered image could not be stored." };
+  const { data: current } = await supabase
+    .from("posts")
+    .select("render_path")
+    .eq("id", postId)
+    .maybeSingle();
+  const { error } = await supabase
+    .from("posts")
+    .update({ render_path: path } as never)
+    .eq("id", postId);
+  if (error) return { error: error.message };
+  const old = (current as { render_path: string | null } | null)?.render_path ?? null;
+  if (old && old !== path) await removeFile(old);
+  return {};
+}
+
+/** Ids of this brand's posts that still have no rendered image stored. */
+export async function listPostsMissingRender(businessId: string): Promise<string[]> {
+  const { data } = await supabase
+    .from("posts")
+    .select("id, render_path")
+    .eq("business_id", businessId)
+    .is("render_path", null);
+  return (data ?? []).map((row) => (row as { id: string }).id);
+}
+
 export const DEFAULTS = DEFAULT_BRAND;
+

@@ -131,8 +131,17 @@ function AdminPage() {
   }, [businesses, query, statusFilter]);
 
   async function setStatus(businessId: string, status: BusinessStatus) {
-    await repo.adminSetStatus(businessId, status);
-    toast.success(`Status set to ${status}`);
+    const existing = plans.find(
+      (p) => p.userId === businesses.find((b) => b.id === businessId)?.ownerUserId,
+    );
+    const { error } = await repo.adminSetStatus(businessId, status, existing?.monthlyPrice ?? 100);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    toast.success(
+      status === "approved" ? "Approved. Plan activated, posts are unlimited." : `Status set to ${status}`,
+    );
     await load();
   }
 

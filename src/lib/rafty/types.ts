@@ -394,3 +394,39 @@ export type SocialConnection = {
   status: SocialConnectionStatus;
   accountLabel: string;
 };
+
+/* --------------------------- website automation --------------------------- */
+
+export type ScanFrequency = "off" | "daily" | "weekly";
+/** off: nothing automatic. draft: posts are created and wait for approval.
+ *  publish: approved brands let krijo24 queue and publish them. */
+export type AutoMode = "off" | "draft" | "publish";
+
+export type BrandWebsite = {
+  businessId: string;
+  url: string;
+  scanFrequency: ScanFrequency;
+  autoMode: AutoMode;
+  defaultTemplateId: string | null;
+  postTime: string;
+  timezone: string;
+  platforms: SocialPlatform[];
+  lastScannedAt: string | null;
+};
+
+export type DiscoveredItemStatus = "new" | "used" | "ignored";
+
+export type DiscoveredItem = {
+  id: string;
+  businessId: string;
+  sourceUrl: string;
+  title: string;
+  description: string;
+  price: string;
+  currency: string;
+  imageUrl: string | null;
+  status: DiscoveredItemStatus;
+  postId: string | null;
+  createdAt: string;
+};
+

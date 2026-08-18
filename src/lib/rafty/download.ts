@@ -64,7 +64,10 @@ function nextFrame(): Promise<void> {
  * export implementation, shared by download and share so preview, save,
  * download and share always agree pixel for pixel.
  */
-async function renderNodeToDataUrl(node: HTMLElement, size?: ExportSize): Promise<string> {
+export async function renderNodeToDataUrl(
+  node: HTMLElement,
+  size?: ExportSize,
+): Promise<string> {
   const outWidth = size?.width ?? EXPORT_WIDTH;
   const outHeight = size?.height ?? EXPORT_HEIGHT;
   const width = node.offsetWidth || node.getBoundingClientRect().width || 1;

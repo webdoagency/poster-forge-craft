@@ -6,6 +6,7 @@ import {
   Images,
   LayoutTemplate,
   Palette,
+  Globe,
   Settings,
   Sparkles,
   LogOut,
@@ -28,6 +29,7 @@ const nav = [
   { to: "/templates", labelKey: "nav.templates", icon: LayoutTemplate },
   { to: "/posts", labelKey: "nav.posts", icon: Images },
   { to: "/brand", labelKey: "nav.brand", icon: Palette },
+  { to: "/website", labelKey: "nav.website", icon: Globe },
 ] as const;
 
 /** Business chrome. Most accounts have one brand, a switcher only appears

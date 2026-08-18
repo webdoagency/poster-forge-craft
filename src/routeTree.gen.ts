@@ -24,6 +24,7 @@ import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedScheduleRouteImport } from './routes/_authenticated/schedule'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTemplatesRouteImport } from './routes/_authenticated/templates'
+import { Route as ApiPublicCronAutomationRouteImport } from './routes/api/public/cron/automation'
 import { Route as ApiPublicOauthMetaRouteImport } from './routes/api/public/oauth/meta'
 
 const IndexRoute = IndexRouteImport.update({
@@ -100,6 +101,11 @@ const AuthenticatedTemplatesRoute = AuthenticatedTemplatesRouteImport.update({
   path: '/templates',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicCronAutomationRoute = ApiPublicCronAutomationRouteImport.update({
+  id: '/api/public/cron/automation',
+  path: '/api/public/cron/automation',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicOauthMetaRoute = ApiPublicOauthMetaRouteImport.update({
   id: '/api/public/oauth/meta',
   path: '/api/public/oauth/meta',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
+  '/api/public/cron/automation': typeof ApiPublicCronAutomationRoute
   '/api/public/oauth/meta': typeof ApiPublicOauthMetaRoute
 }
 export interface FileRoutesByTo {
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/schedule': typeof AuthenticatedScheduleRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/templates': typeof AuthenticatedTemplatesRoute
+  '/api/public/cron/automation': typeof ApiPublicCronAutomationRoute
   '/api/public/oauth/meta': typeof ApiPublicOauthMetaRoute
 }
 export interface FileRoutesById {
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/_authenticated/schedule': typeof AuthenticatedScheduleRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/templates': typeof AuthenticatedTemplatesRoute
+  '/api/public/cron/automation': typeof ApiPublicCronAutomationRoute
   '/api/public/oauth/meta': typeof ApiPublicOauthMetaRoute
 }
 export interface FileRouteTypes {
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/settings'
     | '/templates'
+    | '/api/public/cron/automation'
     | '/api/public/oauth/meta'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/schedule'
     | '/settings'
     | '/templates'
+    | '/api/public/cron/automation'
     | '/api/public/oauth/meta'
   id:
     | '__root__'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/_authenticated/schedule'
     | '/_authenticated/settings'
     | '/_authenticated/templates'
+    | '/api/public/cron/automation'
     | '/api/public/oauth/meta'
   fileRoutesById: FileRoutesById
 }
@@ -222,6 +234,7 @@ export interface RootRouteChildren {
   GalleryRoute: typeof GalleryRoute
   HowItWorksRoute: typeof HowItWorksRoute
   PricingRoute: typeof PricingRoute
+  ApiPublicCronAutomationRoute: typeof ApiPublicCronAutomationRoute
   ApiPublicOauthMetaRoute: typeof ApiPublicOauthMetaRoute
 }
 
@@ -332,6 +345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTemplatesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/cron/automation': {
+      id: '/api/public/cron/automation'
+      path: '/api/public/cron/automation'
+      fullPath: '/api/public/cron/automation'
+      preLoaderRoute: typeof ApiPublicCronAutomationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/oauth/meta': {
       id: '/api/public/oauth/meta'
       path: '/api/public/oauth/meta'
@@ -375,6 +395,7 @@ const rootRouteChildren: RootRouteChildren = {
   GalleryRoute: GalleryRoute,
   HowItWorksRoute: HowItWorksRoute,
   PricingRoute: PricingRoute,
+  ApiPublicCronAutomationRoute: ApiPublicCronAutomationRoute,
   ApiPublicOauthMetaRoute: ApiPublicOauthMetaRoute,
 }
 export const routeTree = rootRouteImport

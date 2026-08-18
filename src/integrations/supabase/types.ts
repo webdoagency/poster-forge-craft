@@ -180,6 +180,56 @@ export type Database = {
           },
         ]
       }
+      brand_websites: {
+        Row: {
+          auto_mode: string
+          business_id: string
+          created_at: string
+          default_template_id: string | null
+          last_scanned_at: string | null
+          platforms: string[]
+          post_time: string
+          scan_frequency: string
+          timezone: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          auto_mode?: string
+          business_id: string
+          created_at?: string
+          default_template_id?: string | null
+          last_scanned_at?: string | null
+          platforms?: string[]
+          post_time?: string
+          scan_frequency?: string
+          timezone?: string
+          updated_at?: string
+          url?: string
+        }
+        Update: {
+          auto_mode?: string
+          business_id?: string
+          created_at?: string
+          default_template_id?: string | null
+          last_scanned_at?: string | null
+          platforms?: string[]
+          post_time?: string
+          scan_frequency?: string
+          timezone?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brand_websites_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_members: {
         Row: {
           business_id: string
@@ -414,6 +464,69 @@ export type Database = {
           },
         ]
       }
+      discovered_items: {
+        Row: {
+          business_id: string
+          created_at: string
+          currency: string
+          description: string
+          fingerprint: string
+          id: string
+          image_url: string | null
+          post_id: string | null
+          price: string
+          source_url: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          currency?: string
+          description?: string
+          fingerprint: string
+          id?: string
+          image_url?: string | null
+          post_id?: string | null
+          price?: string
+          source_url: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          currency?: string
+          description?: string
+          fingerprint?: string
+          id?: string
+          image_url?: string | null
+          post_id?: string | null
+          price?: string
+          source_url?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discovered_items_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "discovered_items_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           adjustments: Json
@@ -424,6 +537,7 @@ export type Database = {
           format: string
           id: string
           image_path: string | null
+          render_path: string | null
           share_status: Json
           show_brand_name: boolean
           show_contact: boolean
@@ -440,6 +554,7 @@ export type Database = {
           format?: string
           id?: string
           image_path?: string | null
+          render_path?: string | null
           share_status?: Json
           show_brand_name?: boolean
           show_contact?: boolean
@@ -456,6 +571,7 @@ export type Database = {
           format?: string
           id?: string
           image_path?: string | null
+          render_path?: string | null
           share_status?: Json
           show_brand_name?: boolean
           show_contact?: boolean
@@ -506,6 +622,8 @@ export type Database = {
           note: string
           platform: Database["public"]["Enums"]["social_platform"]
           post_id: string
+          published_at: string | null
+          remote_post_id: string | null
           scheduled_at: string
           status: Database["public"]["Enums"]["schedule_status"]
           timezone: string
@@ -519,6 +637,8 @@ export type Database = {
           note?: string
           platform: Database["public"]["Enums"]["social_platform"]
           post_id: string
+          published_at?: string | null
+          remote_post_id?: string | null
           scheduled_at: string
           status?: Database["public"]["Enums"]["schedule_status"]
           timezone?: string
@@ -532,6 +652,8 @@ export type Database = {
           note?: string
           platform?: Database["public"]["Enums"]["social_platform"]
           post_id?: string
+          published_at?: string | null
+          remote_post_id?: string | null
           scheduled_at?: string
           status?: Database["public"]["Enums"]["schedule_status"]
           timezone?: string
@@ -550,6 +672,56 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_oauth_accounts: {
+        Row: {
+          access_token: string
+          account_label: string
+          business_id: string
+          created_at: string
+          expires_at: string | null
+          external_id: string
+          id: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          refresh_token: string | null
+          scopes: string
+          updated_at: string
+        }
+        Insert: {
+          access_token: string
+          account_label?: string
+          business_id: string
+          created_at?: string
+          expires_at?: string | null
+          external_id?: string
+          id?: string
+          platform: Database["public"]["Enums"]["social_platform"]
+          refresh_token?: string | null
+          scopes?: string
+          updated_at?: string
+        }
+        Update: {
+          access_token?: string
+          account_label?: string
+          business_id?: string
+          created_at?: string
+          expires_at?: string | null
+          external_id?: string
+          id?: string
+          platform?: Database["public"]["Enums"]["social_platform"]
+          refresh_token?: string | null
+          scopes?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_oauth_accounts_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
             referencedColumns: ["id"]
           },
         ]
@@ -641,6 +813,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_approve_business: {
+        Args: { _business_id: string; _monthly_price?: number }
+        Returns: undefined
+      }
       admin_set_plan: {
         Args: {
           _active: boolean

@@ -57,9 +57,8 @@ async function isAllowed(target: URL): Promise<boolean> {
     if (key === "user-agent") applies = value === "*" || value.toLowerCase().includes("krijo24");
     else if (applies && key === "disallow" && value) disallowed.push(value);
   }
-  return !disallowed.some((rule) => rule !== "/" && target.pathname.startsWith(rule))
-    ? !disallowed.includes("/")
-    : false;
+  const path = target.pathname || "/";
+  return !disallowed.some((rule) => (rule === "/" ? true : path.startsWith(rule)));
 }
 
 function decodeEntities(value: string): string {

@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Image as ImageIcon, Plus, Sparkles, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -30,6 +30,9 @@ import {
   type Slide,
 } from "@/lib/rafty/types";
 import { id as newId, type PostWithContact } from "@/lib/rafty/repo";
+import * as repo from "@/lib/rafty/repo";
+import { useServerFn } from "@tanstack/react-start";
+import { fetchDiscoveredImage } from "@/lib/scan.functions";
 
 export const Route = createFileRoute("/_authenticated/create")({
   validateSearch: (
@@ -146,7 +149,7 @@ function CreatePage() {
     if (!itemId || !business || existing || prefilled.current) return;
     prefilled.current = true;
     void (async () => {
-      const item = (await repo.listDiscovered(business.id)).find((row) => row.id === itemId);
+      const item = (await repo.listDiscovered(business.id)).find((row: repo.DiscoveredItemRow) => row.id === itemId);
       if (!item) return;
       const image = item.imageUrl
         ? await loadItemImage({ data: { businessId: business.id, itemId } })

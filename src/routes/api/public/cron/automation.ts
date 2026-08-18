@@ -15,11 +15,15 @@ export const Route = createFileRoute("/api/public/cron/automation")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        // Called by the database scheduler with the project apikey, or by an
+        // external scheduler with the shared secret. Either proves the caller.
+        const apiKey = process.env["SUPABASE_ANON_KEY"] ?? process.env["SUPABASE_PUBLISHABLE_KEY"];
         const secret = process.env["CRON_SECRET"];
-        if (!secret) return new Response("Not configured", { status: 503 });
-        if (request.headers.get("x-cron-secret") !== secret) {
-          return new Response("Unauthorized", { status: 401 });
-        }
+        const presentedKey = request.headers.get("apikey");
+        const presentedSecret = request.headers.get("x-cron-secret");
+        const authorized =
+          (!!apiKey && presentedKey === apiKey) || (!!secret && presentedSecret === secret);
+        if (!authorized) return new Response("Unauthorized", { status: 401 });
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { scanSite } = await import("@/lib/scan.server");

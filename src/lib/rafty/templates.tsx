@@ -1,4 +1,4 @@
-import { formatPrice, FORMAT_SPECS } from "./constants";
+import { formatPrice, FORMAT_SPECS, labelledValue } from "./constants";
 import { FitText } from "@/components/rafty/FitText";
 import type {
   BrandProfile,
@@ -126,27 +126,25 @@ function Logo({ ctx }: { ctx: RenderCtx }) {
 /** Business type decides which secondary values appear on the design. */
 export function metaItems(content: PostContent, type: BusinessType): string[] {
   const out: string[] = [];
-  const push = (v: string, suffix = "") => {
-    if (v && v.trim()) out.push(v.trim() + suffix);
+  /** A bare number is printed with its own field wording: 4 -> "4 Nights". */
+  const push = (key: "location" | "meta1" | "meta2" | "date") => {
+    const v = labelledValue(content[key] ?? "", content.labels?.[key]);
+    if (v) out.push(v);
   };
   if (type === "travel_agency") {
-    push(content.location);
-    push(content.meta1);
-    push(content.date);
-  } else if (type === "real_estate") {
-    push(content.meta1);
-    push(content.meta2);
-    push(content.date);
-  } else if (type === "car_dealership") {
-    push(content.meta1);
-    push(content.meta2);
-    push(content.date);
+    push("location");
+    push("meta1");
+    push("date");
+  } else if (type === "real_estate" || type === "car_dealership") {
+    push("meta1");
+    push("meta2");
+    push("date");
   } else if (type === "restaurant") {
-    push(content.location);
-    push(content.date);
+    push("location");
+    push("date");
   } else {
-    push(content.meta1);
-    push(content.date);
+    push("meta1");
+    push("date");
   }
   return out;
 }

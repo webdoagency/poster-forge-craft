@@ -423,6 +423,7 @@ function BrandPage() {
     business,
     brand,
     services,
+    posts,
     trial,
     plan,
     brands,
@@ -446,6 +447,34 @@ function BrandPage() {
 
   const current = instructions ?? brand.instructions;
   const trialLeft = Math.max(0, (trial?.freePostLimit ?? 1) - (trial?.postsCreated ?? 0));
+
+  /** A short read on how this brand is actually being used. */
+  const now = new Date();
+  const thisMonth = posts.filter((p) => {
+    const d = new Date(p.createdAt);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  }).length;
+  const templatesUsed = new Set(posts.map((p) => p.templateId)).size;
+  const lastPost = posts[0]?.createdAt;
+  const stats: { label: string; value: string }[] = [
+    { label: "Posts created", value: String(posts.length) },
+    { label: "This month", value: String(thisMonth) },
+    { label: "Templates used", value: String(templatesUsed) },
+    { label: "Services saved", value: String(services.length) },
+    {
+      label: "Last post",
+      value: lastPost ? new Date(lastPost).toLocaleDateString() : "—",
+    },
+    {
+      label: business.status === "approved" ? "Plan" : "Free posts left",
+      value:
+        business.status === "approved"
+          ? plan?.active
+            ? `${plan.plan} · unlimited`
+            : "awaiting activation"
+          : String(trialLeft),
+    },
+  ];
 
   /** Awaits the database write before clearing the input, so a rejected write
    * never looks like a success. */
@@ -482,6 +511,17 @@ function BrandPage() {
           {t("brand.status")}: {t(`status.${business.status}`)}
           {business.status !== "approved" ? ` | ${t("trial.remaining")}: ${trialLeft}` : ""}
         </p>
+      </div>
+
+      <div className="card-soft grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
+        {stats.map((stat) => (
+          <div key={stat.label}>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {stat.label}
+            </p>
+            <p className="truncate text-lg font-extrabold capitalize">{stat.value}</p>
+          </div>
+        ))}
       </div>
 
       <div className="card-soft grid gap-4 p-4">
@@ -593,26 +633,6 @@ function BrandPage() {
 
       <div className="card-soft grid gap-4 p-4">
         <p className="text-sm font-bold">Post preferences</p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="grid gap-1.5">
-            <Label>{t("brand.currency")}</Label>
-            <Select
-              value={brand.currency}
-              onValueChange={(v) => saveBrand({ currency: v as CurrencyCode })}
-            >
-              <SelectTrigger className="h-11 rounded-xl bg-card">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CURRENCIES.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
         <div className="flex items-center justify-between rounded-xl border bg-card px-4 py-3">
           <div>
             <p className="text-sm font-semibold">Show brand name on posts</p>

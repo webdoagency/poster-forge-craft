@@ -10,6 +10,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -19,7 +26,6 @@ import * as repo from "@/lib/rafty/repo";
 import {
   BUSINESS_TYPE_NAMES,
   PLAN_NAMES,
-  PLATFORM_LABELS,
   PRICE_POINTS,
   partnershipPostsFor,
   tierForPrice,
@@ -30,7 +36,6 @@ import type {
   BusinessStatus,
   CustomTemplateRequest,
   Post,
-  ScheduledPost,
   TrialUsage,
 } from "@/lib/rafty/types";
 
@@ -57,14 +62,14 @@ function statusTone(status: BusinessStatus) {
 }
 
 function timeAgo(iso: string) {
-  const diffMs = Date.now() - new Date(iso).getTime();
-  const mins = Math.round(diffMs / 60000);
+  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
   if (mins < 60) return `${Math.max(mins, 0)}m ago`;
   const hours = Math.round(mins / 60);
   if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  return `${days}d ago`;
+  return `${Math.round(hours / 24)}d ago`;
 }
+
+type Profile = { id: string; email: string; displayName: string };
 
 function AdminPage() {
   const { ready, isAdmin, user } = useRafty();
@@ -74,29 +79,36 @@ function AdminPage() {
   const [requests, setRequests] = useState<CustomTemplateRequest[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [plans, setPlans] = useState<AccountPlan[]>([]);
-  const [schedules, setSchedules] = useState<ScheduledPost[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [customTemplates, setCustomTemplates] = useState<
+    { id: string; businessId: string; name: string; archived: boolean }[]
+  >([]);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<BusinessStatus | "all">("all");
   const [loading, setLoading] = useState(false);
+  const [openBusinessId, setOpenBusinessId] = useState<string | null>(null);
+  const [attachRequest, setAttachRequest] = useState<CustomTemplateRequest | null>(null);
 
   // Every read below only returns rows for platform admins. Access is enforced
   // server side by RLS and is_super_admin(), this page never assumes a role.
   const load = useCallback(async () => {
     setLoading(true);
-    const [b, tr, rq, ps, pl, sc] = await Promise.all([
+    const [b, tr, rq, ps, pl, pr, ct] = await Promise.all([
       repo.adminListBusinesses(),
       repo.adminListTrials(),
       repo.listRequests(),
       repo.adminListPosts(),
       repo.adminListPlans(),
-      repo.adminListSchedules(),
+      repo.adminListProfiles(),
+      repo.adminListCustomTemplates(),
     ]);
     setBusinesses(b);
     setTrials(tr);
     setRequests(rq);
     setPosts(ps);
     setPlans(pl);
-    setSchedules(sc);
+    setProfiles(pr);
+    setCustomTemplates(ct);
     setLoading(false);
   }, []);
 
@@ -109,14 +121,21 @@ function AdminPage() {
     void load();
   }, [ready, isAdmin, navigate, load]);
 
-  const trialFor = useMemo(
-    () => (businessId: string) => trials.find((t) => t.businessId === businessId),
+  const planFor = useCallback(
+    (ownerUserId: string) => plans.find((p) => p.userId === ownerUserId) ?? null,
+    [plans],
+  );
+  const trialFor = useCallback(
+    (businessId: string) => trials.find((t) => t.businessId === businessId) ?? null,
     [trials],
   );
-
-  const planFor = useMemo(
-    () => (ownerUserId: string) => plans.find((p) => p.userId === ownerUserId),
-    [plans],
+  const profileFor = useCallback(
+    (ownerUserId: string) => profiles.find((p) => p.id === ownerUserId) ?? null,
+    [profiles],
+  );
+  const postCount = useCallback(
+    (businessId: string) => posts.filter((p) => p.businessId === businessId).length,
+    [posts],
   );
 
   const filtered = useMemo(() => {
@@ -124,23 +143,29 @@ function AdminPage() {
     return businesses.filter((b) => {
       if (statusFilter !== "all" && b.status !== statusFilter) return false;
       if (!q) return true;
+      const email = profiles.find((p) => p.id === b.ownerUserId)?.email ?? "";
       return (
-        b.name.toLowerCase().includes(q) || BUSINESS_TYPE_NAMES[b.type].toLowerCase().includes(q)
+        b.name.toLowerCase().includes(q) ||
+        email.toLowerCase().includes(q) ||
+        BUSINESS_TYPE_NAMES[b.type].toLowerCase().includes(q)
       );
     });
-  }, [businesses, query, statusFilter]);
+  }, [businesses, profiles, query, statusFilter]);
 
-  async function setStatus(businessId: string, status: BusinessStatus) {
-    const existing = plans.find(
-      (p) => p.userId === businesses.find((b) => b.id === businessId)?.ownerUserId,
-    );
-    const { error } = await repo.adminSetStatus(businessId, status, existing?.monthlyPrice ?? 100);
-    if (error) {
-      toast.error(error);
+  async function setStatus(business: Business, status: BusinessStatus) {
+    const price = planFor(business.ownerUserId)?.monthlyPrice ?? 100;
+    const res =
+      status === "approved"
+        ? await repo.adminActivateAccount(business.id, price)
+        : await repo.adminSetStatus(business.id, status);
+    if (res.error) {
+      toast.error(res.error);
       return;
     }
     toast.success(
-      status === "approved" ? "Approved. Plan activated, posts are unlimited." : `Status set to ${status}`,
+      status === "approved"
+        ? `Approved and activated at ${price} €. Posts are now unlimited.`
+        : `Status set to ${status}`,
     );
     await load();
   }
@@ -152,30 +177,31 @@ function AdminPage() {
       toast.error(error);
       return;
     }
-    toast.success(active ? `Activated at ${monthlyPrice} €` : "Entitlement saved, not active");
+    toast.success(active ? `Plan active at ${monthlyPrice} €` : "Plan saved, not active");
     await load();
   }
 
   if (!ready || !isAdmin) return <div className="page-bg min-h-screen" />;
 
-  const now = Date.now();
-  const weekMs = 7 * 24 * 60 * 60 * 1000;
   const byStatus = (status: BusinessStatus) => businesses.filter((b) => b.status === status).length;
-  const approvedThisWeek = businesses.filter(
-    (b) => b.status === "approved" && now - new Date(b.createdAt).getTime() <= weekMs,
-  ).length;
-  const activeBrands = businesses.filter((b) => b.onboarded).length;
-  const trialTotals = trials.reduce(
-    (acc, t) => ({ used: acc.used + t.postsCreated, limit: acc.limit + t.freePostLimit }),
-    { used: 0, limit: 0 },
+  const activeAccounts = businesses.filter(
+    (b) => b.status === "approved" && planFor(b.ownerUserId)?.active,
   );
+  const paidPlans = plans.filter((p) => p.active);
+  const monthlyRevenue = paidPlans.reduce((sum, p) => sum + p.monthlyPrice, 0);
+  const tierCounts = (["starter", "growth", "studio", "partnership"] as const).map((tier) => ({
+    tier,
+    count: paidPlans.filter((p) => p.plan === tier).length,
+  }));
+  const typeCounts = Object.entries(
+    businesses.reduce<Record<string, number>>((acc, b) => {
+      const key = b.customType || BUSINESS_TYPE_NAMES[b.type];
+      acc[key] = (acc[key] ?? 0) + 1;
+      return acc;
+    }, {}),
+  ).sort((a, b) => b[1] - a[1]);
 
-  // Owners grouped for plan management, one row per account.
-  const owners = useMemoOwners(businesses);
-  const recentSignups = businesses.slice(0, 6);
-  const recentPosts = posts.slice(0, 6);
-  const postBusinessName = (businessId: string) =>
-    businesses.find((b) => b.id === businessId)?.name ?? "Unknown business";
+  const openBusiness = businesses.find((b) => b.id === openBusinessId) ?? null;
 
   return (
     <div className="page-bg min-h-screen">
@@ -193,28 +219,23 @@ function AdminPage() {
         <Tabs defaultValue="overview">
           <TabsList className="mb-5 flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-card p-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="businesses">Businesses</TabsTrigger>
-            <TabsTrigger value="plans">Plans</TabsTrigger>
-            <TabsTrigger value="requests">Custom templates</TabsTrigger>
-            <TabsTrigger value="queue">Queue</TabsTrigger>
+            <TabsTrigger value="accounts">Accounts</TabsTrigger>
+            <TabsTrigger value="templates">Custom templates</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { label: "Businesses", value: businesses.length },
-                { label: "Pending approval", value: byStatus("pending") },
-                { label: "Approved", value: byStatus("approved") },
-                { label: "Approved this week", value: approvedThisWeek },
+                { label: "Active accounts", value: activeAccounts.length },
+                { label: "Paid plans", value: paidPlans.length },
+                { label: "Monthly revenue", value: `${monthlyRevenue} €` },
+                { label: "New, not approved", value: byStatus("pending") },
+                { label: "Brands", value: businesses.length },
+                { label: "Posts created", value: posts.length },
+                { label: "Custom templates", value: customTemplates.length },
                 {
                   label: "Suspended or rejected",
                   value: byStatus("suspended") + byStatus("rejected"),
-                },
-                { label: "Active brands", value: activeBrands },
-                { label: "Posts created", value: posts.length },
-                {
-                  label: "Trial usage",
-                  value: `${trialTotals.used}/${trialTotals.limit || 0}`,
                 },
               ].map((card) => (
                 <div key={card.label} className="card-soft p-5">
@@ -224,52 +245,63 @@ function AdminPage() {
               ))}
             </div>
 
-            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <div className="mt-6 grid gap-4 lg:grid-cols-3">
               <div className="card-soft p-5">
-                <h2 className="mb-3 font-display text-lg font-extrabold">Recent signups</h2>
-                <div className="grid gap-2">
-                  {recentSignups.map((b) => (
-                    <div key={b.id} className="flex items-center gap-3 text-sm">
+                <h2 className="mb-3 font-display text-lg font-extrabold">Plans</h2>
+                <div className="grid gap-2 text-sm">
+                  {tierCounts.map((row) => (
+                    <div key={row.tier} className="flex justify-between gap-3">
+                      <span className="text-muted-foreground">{PLAN_NAMES[row.tier]}</span>
+                      <span className="font-semibold">{row.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="card-soft p-5">
+                <h2 className="mb-3 font-display text-lg font-extrabold">Business types</h2>
+                <div className="grid gap-2 text-sm">
+                  {typeCounts.map(([label, count]) => (
+                    <div key={label} className="flex justify-between gap-3">
+                      <span className="truncate text-muted-foreground">{label}</span>
+                      <span className="font-semibold">{count}</span>
+                    </div>
+                  ))}
+                  {typeCounts.length === 0 ? (
+                    <p className="text-muted-foreground">No brands yet.</p>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="card-soft p-5">
+                <h2 className="mb-3 font-display text-lg font-extrabold">Recent</h2>
+                <div className="grid gap-2 text-sm">
+                  {businesses.slice(0, 6).map((b) => (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => setOpenBusinessId(b.id)}
+                      className="flex items-center gap-3 text-left"
+                    >
                       <span className="min-w-0 flex-1 truncate font-semibold">{b.name}</span>
                       <Badge variant={statusTone(b.status)}>{b.status}</Badge>
                       <span className="shrink-0 text-xs text-muted-foreground">
                         {timeAgo(b.createdAt)}
                       </span>
-                    </div>
+                    </button>
                   ))}
-                  {recentSignups.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No businesses yet.</p>
-                  ) : null}
-                </div>
-              </div>
-              <div className="card-soft p-5">
-                <h2 className="mb-3 font-display text-lg font-extrabold">Recent posts</h2>
-                <div className="grid gap-2">
-                  {recentPosts.map((p) => (
-                    <div key={p.id} className="flex items-center gap-3 text-sm">
-                      <span className="min-w-0 flex-1 truncate font-semibold">
-                        {p.content.title || "Untitled"}
-                      </span>
-                      <span className="shrink-0 truncate text-xs text-muted-foreground">
-                        {postBusinessName(p.businessId)}
-                      </span>
-                      <span className="shrink-0 text-xs text-muted-foreground">
-                        {timeAgo(p.createdAt)}
-                      </span>
-                    </div>
-                  ))}
-                  {recentPosts.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No posts yet.</p>
+                  {businesses.length === 0 ? (
+                    <p className="text-muted-foreground">No brands yet.</p>
                   ) : null}
                 </div>
               </div>
             </div>
           </TabsContent>
 
-          <TabsContent value="businesses">
+          <TabsContent value="accounts">
             <div className="mb-4 flex flex-wrap gap-2">
               <Input
-                placeholder="Search businesses"
+                placeholder="Search brand, email or type"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="h-11 max-w-sm rounded-xl bg-card"
@@ -293,192 +325,366 @@ function AdminPage() {
                 <span className="self-center text-xs text-muted-foreground">Loading...</span>
               ) : null}
             </div>
+
             <div className="grid gap-3">
               {filtered.map((b) => {
-                const trial = trialFor(b.id);
+                const plan = planFor(b.ownerUserId);
+                const profile = profileFor(b.ownerUserId);
                 return (
-                  <div key={b.id} className="card-soft flex flex-wrap items-center gap-3 p-4">
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => setOpenBusinessId(b.id)}
+                    className="card-soft flex flex-wrap items-center gap-3 p-4 text-left transition hover:border-primary/40"
+                  >
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-bold">{b.name}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {b.customType || BUSINESS_TYPE_NAMES[b.type]} | trial{" "}
-                        {trial?.postsCreated ?? 0}/{trial?.freePostLimit ?? 1}
+                        {profile?.email || "unknown account"} ·{" "}
+                        {b.customType || BUSINESS_TYPE_NAMES[b.type]} · {postCount(b.id)} posts
                       </p>
                     </div>
+                    <Badge variant={plan?.active ? "default" : "outline"}>
+                      {plan?.active ? `${plan.monthlyPrice} € active` : "no active plan"}
+                    </Badge>
                     <Badge variant={statusTone(b.status)}>{b.status}</Badge>
-                    <div className="flex flex-wrap gap-2">
-                      {STATUSES.filter((s) => s !== b.status).map((s) => (
-                        <Button
-                          key={s}
-                          size="sm"
-                          variant="outline"
-                          className="rounded-xl"
-                          onClick={() => void setStatus(b.id, s)}
-                        >
-                          {s}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
+                  </button>
                 );
               })}
               {filtered.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No businesses match this search.</p>
+                <p className="text-sm text-muted-foreground">No accounts match this search.</p>
               ) : null}
             </div>
           </TabsContent>
 
-          <TabsContent value="plans">
+          <TabsContent value="templates">
             <div className="grid gap-3">
-              {owners.map((owner) => {
-                const plan = planFor(owner.ownerUserId);
-                const price = plan?.monthlyPrice ?? 50;
-                const active = plan?.active ?? false;
+              {requests.map((r) => {
+                const business = businesses.find((b) => b.id === r.businessId);
+                return (
+                  <div key={r.id} className="card-soft flex flex-wrap items-center gap-3 p-4">
+                    {r.previewDataUrl ? (
+                      <img
+                        src={r.previewDataUrl}
+                        alt=""
+                        className="size-14 rounded-lg object-cover"
+                      />
+                    ) : null}
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-bold">{r.fileName}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {business?.name || r.businessName || "Unknown brand"} · {timeAgo(r.createdAt)}
+                      </p>
+                    </div>
+                    <Badge variant={r.templateId ? "default" : "secondary"}>
+                      {r.templateId ? "connected" : r.status}
+                    </Badge>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        className="rounded-xl"
+                        disabled={!!r.templateId}
+                        onClick={() => setAttachRequest(r)}
+                      >
+                        Connect to account
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl"
+                        onClick={async () => {
+                          await repo.updateRequest(r.id, { status: "rejected" });
+                          if (r.templateId) await repo.archiveTemplate(r.templateId);
+                          await load();
+                        }}
+                      >
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+              {requests.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No uploaded designs waiting.</p>
+              ) : null}
+            </div>
+
+            <h2 className="mb-3 mt-8 font-display text-lg font-extrabold">
+              Live custom templates
+            </h2>
+            <div className="grid gap-2">
+              {customTemplates.map((tpl) => {
+                const business = businesses.find((b) => b.id === tpl.businessId);
                 return (
                   <div
-                    key={owner.ownerUserId}
-                    className="card-soft flex flex-wrap items-center gap-3 p-4"
+                    key={tpl.id}
+                    className="card-soft flex flex-wrap items-center gap-3 px-4 py-3 text-sm"
                   >
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-bold">{owner.names.join(", ")}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {owner.businessIds.length} brand{owner.businessIds.length === 1 ? "" : "s"}{" "}
-                        | limit {plan?.brandLimit ?? 1} | {PLAN_NAMES[plan?.plan ?? "starter"]}
-                        {plan && plan.partnershipPostsLimit > 0
-                          ? ` | ${plan.partnershipPostsUsed}/${plan.partnershipPostsLimit} done for you posts`
-                          : ""}
-                      </p>
-                    </div>
-                    <Select
-                      value={String(price)}
-                      onValueChange={(v) => void setPlan(owner.ownerUserId, Number(v), active)}
-                    >
-                      <SelectTrigger className="h-10 w-52 rounded-xl bg-card">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PRICE_POINTS.map((p) => (
-                          <SelectItem key={p} value={String(p)}>
-                            {p} € | {PLAN_NAMES[tierForPrice(p)]}
-                            {partnershipPostsFor(p) > 0 ? ` | ${partnershipPostsFor(p)} posts` : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">
-                        {active ? "Active" : "Not active"}
-                      </span>
-                      <Switch
-                        checked={active}
-                        onCheckedChange={(v) => void setPlan(owner.ownerUserId, price, v)}
-                      />
-                    </div>
+                    <span className="min-w-0 flex-1 truncate font-semibold">{tpl.name}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {business?.name ?? "unknown brand"}
+                    </span>
+                    {tpl.archived ? (
+                      <Badge variant="outline">archived</Badge>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="rounded-xl"
+                        onClick={async () => {
+                          await repo.archiveTemplate(tpl.id);
+                          await load();
+                        }}
+                      >
+                        Archive
+                      </Button>
+                    )}
                   </div>
                 );
               })}
-              {owners.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No accounts yet.</p>
-              ) : null}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="requests">
-            <div className="grid gap-3">
-              {requests.map((r) => (
-                <div key={r.id} className="card-soft flex flex-wrap items-center gap-3 p-4">
-                  {r.previewDataUrl ? (
-                    <img
-                      src={r.previewDataUrl}
-                      alt=""
-                      className="size-14 rounded-lg object-cover"
-                    />
-                  ) : null}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate font-bold">{r.fileName}</p>
-                    <p className="truncate text-xs text-muted-foreground">{r.businessName}</p>
-                  </div>
-                  <Badge variant="secondary">{r.status}</Badge>
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="rounded-xl"
-                      onClick={async () => {
-                        await repo.updateRequest(r.id, { status: "ready" });
-                        await load();
-                      }}
-                    >
-                      Mark ready
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="rounded-xl"
-                      onClick={async () => {
-                        await repo.updateRequest(r.id, { status: "rejected" });
-                        if (r.templateId) await repo.archiveTemplate(r.templateId);
-                        await load();
-                      }}
-                    >
-                      Reject
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              {requests.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No custom template requests.</p>
-              ) : null}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="queue">
-            <div className="grid gap-3">
-              {schedules.map((row) => {
-                const b = businesses.find((x) => x.id === row.businessId);
-                return (
-                  <div key={row.id} className="card-soft flex flex-wrap items-center gap-3 p-4">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-bold">{b?.name ?? row.businessId}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {PLATFORM_LABELS[row.platform]} ·{" "}
-                        {new Date(row.scheduledAt).toLocaleString()} · {row.timezone}
-                        {row.note ? ` · ${row.note}` : ""}
-                      </p>
-                    </div>
-                    <Badge variant={row.status === "queued" ? "default" : "outline"}>
-                      {row.status}
-                    </Badge>
-                  </div>
-                );
-              })}
-              {schedules.length === 0 ? (
+              {customTemplates.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Nothing scheduled across the platform.
+                  No custom templates connected yet. Each one belongs to a single brand.
                 </p>
               ) : null}
             </div>
           </TabsContent>
         </Tabs>
       </main>
+
+      <AccountDialog
+        business={openBusiness}
+        plan={openBusiness ? planFor(openBusiness.ownerUserId) : null}
+        profile={openBusiness ? profileFor(openBusiness.ownerUserId) : null}
+        trial={openBusiness ? trialFor(openBusiness.id) : null}
+        posts={openBusiness ? postCount(openBusiness.id) : 0}
+        templates={
+          openBusiness ? customTemplates.filter((t) => t.businessId === openBusiness.id).length : 0
+        }
+        onClose={() => setOpenBusinessId(null)}
+        onStatus={setStatus}
+        onPlan={setPlan}
+      />
+
+      <AttachTemplateDialog
+        request={attachRequest}
+        businessName={
+          businesses.find((b) => b.id === attachRequest?.businessId)?.name ||
+          attachRequest?.businessName ||
+          ""
+        }
+        onClose={() => setAttachRequest(null)}
+        onDone={async () => {
+          setAttachRequest(null);
+          await load();
+        }}
+      />
     </div>
   );
 }
 
-/** Groups businesses by owner so each account gets one plan management row. */
-function useMemoOwners(businesses: Business[]) {
-  return useMemo(() => {
-    const map = new Map<string, { ownerUserId: string; names: string[]; businessIds: string[] }>();
-    for (const b of businesses) {
-      const entry = map.get(b.ownerUserId) ?? {
-        ownerUserId: b.ownerUserId,
-        names: [],
-        businessIds: [],
-      };
-      entry.names.push(b.name);
-      entry.businessIds.push(b.id);
-      map.set(b.ownerUserId, entry);
-    }
-    return [...map.values()];
-  }, [businesses]);
+/** One brand, its account and its plan in a single manageable view. */
+function AccountDialog({
+  business,
+  plan,
+  profile,
+  trial,
+  posts,
+  templates,
+  onClose,
+  onStatus,
+  onPlan,
+}: {
+  business: Business | null;
+  plan: AccountPlan | null;
+  profile: Profile | null;
+  trial: TrialUsage | null;
+  posts: number;
+  templates: number;
+  onClose: () => void;
+  onStatus: (business: Business, status: BusinessStatus) => Promise<void>;
+  onPlan: (ownerUserId: string, monthlyPrice: number, active: boolean) => Promise<void>;
+}) {
+  if (!business) return null;
+  const price = plan?.monthlyPrice ?? 100;
+  const active = plan?.active ?? false;
+  const liveForCustomer = business.status === "approved" && active;
+
+  return (
+    <Dialog open onOpenChange={(open) => (open ? null : onClose())}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle className="truncate">{business.name}</DialogTitle>
+          <DialogDescription className="truncate">
+            {profile?.email || "unknown account"} ·{" "}
+            {business.customType || BUSINESS_TYPE_NAMES[business.type]}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid gap-4">
+          <div
+            className={`rounded-xl border p-3 text-sm font-semibold ${
+              liveForCustomer
+                ? "border-primary/40 bg-primary-soft"
+                : "border-amber-400/60 bg-amber-50 text-amber-800"
+            }`}
+          >
+            {liveForCustomer
+              ? "Live: unlimited posts on this plan."
+              : "Not live yet: the customer stays on the free trial allowance until the brand is approved and the plan is active."}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <Stat label="Status" value={business.status} />
+            <Stat label="Onboarded" value={business.onboarded ? "yes" : "no"} />
+            <Stat label="Posts" value={String(posts)} />
+            <Stat label="Custom templates" value={String(templates)} />
+            <Stat
+              label="Trial usage"
+              value={`${trial?.postsCreated ?? 0}/${trial?.freePostLimit ?? 1}`}
+            />
+            <Stat label="Joined" value={new Date(business.createdAt).toLocaleDateString()} />
+          </div>
+
+          <div className="grid gap-2">
+            <p className="text-sm font-bold">Plan</p>
+            <Select
+              value={String(price)}
+              onValueChange={(v) => void onPlan(business.ownerUserId, Number(v), active)}
+            >
+              <SelectTrigger className="h-11 rounded-xl bg-card">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PRICE_POINTS.map((p) => (
+                  <SelectItem key={p} value={String(p)}>
+                    {p} € · {PLAN_NAMES[tierForPrice(p)]}
+                    {partnershipPostsFor(p) > 0 ? ` · ${partnershipPostsFor(p)} posts` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">
+                {active ? "Plan active" : "Plan not active"}
+                {plan ? ` · brand limit ${plan.brandLimit}` : ""}
+              </span>
+              <Switch
+                className="ml-auto"
+                checked={active}
+                onCheckedChange={(v) => void onPlan(business.ownerUserId, price, v)}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Carousel {plan?.allowCarousel ? "on" : "off"} · Video {plan?.allowVideo ? "on" : "off"}
+            </p>
+          </div>
+
+          <div className="grid gap-2">
+            <p className="text-sm font-bold">Brand status</p>
+            {business.status !== "approved" ? (
+              <Button
+                className="h-11 rounded-xl"
+                onClick={() => void onStatus(business, "approved")}
+              >
+                Approve and activate at {price} €
+              </Button>
+            ) : null}
+            <div className="flex flex-wrap gap-2">
+              {STATUSES.filter((s) => s !== business.status && s !== "approved").map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant="outline"
+                  className="rounded-xl"
+                  onClick={() => void onStatus(business, s)}
+                >
+                  Set {s}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border bg-card px-3 py-2">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="truncate font-semibold">{value}</p>
+    </div>
+  );
+}
+
+/** Connects one uploaded design to the brand that uploaded it, nobody else. */
+function AttachTemplateDialog({
+  request,
+  businessName,
+  onClose,
+  onDone,
+}: {
+  request: CustomTemplateRequest | null;
+  businessName: string;
+  onClose: () => void;
+  onDone: () => Promise<void>;
+}) {
+  const [name, setName] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setName(request ? request.fileName.replace(/\.[a-z0-9]+$/i, "") : "");
+  }, [request]);
+
+  if (!request) return null;
+
+  return (
+    <Dialog open onOpenChange={(open) => (open ? null : onClose())}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Connect template</DialogTitle>
+          <DialogDescription>
+            This design becomes a private template for {businessName || "this brand"} only.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-3">
+          {request.previewDataUrl ? (
+            <div className="aspect-[4/5] w-32 overflow-hidden rounded-xl border bg-muted">
+              <img src={request.previewDataUrl} alt="" className="size-full object-cover" />
+            </div>
+          ) : null}
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Template name"
+            className="h-11 rounded-xl"
+          />
+          <Button
+            className="h-11 rounded-xl"
+            disabled={saving}
+            onClick={async () => {
+              setSaving(true);
+              const res = await repo.adminAttachTemplateToBusiness({
+                requestId: request.id,
+                businessId: request.businessId,
+                filePath: request.filePath,
+                name: name.trim() || request.fileName,
+              });
+              setSaving(false);
+              if (res.error) {
+                toast.error(res.error);
+                return;
+              }
+              toast.success("Template connected to that account.");
+              await onDone();
+            }}
+          >
+            {saving ? "Connecting..." : "Connect to this account"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }

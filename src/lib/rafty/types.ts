@@ -279,6 +279,8 @@ export type CustomTemplateRequest = {
   businessName: string;
   fileName: string;
   fileType: string;
+  /** Private storage path of the uploaded design. Never a public url. */
+  filePath: string | null;
   previewDataUrl: string | null;
   status: CustomTemplateRequestStatus;
   templateId: string | null;

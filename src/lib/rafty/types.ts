@@ -361,6 +361,8 @@ export type PostContent = {
   labels?: Partial<Record<string, string>>;
   /** Which brand contact block this post prints, when contact is shown. */
   contactSetId?: string | null;
+  /** Chosen output size inside the format, for example "4:5" or "1:1". */
+  sizeKey?: string;
   imageDataUrl: string | null;
   caption: string;
 };
@@ -396,8 +398,6 @@ export type Post = {
   createdAt: string;
   /** Absent means a single image post, kept for records saved before formats. */
   format?: ContentFormat;
-  /** Chosen output size inside the format, for example "4:5" or "1:1". */
-  sizeKey?: string;
   /** Multi card formats store every frame here, in display order. */
   slides?: Slide[];
 };

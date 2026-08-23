@@ -907,6 +907,68 @@ export async function adminSetPlan(
   return error ? { error: error.message } : {};
 }
 
+/** Account emails, so admin rows show a real person instead of a raw id. */
+export async function adminListProfiles(): Promise<
+  { id: string; email: string; displayName: string }[]
+> {
+  const { data } = await supabase.from("profiles").select("id, email, display_name");
+  return (data ?? []).map((row) => ({
+    id: row.id as string,
+    email: (row.email as string) ?? "",
+    displayName: (row.display_name as string) ?? "",
+  }));
+}
+
+/**
+ * Approves the brand and activates its plan in one step, so the customer app
+ * immediately reflects the paid entitlement instead of staying on the trial.
+ */
+export async function adminActivateAccount(
+  businessId: string,
+  monthlyPrice: number,
+): Promise<{ error?: string }> {
+  const { error } = await supabase.rpc("admin_approve_business", {
+    _business_id: businessId,
+    _monthly_price: monthlyPrice,
+  });
+  return error ? { error: error.message } : {};
+}
+
+/**
+ * Turns a customer's uploaded design into a custom template that belongs to
+ * that one brand only. The uploaded file is reused, nothing is copied to
+ * another business, and RLS keeps the template private to its brand.
+ */
+export async function adminAttachTemplateToBusiness(input: {
+  requestId: string;
+  businessId: string;
+  filePath: string | null;
+  name: string;
+}): Promise<{ error?: string; templateId?: string }> {
+  const { data, error } = await supabase
+    .from("custom_templates")
+    .insert({
+      business_id: input.businessId,
+      name: input.name,
+      engine: "custom",
+      variant: { align: "left", tone: "dark", badge: "pill" },
+      background_path: input.filePath,
+      requirements: null,
+      zones: [],
+      locked_design: true,
+    } as never)
+    .select("id")
+    .maybeSingle();
+  if (error) return { error: error.message };
+  const templateId = (data?.id as string) ?? undefined;
+  const { error: linkError } = await supabase
+    .from("custom_template_requests")
+    .update({ status: "ready", template_id: templateId ?? null } as never)
+    .eq("id", input.requestId);
+  if (linkError) return { error: linkError.message };
+  return templateId ? { templateId } : {};
+}
+
 /* ------------------------ scheduling and connections ----------------------- */
 /**
  * The queue is a real database record: brand, post, platform, time, timezone

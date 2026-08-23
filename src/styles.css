@@ -230,7 +230,7 @@
 /* Interface safe area for vertical formats. Stories, reels and TikToks cover
    the top and bottom of the frame with profile rows, captions and buttons, so
    template content layers are inset while the image stays full bleed. */
-.krijo-safe[data-safe="on"] > div > div:not(img):not([data-bleed="true"]) {
+.krijo-safe[data-safe="on"] > div > div[style*="padding"] {
   border-top: var(--safe-t) solid transparent;
   border-bottom: var(--safe-b) solid transparent;
 }

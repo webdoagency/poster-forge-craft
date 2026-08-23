@@ -1,6 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, Image as ImageIcon, Plus, Sparkles, Wand2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Image as ImageIcon,
+  Pencil,
+  Plus,
+  Sparkles,
+  Wand2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -92,6 +100,81 @@ function newSlide(durationMs?: number): Slide {
     adjustments: {},
     ...(durationMs !== undefined ? { durationMs } : {}),
   };
+}
+
+/**
+ * One content field with editable wording. Businesses name the same thing
+ * differently (Nights, Guests, Rooms), so the label is a choice, not a fixed
+ * string. A plain number is printed together with its label on the design.
+ */
+function FieldRow({
+  fieldKey,
+  label,
+  presets,
+  value,
+  onValue,
+  onLabel,
+}: {
+  fieldKey: string;
+  label: string;
+  presets: string[];
+  value: string;
+  onValue: (v: string) => void;
+  onLabel: (v: string) => void;
+}) {
+  return (
+    <div className="grid gap-1.5">
+      <div className="flex items-center gap-1">
+        <Label htmlFor={fieldKey} className="truncate">
+          {label}
+        </Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              aria-label={`Rename ${label}`}
+              className="rounded-md p-1 text-muted-foreground hover:text-foreground"
+            >
+              <Pencil className="size-3" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-56 p-3">
+            <p className="mb-2 text-xs font-semibold text-muted-foreground">Call this field</p>
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {presets.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => onLabel(preset)}
+                  className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                    preset === label ? "border-primary bg-primary-soft" : "border-border bg-card"
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+            <Input
+              defaultValue={label}
+              maxLength={24}
+              placeholder="Your own wording"
+              className="h-9 rounded-lg"
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v) onLabel(v);
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+      <Input
+        id={fieldKey}
+        value={value}
+        onChange={(e) => onValue(e.target.value)}
+        className="h-11 rounded-xl"
+      />
+    </div>
+  );
 }
 
 function CreatePage() {
@@ -263,6 +346,12 @@ function CreatePage() {
   const active = slides[Math.min(activeIndex, slides.length - 1)] ?? slides[0]!;
   const content = active.content;
   const fields = TYPE_FIELDS[business.type];
+  /** Saved wording wins over the business type default. */
+  const labelFor = (key: string, fallbackKey: string) =>
+    content.labels?.[key]?.trim() || t(fallbackKey);
+  const presetsFor = (key: keyof typeof FIELD_LABEL_PRESETS) =>
+    FIELD_LABEL_PRESETS[key].map((k) => t(k));
+  const sets = contactSets(brand.contact);
   /** Only the two headline fields stay visible, the rest is optional detail. */
   const primaryFields = fields.slice(0, 2);
   const secondaryFields = fields.slice(2);
@@ -484,6 +573,37 @@ function CreatePage() {
       <section className={`flex flex-col gap-4 ${generated ? "order-2 lg:order-1" : ""}`}>
         <FormatPicker value={format} onChange={changeFormat} allowed={formats} />
 
+        {sizes.length > 1 ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Size
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {sizes.map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  title={option.note}
+                  onClick={() => {
+                    setSizeKey(option.key);
+                    setAll({ sizeKey: option.key });
+                  }}
+                  className={`rounded-full border px-3 py-1 text-xs font-bold transition-colors ${
+                    option.key === size.key
+                      ? "border-primary bg-primary-soft text-accent-foreground"
+                      : "border-border bg-card text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <span className="ml-auto hidden text-xs text-muted-foreground sm:block">
+              {size.note}
+            </span>
+          </div>
+        ) : null}
+
         {locked ? (
           <div className="card-soft p-4 text-sm">
             <p className="font-semibold">{t("create.trialUsed")}</p>
@@ -575,15 +695,15 @@ function CreatePage() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             {primaryFields.map((f) => (
-              <div key={f.key} className="grid gap-1.5">
-                <Label htmlFor={f.key}>{t(f.labelKey)}</Label>
-                <Input
-                  id={f.key}
-                  value={content[f.key]}
-                  onChange={(e) => set({ [f.key]: e.target.value } as Partial<PostContent>)}
-                  className="h-11 rounded-xl"
-                />
-              </div>
+              <FieldRow
+                key={f.key}
+                fieldKey={f.key}
+                label={labelFor(f.key, f.labelKey)}
+                presets={presetsFor(f.key)}
+                value={content[f.key]}
+                onValue={(v) => set({ [f.key]: v } as Partial<PostContent>)}
+                onLabel={(v) => setAll({ labels: { ...(content.labels ?? {}), [f.key]: v } })}
+              />
             ))}
           </div>
 
@@ -640,15 +760,15 @@ function CreatePage() {
             <div className="grid gap-4 border-t pt-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 {secondaryFields.map((f) => (
-                  <div key={f.key} className="grid gap-1.5">
-                    <Label htmlFor={f.key}>{t(f.labelKey)}</Label>
-                    <Input
-                      id={f.key}
-                      value={content[f.key]}
-                      onChange={(e) => set({ [f.key]: e.target.value } as Partial<PostContent>)}
-                      className="h-11 rounded-xl"
-                    />
-                  </div>
+                  <FieldRow
+                    key={f.key}
+                    fieldKey={f.key}
+                    label={labelFor(f.key, f.labelKey)}
+                    presets={presetsFor(f.key)}
+                    value={content[f.key]}
+                    onValue={(v) => set({ [f.key]: v } as Partial<PostContent>)}
+                    onLabel={(v) => setAll({ labels: { ...(content.labels ?? {}), [f.key]: v } })}
+                  />
                 ))}
               </div>
 
@@ -681,9 +801,28 @@ function CreatePage() {
                 <Switch checked={showBrandName} onCheckedChange={setShowBrandName} />
               </div>
 
-              <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
-                <p className="text-sm font-semibold">Show contact info</p>
-                <Switch checked={showContact} onCheckedChange={setShowContact} />
+              <div className="grid gap-2 rounded-xl border border-border bg-card px-3 py-2.5">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">Show contact info</p>
+                  <Switch checked={showContact} onCheckedChange={setShowContact} />
+                </div>
+                {showContact && sets.length > 1 ? (
+                  <Select
+                    value={content.contactSetId ?? sets[0]!.id}
+                    onValueChange={(v) => setAll({ contactSetId: v })}
+                  >
+                    <SelectTrigger className="h-10 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sets.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : null}
               </div>
             </div>
           ) : null}

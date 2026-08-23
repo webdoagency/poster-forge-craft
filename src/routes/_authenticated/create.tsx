@@ -23,8 +23,25 @@ import { generateCaption } from "@/lib/rafty/caption";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
 import { renderNodeToDataUrl } from "@/lib/rafty/download";
 import { recommendedFirst, templatesForFormat } from "@/lib/rafty/templates";
-import { clampDuration, FORMAT_SPECS, TYPE_FIELDS } from "@/lib/rafty/constants";
 import {
+  clampDuration,
+  FIELD_LABEL_PRESETS,
+  FORMAT_SPECS,
+  SIZE_OPTIONS,
+  sizeFor,
+  TYPE_FIELDS,
+} from "@/lib/rafty/constants";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { clearDraft, readDraft, writeDraft } from "@/lib/rafty/draft";
+import {
+  contactSets,
   emptyContent,
   type ContentFormat,
   type PostAdjustments,
@@ -96,11 +113,21 @@ function CreatePage() {
   const existing = search.post ? posts.find((p) => p.id === search.post) : undefined;
   const isDuplicate = !!existing && !!search.duplicate;
 
-  const [format, setFormat] = useState<ContentFormat>(existing?.format ?? "post");
+  /** An unfinished post is restored when the user comes back from another page.
+   * Opening a saved post, a website item or a template link always wins. */
+  const [draft] = useState(() =>
+    search.post || search.item || search.template ? null : readDraft(business?.id),
+  );
+
+  const [format, setFormat] = useState<ContentFormat>(existing?.format ?? draft?.format ?? "post");
   const [templateId, setTemplateId] = useState<string>(
-    existing?.templateId ?? search.template ?? "",
+    existing?.templateId ?? search.template ?? draft?.templateId ?? "",
+  );
+  const [sizeKey, setSizeKey] = useState<string>(
+    existing?.content.sizeKey ?? draft?.sizeKey ?? "",
   );
   const [slides, setSlides] = useState<Slide[]>(() => {
+    if (!existing && draft?.slides?.length) return draft.slides;
     if (existing?.slides?.length) {
       return existing.slides.map((slide) => ({
         ...slide,
@@ -118,9 +145,9 @@ function CreatePage() {
       },
     ];
   });
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(draft && !existing ? (draft.activeIndex ?? 0) : 0);
   const [showBrandName, setShowBrandName] = useState<boolean>(
-    existing?.showBrandName ?? brand?.showBrandName ?? false,
+    existing?.showBrandName ?? draft?.showBrandName ?? brand?.showBrandName ?? false,
   );
   // Contact details are brand data, so posts show them by default whenever the
   // brand actually saved some. The toggle stays available per post.
@@ -132,9 +159,15 @@ function CreatePage() {
       brand.contact.address.trim() ||
       brand.contact.social.trim()),
   );
-  const [showContact, setShowContact] = useState<boolean>(existing?.showContact ?? brandHasContact);
-  const [postId, setPostId] = useState<string | null>(isDuplicate ? null : (existing?.id ?? null));
-  const [generated, setGenerated] = useState(Boolean(existing) && !isDuplicate);
+  const [showContact, setShowContact] = useState<boolean>(
+    existing?.showContact ?? draft?.showContact ?? brandHasContact,
+  );
+  const [postId, setPostId] = useState<string | null>(
+    isDuplicate ? null : (existing?.id ?? draft?.postId ?? null),
+  );
+  const [generated, setGenerated] = useState(
+    existing ? !isDuplicate : Boolean(draft?.generated),
+  );
   const [showAdjust, setShowAdjust] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [newService, setNewService] = useState("");
@@ -179,6 +212,8 @@ function CreatePage() {
   }, [search.item, business, existing, loadItemImage]);
 
   const spec = FORMAT_SPECS[format];
+  const size = sizeFor(format, sizeKey);
+  const sizes = SIZE_OPTIONS[format];
   /** Business type only reorders the list, it never removes a template. */
   const formatTemplates = useMemo(
     () => recommendedFirst(templatesForFormat(templates, format), business?.type ?? "other"),
@@ -188,6 +223,35 @@ function CreatePage() {
     () => formatTemplates.find((x) => x.id === templateId) ?? formatTemplates[0],
     [formatTemplates, templateId],
   );
+
+  // Keeps the in progress post alive across navigation inside the app.
+  useEffect(() => {
+    if (!business) return;
+    writeDraft({
+      businessId: business.id,
+      format,
+      templateId: templateId || (template?.id ?? ""),
+      sizeKey: sizeKey || sizeFor(format, sizeKey).key,
+      slides,
+      activeIndex,
+      showBrandName,
+      showContact,
+      generated,
+      postId,
+    });
+  }, [
+    business,
+    format,
+    templateId,
+    template?.id,
+    sizeKey,
+    slides,
+    activeIndex,
+    showBrandName,
+    showContact,
+    generated,
+    postId,
+  ]);
 
   if (!business || !brand || !template) return null;
 
@@ -213,6 +277,13 @@ function CreatePage() {
       ),
     );
 
+  /** Patches every frame, used for post level choices such as size, field
+   * wording and the contact block. */
+  const setAll = (patch: Partial<PostContent>) =>
+    setSlides((prev) =>
+      prev.map((slide) => ({ ...slide, content: { ...slide.content, ...patch } })),
+    );
+
   const setAdjustments = (next: PostAdjustments) =>
     setSlides((prev) =>
       prev.map((slide, i) => (i === activeIndex ? { ...slide, adjustments: next } : slide)),
@@ -228,6 +299,7 @@ function CreatePage() {
     const nextMax = nextTemplate?.slides?.max ?? nextSpec.maxSlides;
     setFormat(next);
     setTemplateId(nextTemplate?.id ?? "");
+    setSizeKey(SIZE_OPTIONS[next][0]!.key);
     setSlides((prev) => {
       const kept = prev
         .slice(0, Math.max(1, Math.min(nextSpec.defaultSlides, nextMax)))
@@ -371,8 +443,8 @@ function CreatePage() {
           void (async () => {
             try {
               const dataUrl = await renderNodeToDataUrl(node, {
-                width: spec.width,
-                height: spec.height,
+                width: size.width,
+                height: size.height,
               });
               await repo.savePostRender(business!.id, saved.id, dataUrl);
             } catch {
@@ -389,6 +461,7 @@ function CreatePage() {
   }
 
   function resetAll() {
+    clearDraft();
     setPostId(null);
     setSlides(
       Array.from({ length: spec.defaultSlides }, () =>
@@ -737,7 +810,7 @@ function CreatePage() {
               caption={slides[0]!.content.caption}
               onSave={persist}
               saving={saving}
-              size={{ width: spec.width, height: spec.height }}
+              size={{ width: size.width, height: size.height }}
               {...(format === "carousel" ? { slideNodes } : {})}
               exportable={spec.exportable}
             />

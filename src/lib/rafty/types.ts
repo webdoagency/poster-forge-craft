@@ -127,24 +127,21 @@ export type BusinessMembership = {
   role: "owner" | "member";
 };
 
-/** Caption guidance owned by the brand and reused on every post. */
+/**
+ * Caption guidance owned by the brand and reused on every post.
+ * styleSample is a real description the business already uses. krijo24 reads
+ * style from it (length, punctuation, emoji, hashtags) and never copies facts.
+ */
 export type ContentInstructions = {
-  tone: string;
-  phrasesUse: string;
-  phrasesAvoid: string;
-  ctaStyle: string;
-  contact: string;
+  styleSample: string;
   hashtags: string;
 };
 
 export const emptyInstructions: ContentInstructions = {
-  tone: "",
-  phrasesUse: "",
-  phrasesAvoid: "",
-  ctaStyle: "",
-  contact: "",
+  styleSample: "",
   hashtags: "",
 };
+
 
 /** Reusable brand contact details. Brand scoped, shown only when the user opts in. */
 export type BrandContact = {

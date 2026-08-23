@@ -81,10 +81,11 @@ type Ctx = {
   completeOnboarding: (input: OnboardingInput) => Promise<void>;
   saveBrand: (patch: Partial<BrandProfile>) => Promise<void>;
   renameBusiness: (name: string) => Promise<void>;
-  addService: (name: string) => Promise<void>;
-  renameService: (serviceId: string, name: string) => Promise<void>;
-  removeService: (serviceId: string) => Promise<void>;
-  reorderServices: (serviceIds: string[]) => Promise<void>;
+  addService: (name: string) => Promise<Result>;
+  renameService: (serviceId: string, name: string) => Promise<Result>;
+  removeService: (serviceId: string) => Promise<Result>;
+  reorderServices: (serviceIds: string[]) => Promise<Result>;
+
   createBrand: (input: {
     name: string;
     type: BusinessType;

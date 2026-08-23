@@ -396,28 +396,44 @@ export async function listServices(businessId: string): Promise<BusinessService[
   }));
 }
 
-export async function addService(businessId: string, name: string) {
+/**
+ * Service writes surface their error instead of failing silently. RLS scopes
+ * every row to the caller's own brand, so a rejected write means the user does
+ * not own that brand, and the UI must not pretend it saved.
+ */
+export type WriteResult = { error?: string };
+
+export async function addService(businessId: string, name: string): Promise<WriteResult> {
   const value = name.trim();
-  if (!value) return;
+  if (!value) return { error: "Enter a service name" };
   const existing = await listServices(businessId);
-  await supabase
+  if (existing.some((s) => s.name.toLowerCase() === value.toLowerCase())) {
+    return { error: "That service already exists" };
+  }
+  const { error } = await supabase
     .from("business_services")
     .insert({ business_id: businessId, name: value, position: existing.length } as never);
+  return error ? { error: error.message } : {};
 }
 
-export async function renameService(serviceId: string, name: string) {
+export async function renameService(serviceId: string, name: string): Promise<WriteResult> {
   const value = name.trim();
-  if (!value) return;
-  await supabase.from("business_services").update({ name: value }).eq("id", serviceId);
+  if (!value) return { error: "Enter a service name" };
+  const { error } = await supabase
+    .from("business_services")
+    .update({ name: value })
+    .eq("id", serviceId);
+  return error ? { error: error.message } : {};
 }
 
-export async function removeService(serviceId: string) {
-  await supabase.from("business_services").delete().eq("id", serviceId);
+export async function removeService(serviceId: string): Promise<WriteResult> {
+  const { error } = await supabase.from("business_services").delete().eq("id", serviceId);
+  return error ? { error: error.message } : {};
 }
 
 /** Persists a new order. RLS still scopes every row to the caller's brand. */
-export async function reorderServices(serviceIds: string[]) {
-  await Promise.all(
+export async function reorderServices(serviceIds: string[]): Promise<WriteResult> {
+  const results = await Promise.all(
     serviceIds.map((serviceId, index) =>
       supabase
         .from("business_services")
@@ -425,7 +441,10 @@ export async function reorderServices(serviceIds: string[]) {
         .eq("id", serviceId),
     ),
   );
+  const failed = results.find((r) => r.error);
+  return failed?.error ? { error: failed.error.message } : {};
 }
+
 
 /* -------------------------------- templates ------------------------------- */
 

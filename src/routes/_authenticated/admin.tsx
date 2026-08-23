@@ -20,6 +20,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { LogOut } from "lucide-react";
 import { Logo } from "@/components/rafty/Logo";
 import { useRafty } from "@/lib/rafty/store";
 import * as repo from "@/lib/rafty/repo";

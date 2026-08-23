@@ -583,125 +583,130 @@ function BrandPage() {
       />
 
       <div className="card-soft grid gap-3 p-4">
-        <Label>{t("brand.services")}</Label>
-        <div className="grid gap-2">
-          {services.map((s, index) => (
-            <div key={s.id} className="flex items-center gap-2">
-              <Input
-                defaultValue={s.name}
-                onBlur={(e) => {
-                  const v = e.target.value.trim();
-                  if (v && v !== s.name) renameService(s.id, v);
-                }}
-                className="h-10 rounded-xl"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-10 shrink-0 rounded-xl"
-                aria-label="Move up"
-                disabled={index === 0}
-                onClick={() => moveService(index, -1)}
-              >
-                <ArrowUp className="size-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-10 shrink-0 rounded-xl"
-                aria-label="Move down"
-                disabled={index === services.length - 1}
-                onClick={() => moveService(index, 1)}
-              >
-                <ArrowDown className="size-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-10 shrink-0 rounded-xl"
-                aria-label={t("posts.delete")}
-                onClick={() => removeService(s.id)}
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            </div>
-          ))}
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="text-sm font-bold">{t("brand.services")}</p>
+          <p className="text-xs text-muted-foreground">Reusable in every post</p>
         </div>
+        {services.length ? (
+          <div className="flex flex-wrap gap-2">
+            {services.map((s, index) =>
+              editingService === s.id ? (
+                <div key={s.id} className="flex items-center gap-1.5">
+                  <Input
+                    autoFocus
+                    defaultValue={s.name}
+                    maxLength={60}
+                    className="h-9 w-40 rounded-full"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                      if (e.key === "Escape") setEditingService(null);
+                    }}
+                    onBlur={async (e) => {
+                      const v = e.target.value.trim();
+                      setEditingService(null);
+                      if (!v || v === s.name) return;
+                      const res = await renameService(s.id, v);
+                      if (!res.ok) toast.error(res.error ?? "Could not rename that service.");
+                      else toast.success(t("brand.saved"));
+                    }}
+                  />
+                </div>
+              ) : (
+                <div
+                  key={s.id}
+                  className="group flex items-center gap-1 rounded-full border border-border bg-card py-1 pl-3 pr-1 text-sm font-semibold"
+                >
+                  <button
+                    type="button"
+                    className="max-w-44 truncate hover:text-primary"
+                    onClick={() => setEditingService(s.id)}
+                    title="Edit service"
+                  >
+                    {s.name}
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Move up"
+                    disabled={index === 0}
+                    className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-muted disabled:opacity-30"
+                    onClick={() => void moveService(index, -1)}
+                  >
+                    <ArrowUp className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Move down"
+                    disabled={index === services.length - 1}
+                    className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-muted disabled:opacity-30"
+                    onClick={() => void moveService(index, 1)}
+                  >
+                    <ArrowDown className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={t("posts.delete")}
+                    className="grid size-6 place-items-center rounded-full text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    onClick={async () => {
+                      const res = await removeService(s.id);
+                      if (!res.ok) toast.error(res.error ?? "Could not delete that service.");
+                    }}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                </div>
+              ),
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            No services yet. Add the ones you include most often.
+          </p>
+        )}
         <div className="flex gap-2">
           <Input
             value={newService}
+            maxLength={60}
             onChange={(e) => setNewService(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void submitService();
+            }}
             placeholder={t("create.addService")}
             className="h-10 rounded-xl"
           />
           <Button
             variant="outline"
             className="h-10 shrink-0 rounded-xl"
-            onClick={() => {
-              const v = newService.trim();
-              if (!v) return;
-              addService(v);
-              setNewService("");
-            }}
+            disabled={savingService || !newService.trim()}
+            onClick={() => void submitService()}
           >
-            {t("onb.addService")}
+            <Plus className="mr-1.5 size-4" />
+            {savingService ? "Saving..." : t("onb.addService")}
           </Button>
         </div>
       </div>
 
       <div className="card-soft grid gap-3 p-4">
-        <p className="text-sm font-bold">How we talk about our business</p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="grid gap-1.5">
-            <Label>Tone</Label>
-            <Input
-              value={current.tone}
-              onChange={(e) => setInstructions({ ...current, tone: e.target.value })}
-              placeholder="Warm, direct, playful..."
-              className="h-10 rounded-xl"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>CTA style</Label>
-            <Input
-              value={current.ctaStyle}
-              onChange={(e) => setInstructions({ ...current, ctaStyle: e.target.value })}
-              placeholder="Book now, message us..."
-              className="h-10 rounded-xl"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Phrases to use</Label>
-            <Textarea
-              value={current.phrasesUse}
-              onChange={(e) => setInstructions({ ...current, phrasesUse: e.target.value })}
-              className="rounded-xl"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Phrases to avoid</Label>
-            <Textarea
-              value={current.phrasesAvoid}
-              onChange={(e) => setInstructions({ ...current, phrasesAvoid: e.target.value })}
-              className="rounded-xl"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Contact info</Label>
-            <Input
-              value={current.contact}
-              onChange={(e) => setInstructions({ ...current, contact: e.target.value })}
-              className="h-10 rounded-xl"
-            />
-          </div>
-          <div className="grid gap-1.5">
-            <Label>Hashtag preferences</Label>
-            <Input
-              value={current.hashtags}
-              onChange={(e) => setInstructions({ ...current, hashtags: e.target.value })}
-              className="h-10 rounded-xl"
-            />
-          </div>
+        <p className="text-sm font-bold">Your usual description</p>
+        <p className="text-xs text-muted-foreground">
+          Paste a caption you already use. krijo24 matches its style when writing, and only ever uses
+          this post's real information.
+        </p>
+        <Textarea
+          value={current.styleSample}
+          rows={5}
+          maxLength={1200}
+          onChange={(e) => setInstructions({ ...current, styleSample: e.target.value })}
+          placeholder="Paste one of your own post descriptions here..."
+          className="rounded-xl"
+        />
+        <div className="grid gap-1.5">
+          <Label>Hashtags (optional)</Label>
+          <Input
+            value={current.hashtags}
+            onChange={(e) => setInstructions({ ...current, hashtags: e.target.value })}
+            placeholder="#yourbrand #city"
+            className="h-10 rounded-xl"
+          />
         </div>
         <Button
           className="h-10 w-fit rounded-xl"
@@ -714,6 +719,7 @@ function BrandPage() {
           {t("brand.save")}
         </Button>
       </div>
+
 
       <div className="card-soft grid gap-3 p-4">
         <div className="flex items-center justify-between">

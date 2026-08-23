@@ -24,7 +24,6 @@ import {
   CUSTOM_TYPE_SUGGESTIONS,
   FONT_CATEGORIES,
   FONT_LIBRARY,
-  LANGUAGES,
 } from "@/lib/rafty/constants";
 import {
   emptyContact,
@@ -32,7 +31,6 @@ import {
   type BusinessType,
   type ContentInstructions,
   type CurrencyCode,
-  type LanguageCode,
 } from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/_authenticated/brand")({
@@ -383,7 +381,6 @@ function BrandPage() {
     removeService,
     reorderServices,
     selectBrand,
-    setLanguage,
     t,
   } = useRafty();
 

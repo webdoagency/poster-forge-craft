@@ -287,6 +287,9 @@ export type Template = {
   scope: TemplateScope;
   businessId: string | null;
   archived: boolean;
+  /** Kept in the library so older posts still render, but never offered in the
+   * picker. Used for the near identical colour variants of one layout. */
+  hidden?: boolean;
   /** Which content format this template renders. Defaults to post. */
   format?: ContentFormat;
   /** Multi card formats: how many slides the design supports. */

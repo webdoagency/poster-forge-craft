@@ -591,6 +591,7 @@ async function toRequest(row: RequestRow): Promise<CustomTemplateRequest> {
     businessName: row.businesses?.name ?? "",
     fileName: row.file_name,
     fileType: row.file_type ?? "",
+    filePath: row.file_path,
     previewDataUrl: await signedUrl(row.file_path),
     status: row.status,
     templateId: row.template_id,

@@ -373,7 +373,7 @@ function AdminPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-bold">{r.fileName}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {business?.name ?? r.businessName || "Unknown brand"} · {timeAgo(r.createdAt)}
+                        {business?.name || r.businessName || "Unknown brand"} · {timeAgo(r.createdAt)}
                       </p>
                     </div>
                     <Badge variant={r.templateId ? "default" : "secondary"}>
@@ -469,8 +469,8 @@ function AdminPage() {
       <AttachTemplateDialog
         request={attachRequest}
         businessName={
-          businesses.find((b) => b.id === attachRequest?.businessId)?.name ??
-          attachRequest?.businessName ??
+          businesses.find((b) => b.id === attachRequest?.businessId)?.name ||
+          attachRequest?.businessName ||
           ""
         }
         onClose={() => setAttachRequest(null)}

@@ -20,17 +20,17 @@ import { readFileAsDataUrl } from "@/lib/rafty/file";
 import {
   BUSINESS_TYPES,
   BUSINESS_TYPE_NAMES,
-  CURRENCIES,
   CUSTOM_TYPE_SUGGESTIONS,
   FONT_CATEGORIES,
   FONT_LIBRARY,
 } from "@/lib/rafty/constants";
 import {
+  contactSets,
   emptyContact,
   type BrandContact,
+  type ContactSet,
   type BusinessType,
   type ContentInstructions,
-  type CurrencyCode,
 } from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/_authenticated/brand")({
@@ -248,6 +248,10 @@ function AddBrandForm({ onDone }: { onDone: () => void }) {
   );
 }
 
+/** One or more named contact blocks. Most businesses have a single one, a
+ * second office or city is added only when it exists, and Create picks which
+ * block a post prints. The first block is mirrored into the plain fields so
+ * older posts keep rendering the same details. */
 function ContactForm({
   value,
   onSave,
@@ -255,27 +259,60 @@ function ContactForm({
   value: BrandContact;
   onSave: (contact: BrandContact) => Promise<void>;
 }) {
-  const [draft, setDraft] = useState<BrandContact>(value);
+  const [sets, setSets] = useState<ContactSet[]>(() => {
+    const existing = contactSets(value);
+    return existing.length
+      ? existing
+      : [
+          {
+            id: "main",
+            label: "Main",
+            phones: [],
+            email: "",
+            website: "",
+            address: "",
+            social: "",
+          },
+        ];
+  });
   const [saving, setSaving] = useState(false);
 
-  function setPhone(index: number, v: string) {
-    const phones = [...draft.phones];
-    phones[index] = v;
-    setDraft({ ...draft, phones });
-  }
+  const patch = (index: number, part: Partial<ContactSet>) =>
+    setSets((prev) => prev.map((s, i) => (i === index ? { ...s, ...part } : s)));
 
-  function addPhone() {
-    setDraft({ ...draft, phones: [...draft.phones, ""] });
-  }
-
-  function removePhone(index: number) {
-    setDraft({ ...draft, phones: draft.phones.filter((_, i) => i !== index) });
+  function addSet() {
+    setSets((prev) => [
+      ...prev,
+      {
+        id: `set-${Date.now()}`,
+        label: `Location ${prev.length + 1}`,
+        phones: [],
+        email: "",
+        website: "",
+        address: "",
+        social: "",
+      },
+    ]);
   }
 
   async function save() {
     setSaving(true);
     try {
-      await onSave({ ...draft, phones: draft.phones.map((p) => p.trim()).filter(Boolean) });
+      const cleaned = sets.map((s, i) => ({
+        ...s,
+        label: s.label.trim() || `Contact ${i + 1}`,
+        phones: s.phones.map((p) => p.trim()).filter(Boolean),
+      }));
+      const first = cleaned[0]!;
+      await onSave({
+        phones: first.phones,
+        email: first.email.trim(),
+        website: first.website.trim(),
+        address: first.address.trim(),
+        social: first.social.trim(),
+        sets: cleaned,
+      });
+      setSets(cleaned);
       toast.success("Contact info saved.");
     } finally {
       setSaving(false);
@@ -284,84 +321,107 @@ function ContactForm({
 
   return (
     <div className="card-soft grid gap-3 p-4">
-      <p className="text-sm font-bold">Contact information</p>
-      <p className="text-xs text-muted-foreground">
-        Add the details customers use to reach you. Turn this on per post from the create screen.
-      </p>
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-sm font-bold">Contact information</p>
+        <p className="text-xs text-muted-foreground">Choose one per post</p>
+      </div>
 
-      <div className="grid gap-1.5">
-        <Label>Phone numbers</Label>
-        <div className="grid gap-2">
-          {draft.phones.map((phone, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <Input
-                value={phone}
-                onChange={(e) => setPhone(index, e.target.value)}
-                placeholder="Phone number"
-                className="h-10 rounded-xl"
-              />
+      {sets.map((set, index) => (
+        <div key={set.id} className="grid gap-3 rounded-xl border border-border bg-card p-3">
+          <div className="flex items-center gap-2">
+            <Input
+              value={set.label}
+              maxLength={30}
+              onChange={(e) => patch(index, { label: e.target.value })}
+              placeholder="Name this block"
+              className="h-9 max-w-48 rounded-lg font-semibold"
+            />
+            {sets.length > 1 ? (
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-10 shrink-0 rounded-xl"
-                aria-label="Remove phone"
-                onClick={() => removePhone(index)}
+                className="ml-auto size-9 rounded-xl"
+                aria-label="Remove contact block"
+                onClick={() => setSets((prev) => prev.filter((_, i) => i !== index))}
               >
-                <X className="size-4" />
+                <Trash2 className="size-4" />
               </Button>
-            </div>
-          ))}
+            ) : null}
+          </div>
+
+          <div className="grid gap-2">
+            {set.phones.map((phone, pi) => (
+              <div key={pi} className="flex items-center gap-2">
+                <Input
+                  value={phone}
+                  onChange={(e) =>
+                    patch(index, {
+                      phones: set.phones.map((v, i) => (i === pi ? e.target.value : v)),
+                    })
+                  }
+                  placeholder="Phone number"
+                  className="h-10 rounded-xl"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-10 shrink-0 rounded-xl"
+                  aria-label="Remove phone"
+                  onClick={() => patch(index, { phones: set.phones.filter((_, i) => i !== pi) })}
+                >
+                  <X className="size-4" />
+                </Button>
+              </div>
+            ))}
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 w-fit rounded-xl"
+              onClick={() => patch(index, { phones: [...set.phones, ""] })}
+            >
+              <Plus className="mr-1 size-3.5" />
+              Add phone
+            </Button>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input
+              value={set.email}
+              onChange={(e) => patch(index, { email: e.target.value })}
+              placeholder="hello@yourbrand.com"
+              className="h-10 rounded-xl"
+            />
+            <Input
+              value={set.website}
+              onChange={(e) => patch(index, { website: e.target.value })}
+              placeholder="yourbrand.com"
+              className="h-10 rounded-xl"
+            />
+            <Input
+              value={set.address}
+              onChange={(e) => patch(index, { address: e.target.value })}
+              placeholder="Street, city"
+              className="h-10 rounded-xl"
+            />
+            <Input
+              value={set.social}
+              onChange={(e) => patch(index, { social: e.target.value })}
+              placeholder="@yourbrand"
+              className="h-10 rounded-xl"
+            />
+          </div>
         </div>
-        <Button variant="outline" size="sm" className="h-9 w-fit rounded-xl" onClick={addPhone}>
-          <Plus className="mr-1 size-3.5" />
-          Add phone
+      ))}
+
+      <div className="flex flex-wrap gap-2">
+        <Button variant="outline" className="h-10 rounded-xl" onClick={addSet}>
+          <Plus className="mr-1 size-4" />
+          Add contact block
+        </Button>
+        <Button className="h-10 rounded-xl" disabled={saving} onClick={save}>
+          {saving ? "Saving..." : "Save contact info"}
         </Button>
       </div>
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="grid gap-1.5">
-          <Label>Email</Label>
-          <Input
-            value={draft.email}
-            onChange={(e) => setDraft({ ...draft, email: e.target.value })}
-            placeholder="hello@yourbrand.com"
-            className="h-10 rounded-xl"
-          />
-        </div>
-        <div className="grid gap-1.5">
-          <Label>Website</Label>
-          <Input
-            value={draft.website}
-            onChange={(e) => setDraft({ ...draft, website: e.target.value })}
-            placeholder="yourbrand.com"
-            className="h-10 rounded-xl"
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-1.5">
-        <Label>Address</Label>
-        <Input
-          value={draft.address}
-          onChange={(e) => setDraft({ ...draft, address: e.target.value })}
-          placeholder="Street, city"
-          className="h-10 rounded-xl"
-        />
-      </div>
-
-      <div className="grid gap-1.5">
-        <Label>Social handle (optional)</Label>
-        <Input
-          value={draft.social}
-          onChange={(e) => setDraft({ ...draft, social: e.target.value })}
-          placeholder="@yourbrand"
-          className="h-10 rounded-xl"
-        />
-      </div>
-
-      <Button className="h-10 w-fit rounded-xl" disabled={saving} onClick={save}>
-        {saving ? "Saving..." : "Save contact info"}
-      </Button>
     </div>
   );
 }
@@ -371,6 +431,7 @@ function BrandPage() {
     business,
     brand,
     services,
+    posts,
     trial,
     plan,
     brands,
@@ -394,6 +455,34 @@ function BrandPage() {
 
   const current = instructions ?? brand.instructions;
   const trialLeft = Math.max(0, (trial?.freePostLimit ?? 1) - (trial?.postsCreated ?? 0));
+
+  /** A short read on how this brand is actually being used. */
+  const now = new Date();
+  const thisMonth = posts.filter((p) => {
+    const d = new Date(p.createdAt);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  }).length;
+  const templatesUsed = new Set(posts.map((p) => p.templateId)).size;
+  const lastPost = posts[0]?.createdAt;
+  const stats: { label: string; value: string }[] = [
+    { label: "Posts created", value: String(posts.length) },
+    { label: "This month", value: String(thisMonth) },
+    { label: "Templates used", value: String(templatesUsed) },
+    { label: "Services saved", value: String(services.length) },
+    {
+      label: "Last post",
+      value: lastPost ? new Date(lastPost).toLocaleDateString() : "—",
+    },
+    {
+      label: business.status === "approved" ? "Plan" : "Free posts left",
+      value:
+        business.status === "approved"
+          ? plan?.active
+            ? `${plan.plan} · unlimited`
+            : "awaiting activation"
+          : String(trialLeft),
+    },
+  ];
 
   /** Awaits the database write before clearing the input, so a rejected write
    * never looks like a success. */
@@ -430,6 +519,17 @@ function BrandPage() {
           {t("brand.status")}: {t(`status.${business.status}`)}
           {business.status !== "approved" ? ` | ${t("trial.remaining")}: ${trialLeft}` : ""}
         </p>
+      </div>
+
+      <div className="card-soft grid grid-cols-2 gap-3 p-4 sm:grid-cols-3">
+        {stats.map((stat) => (
+          <div key={stat.label}>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              {stat.label}
+            </p>
+            <p className="truncate text-lg font-extrabold capitalize">{stat.value}</p>
+          </div>
+        ))}
       </div>
 
       <div className="card-soft grid gap-4 p-4">
@@ -541,26 +641,6 @@ function BrandPage() {
 
       <div className="card-soft grid gap-4 p-4">
         <p className="text-sm font-bold">Post preferences</p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="grid gap-1.5">
-            <Label>{t("brand.currency")}</Label>
-            <Select
-              value={brand.currency}
-              onValueChange={(v) => saveBrand({ currency: v as CurrencyCode })}
-            >
-              <SelectTrigger className="h-11 rounded-xl bg-card">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CURRENCIES.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {c}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
         <div className="flex items-center justify-between rounded-xl border bg-card px-4 py-3">
           <div>
             <p className="text-sm font-semibold">Show brand name on posts</p>

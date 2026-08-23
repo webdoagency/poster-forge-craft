@@ -1,6 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, Image as ImageIcon, Plus, Sparkles, Wand2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Image as ImageIcon,
+  Pencil,
+  Plus,
+  Sparkles,
+  Wand2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,8 +31,25 @@ import { generateCaption } from "@/lib/rafty/caption";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
 import { renderNodeToDataUrl } from "@/lib/rafty/download";
 import { recommendedFirst, templatesForFormat } from "@/lib/rafty/templates";
-import { clampDuration, FORMAT_SPECS, TYPE_FIELDS } from "@/lib/rafty/constants";
 import {
+  clampDuration,
+  FIELD_LABEL_PRESETS,
+  FORMAT_SPECS,
+  SIZE_OPTIONS,
+  sizeFor,
+  TYPE_FIELDS,
+} from "@/lib/rafty/constants";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { clearDraft, readDraft, writeDraft } from "@/lib/rafty/draft";
+import {
+  contactSets,
   emptyContent,
   type ContentFormat,
   type PostAdjustments,
@@ -77,6 +102,81 @@ function newSlide(durationMs?: number): Slide {
   };
 }
 
+/**
+ * One content field with editable wording. Businesses name the same thing
+ * differently (Nights, Guests, Rooms), so the label is a choice, not a fixed
+ * string. A plain number is printed together with its label on the design.
+ */
+function FieldRow({
+  fieldKey,
+  label,
+  presets,
+  value,
+  onValue,
+  onLabel,
+}: {
+  fieldKey: string;
+  label: string;
+  presets: string[];
+  value: string;
+  onValue: (v: string) => void;
+  onLabel: (v: string) => void;
+}) {
+  return (
+    <div className="grid gap-1.5">
+      <div className="flex items-center gap-1">
+        <Label htmlFor={fieldKey} className="truncate">
+          {label}
+        </Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              aria-label={`Rename ${label}`}
+              className="rounded-md p-1 text-muted-foreground hover:text-foreground"
+            >
+              <Pencil className="size-3" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-56 p-3">
+            <p className="mb-2 text-xs font-semibold text-muted-foreground">Call this field</p>
+            <div className="mb-2 flex flex-wrap gap-1.5">
+              {presets.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => onLabel(preset)}
+                  className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
+                    preset === label ? "border-primary bg-primary-soft" : "border-border bg-card"
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+            <Input
+              defaultValue={label}
+              maxLength={24}
+              placeholder="Your own wording"
+              className="h-9 rounded-lg"
+              onBlur={(e) => {
+                const v = e.target.value.trim();
+                if (v) onLabel(v);
+              }}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+      <Input
+        id={fieldKey}
+        value={value}
+        onChange={(e) => onValue(e.target.value)}
+        className="h-11 rounded-xl"
+      />
+    </div>
+  );
+}
+
 function CreatePage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
@@ -96,11 +196,19 @@ function CreatePage() {
   const existing = search.post ? posts.find((p) => p.id === search.post) : undefined;
   const isDuplicate = !!existing && !!search.duplicate;
 
-  const [format, setFormat] = useState<ContentFormat>(existing?.format ?? "post");
-  const [templateId, setTemplateId] = useState<string>(
-    existing?.templateId ?? search.template ?? "",
+  /** An unfinished post is restored when the user comes back from another page.
+   * Opening a saved post, a website item or a template link always wins. */
+  const [draft] = useState(() =>
+    search.post || search.item || search.template ? null : readDraft(business?.id),
   );
+
+  const [format, setFormat] = useState<ContentFormat>(existing?.format ?? draft?.format ?? "post");
+  const [templateId, setTemplateId] = useState<string>(
+    existing?.templateId ?? search.template ?? draft?.templateId ?? "",
+  );
+  const [sizeKey, setSizeKey] = useState<string>(existing?.content.sizeKey ?? draft?.sizeKey ?? "");
   const [slides, setSlides] = useState<Slide[]>(() => {
+    if (!existing && draft?.slides?.length) return draft.slides;
     if (existing?.slides?.length) {
       return existing.slides.map((slide) => ({
         ...slide,
@@ -118,9 +226,9 @@ function CreatePage() {
       },
     ];
   });
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(draft && !existing ? (draft.activeIndex ?? 0) : 0);
   const [showBrandName, setShowBrandName] = useState<boolean>(
-    existing?.showBrandName ?? brand?.showBrandName ?? false,
+    existing?.showBrandName ?? draft?.showBrandName ?? brand?.showBrandName ?? false,
   );
   // Contact details are brand data, so posts show them by default whenever the
   // brand actually saved some. The toggle stays available per post.
@@ -132,9 +240,13 @@ function CreatePage() {
       brand.contact.address.trim() ||
       brand.contact.social.trim()),
   );
-  const [showContact, setShowContact] = useState<boolean>(existing?.showContact ?? brandHasContact);
-  const [postId, setPostId] = useState<string | null>(isDuplicate ? null : (existing?.id ?? null));
-  const [generated, setGenerated] = useState(Boolean(existing) && !isDuplicate);
+  const [showContact, setShowContact] = useState<boolean>(
+    existing?.showContact ?? draft?.showContact ?? brandHasContact,
+  );
+  const [postId, setPostId] = useState<string | null>(
+    isDuplicate ? null : (existing?.id ?? draft?.postId ?? null),
+  );
+  const [generated, setGenerated] = useState(existing ? !isDuplicate : Boolean(draft?.generated));
   const [showAdjust, setShowAdjust] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [newService, setNewService] = useState("");
@@ -179,6 +291,8 @@ function CreatePage() {
   }, [search.item, business, existing, loadItemImage]);
 
   const spec = FORMAT_SPECS[format];
+  const size = sizeFor(format, sizeKey);
+  const sizes = SIZE_OPTIONS[format];
   /** Business type only reorders the list, it never removes a template. */
   const formatTemplates = useMemo(
     () => recommendedFirst(templatesForFormat(templates, format), business?.type ?? "other"),
@@ -188,6 +302,35 @@ function CreatePage() {
     () => formatTemplates.find((x) => x.id === templateId) ?? formatTemplates[0],
     [formatTemplates, templateId],
   );
+
+  // Keeps the in progress post alive across navigation inside the app.
+  useEffect(() => {
+    if (!business) return;
+    writeDraft({
+      businessId: business.id,
+      format,
+      templateId: templateId || (template?.id ?? ""),
+      sizeKey: sizeKey || sizeFor(format, sizeKey).key,
+      slides,
+      activeIndex,
+      showBrandName,
+      showContact,
+      generated,
+      postId,
+    });
+  }, [
+    business,
+    format,
+    templateId,
+    template?.id,
+    sizeKey,
+    slides,
+    activeIndex,
+    showBrandName,
+    showContact,
+    generated,
+    postId,
+  ]);
 
   if (!business || !brand || !template) return null;
 
@@ -199,6 +342,12 @@ function CreatePage() {
   const active = slides[Math.min(activeIndex, slides.length - 1)] ?? slides[0]!;
   const content = active.content;
   const fields = TYPE_FIELDS[business.type];
+  /** Saved wording wins over the business type default. */
+  const labelFor = (key: string, fallbackKey: string) =>
+    content.labels?.[key]?.trim() || t(fallbackKey);
+  const presetsFor = (key: keyof typeof FIELD_LABEL_PRESETS) =>
+    FIELD_LABEL_PRESETS[key].map((k) => t(k));
+  const sets = contactSets(brand.contact);
   /** Only the two headline fields stay visible, the rest is optional detail. */
   const primaryFields = fields.slice(0, 2);
   const secondaryFields = fields.slice(2);
@@ -211,6 +360,13 @@ function CreatePage() {
       prev.map((slide, i) =>
         i === activeIndex ? { ...slide, content: { ...slide.content, ...patch } } : slide,
       ),
+    );
+
+  /** Patches every frame, used for post level choices such as size, field
+   * wording and the contact block. */
+  const setAll = (patch: Partial<PostContent>) =>
+    setSlides((prev) =>
+      prev.map((slide) => ({ ...slide, content: { ...slide.content, ...patch } })),
     );
 
   const setAdjustments = (next: PostAdjustments) =>
@@ -228,6 +384,7 @@ function CreatePage() {
     const nextMax = nextTemplate?.slides?.max ?? nextSpec.maxSlides;
     setFormat(next);
     setTemplateId(nextTemplate?.id ?? "");
+    setSizeKey(SIZE_OPTIONS[next][0]!.key);
     setSlides((prev) => {
       const kept = prev
         .slice(0, Math.max(1, Math.min(nextSpec.defaultSlides, nextMax)))
@@ -251,7 +408,7 @@ function CreatePage() {
 
   /** Saves a typed service to the brand so it never has to be retyped, then
    * selects it on this post. Awaited, so a failed write is reported. */
-  async function useService() {
+  async function saveTypedService() {
     const value = newService.trim();
     if (!value || savingService) return;
     setSavingService(true);
@@ -371,8 +528,8 @@ function CreatePage() {
           void (async () => {
             try {
               const dataUrl = await renderNodeToDataUrl(node, {
-                width: spec.width,
-                height: spec.height,
+                width: size.width,
+                height: size.height,
               });
               await repo.savePostRender(business!.id, saved.id, dataUrl);
             } catch {
@@ -389,6 +546,7 @@ function CreatePage() {
   }
 
   function resetAll() {
+    clearDraft();
     setPostId(null);
     setSlides(
       Array.from({ length: spec.defaultSlides }, () =>
@@ -410,6 +568,37 @@ function CreatePage() {
     <div className="grid gap-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
       <section className={`flex flex-col gap-4 ${generated ? "order-2 lg:order-1" : ""}`}>
         <FormatPicker value={format} onChange={changeFormat} allowed={formats} />
+
+        {sizes.length > 1 ? (
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Size
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {sizes.map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  title={option.note}
+                  onClick={() => {
+                    setSizeKey(option.key);
+                    setAll({ sizeKey: option.key });
+                  }}
+                  className={`rounded-full border px-3 py-1 text-xs font-bold transition-colors ${
+                    option.key === size.key
+                      ? "border-primary bg-primary-soft text-accent-foreground"
+                      : "border-border bg-card text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <span className="ml-auto hidden text-xs text-muted-foreground sm:block">
+              {size.note}
+            </span>
+          </div>
+        ) : null}
 
         {locked ? (
           <div className="card-soft p-4 text-sm">
@@ -502,15 +691,15 @@ function CreatePage() {
 
           <div className="grid gap-3 sm:grid-cols-2">
             {primaryFields.map((f) => (
-              <div key={f.key} className="grid gap-1.5">
-                <Label htmlFor={f.key}>{t(f.labelKey)}</Label>
-                <Input
-                  id={f.key}
-                  value={content[f.key]}
-                  onChange={(e) => set({ [f.key]: e.target.value } as Partial<PostContent>)}
-                  className="h-11 rounded-xl"
-                />
-              </div>
+              <FieldRow
+                key={f.key}
+                fieldKey={f.key}
+                label={labelFor(f.key, f.labelKey)}
+                presets={presetsFor(f.key)}
+                value={content[f.key]}
+                onValue={(v) => set({ [f.key]: v } as Partial<PostContent>)}
+                onLabel={(v) => setAll({ labels: { ...(content.labels ?? {}), [f.key]: v } })}
+              />
             ))}
           </div>
 
@@ -567,15 +756,15 @@ function CreatePage() {
             <div className="grid gap-4 border-t pt-4">
               <div className="grid gap-3 sm:grid-cols-2">
                 {secondaryFields.map((f) => (
-                  <div key={f.key} className="grid gap-1.5">
-                    <Label htmlFor={f.key}>{t(f.labelKey)}</Label>
-                    <Input
-                      id={f.key}
-                      value={content[f.key]}
-                      onChange={(e) => set({ [f.key]: e.target.value } as Partial<PostContent>)}
-                      className="h-11 rounded-xl"
-                    />
-                  </div>
+                  <FieldRow
+                    key={f.key}
+                    fieldKey={f.key}
+                    label={labelFor(f.key, f.labelKey)}
+                    presets={presetsFor(f.key)}
+                    value={content[f.key]}
+                    onValue={(v) => set({ [f.key]: v } as Partial<PostContent>)}
+                    onLabel={(v) => setAll({ labels: { ...(content.labels ?? {}), [f.key]: v } })}
+                  />
                 ))}
               </div>
 
@@ -595,7 +784,7 @@ function CreatePage() {
                     variant="outline"
                     className="h-10 shrink-0 rounded-xl"
                     disabled={savingService || !newService.trim()}
-                    onClick={() => void useService()}
+                    onClick={() => void saveTypedService()}
                   >
                     <Plus className="mr-1.5 size-4" />
                     Save to brand
@@ -608,9 +797,28 @@ function CreatePage() {
                 <Switch checked={showBrandName} onCheckedChange={setShowBrandName} />
               </div>
 
-              <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
-                <p className="text-sm font-semibold">Show contact info</p>
-                <Switch checked={showContact} onCheckedChange={setShowContact} />
+              <div className="grid gap-2 rounded-xl border border-border bg-card px-3 py-2.5">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">Show contact info</p>
+                  <Switch checked={showContact} onCheckedChange={setShowContact} />
+                </div>
+                {showContact && sets.length > 1 ? (
+                  <Select
+                    value={content.contactSetId ?? sets[0]!.id}
+                    onValueChange={(v) => setAll({ contactSetId: v })}
+                  >
+                    <SelectTrigger className="h-10 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {sets.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -737,7 +945,7 @@ function CreatePage() {
               caption={slides[0]!.content.caption}
               onSave={persist}
               saving={saving}
-              size={{ width: spec.width, height: spec.height }}
+              size={{ width: size.width, height: size.height }}
               {...(format === "carousel" ? { slideNodes } : {})}
               exportable={spec.exportable}
             />

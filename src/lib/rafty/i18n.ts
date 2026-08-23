@@ -142,6 +142,9 @@ const en: Record<string, string> = {
   "onb.customTypeHint": "For example bakery, gym, clinic",
   "field.subject": "Subject",
   "field.detail": "Detail",
+  "field.guests": "Guests",
+  "field.days": "Days",
+  "field.persons": "Persons",
 };
 
 const de: Record<string, string> = {
@@ -282,6 +285,9 @@ const de: Record<string, string> = {
   "onb.customTypeHint": "Zum Beispiel Bäckerei, Fitness, Klinik",
   "field.subject": "Thema",
   "field.detail": "Detail",
+  "field.guests": "Gäste",
+  "field.days": "Tage",
+  "field.persons": "Personen",
 };
 
 const sq: Record<string, string> = {
@@ -422,6 +428,9 @@ const sq: Record<string, string> = {
   "onb.customTypeHint": "Për shembull furrë, palestër, klinikë",
   "field.subject": "Tema",
   "field.detail": "Detaj",
+  "field.guests": "Mysafirë",
+  "field.days": "Ditë",
+  "field.persons": "Persona",
 };
 
 const dicts: Record<LanguageCode, Record<string, string>> = { en, de, sq };

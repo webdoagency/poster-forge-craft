@@ -149,6 +149,20 @@ export type BrandContact = {
   website: string;
   address: string;
   social: string;
+  /** Extra named contact blocks, for example one per office or per city.
+   * The first block always mirrors the fields above for older posts. */
+  sets?: ContactSet[];
+};
+
+/** One named contact block a post can pick. */
+export type ContactSet = {
+  id: string;
+  label: string;
+  phones: string[];
+  email: string;
+  website: string;
+  address: string;
+  social: string;
 };
 
 export const emptyContact: BrandContact = {
@@ -157,7 +171,28 @@ export const emptyContact: BrandContact = {
   website: "",
   address: "",
   social: "",
+  sets: [],
 };
+
+/** Contact blocks a post can choose from, always at least the main one. */
+export function contactSets(contact: BrandContact | null | undefined): ContactSet[] {
+  if (!contact) return [];
+  const sets = (contact.sets ?? []).filter((s) => s && s.id);
+  if (sets.length) return sets;
+  const main: ContactSet = {
+    id: "main",
+    label: "Main",
+    phones: contact.phones ?? [],
+    email: contact.email ?? "",
+    website: contact.website ?? "",
+    address: contact.address ?? "",
+    social: contact.social ?? "",
+  };
+  const filled =
+    main.phones.some((p) => p.trim()) ||
+    [main.email, main.website, main.address, main.social].some((v) => v.trim());
+  return filled ? [main] : [];
+}
 
 export type BrandProfile = {
   businessId: string;
@@ -252,6 +287,9 @@ export type Template = {
   scope: TemplateScope;
   businessId: string | null;
   archived: boolean;
+  /** Kept in the library so older posts still render, but never offered in the
+   * picker. Used for the near identical colour variants of one layout. */
+  hidden?: boolean;
   /** Which content format this template renders. Defaults to post. */
   format?: ContentFormat;
   /** Multi card formats: how many slides the design supports. */
@@ -321,6 +359,13 @@ export type PostContent = {
   services: string[];
   /** User placed extra lines, rendered identically in preview and export. */
   extras?: PostTextItem[];
+  /** Per field wording chosen by the user, for example "Nights" or "Guests".
+   * A numeric value is printed together with its label: 4 -> "4 Nights". */
+  labels?: Partial<Record<string, string>>;
+  /** Which brand contact block this post prints, when contact is shown. */
+  contactSetId?: string | null;
+  /** Chosen output size inside the format, for example "4:5" or "1:1". */
+  sizeKey?: string;
   imageDataUrl: string | null;
   caption: string;
 };

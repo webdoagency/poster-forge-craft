@@ -388,6 +388,8 @@ function BrandPage() {
   } = useRafty();
 
   const [newService, setNewService] = useState("");
+  const [savingService, setSavingService] = useState(false);
+  const [editingService, setEditingService] = useState<string | null>(null);
   const [addingBrand, setAddingBrand] = useState(false);
   const [instructions, setInstructions] = useState<ContentInstructions | null>(null);
 
@@ -396,6 +398,22 @@ function BrandPage() {
   const current = instructions ?? brand.instructions;
   const trialLeft = Math.max(0, (trial?.freePostLimit ?? 1) - (trial?.postsCreated ?? 0));
 
+  /** Awaits the database write before clearing the input, so a rejected write
+   * never looks like a success. */
+  async function submitService() {
+    const value = newService.trim();
+    if (!value || savingService) return;
+    setSavingService(true);
+    const res = await addService(value);
+    setSavingService(false);
+    if (!res.ok) {
+      toast.error(res.error ?? "Could not save that service.");
+      return;
+    }
+    setNewService("");
+    toast.success(t("brand.saved"));
+  }
+
   async function moveService(index: number, dir: -1 | 1) {
     const target = index + dir;
     if (target < 0 || target >= services.length) return;
@@ -403,8 +421,10 @@ function BrandPage() {
     const tmp = ids[index]!;
     ids[index] = ids[target]!;
     ids[target] = tmp;
-    await reorderServices(ids);
+    const res = await reorderServices(ids);
+    if (!res.ok) toast.error(res.error ?? "Could not reorder services.");
   }
+
 
   return (
     <div className="mx-auto grid max-w-3xl gap-5">

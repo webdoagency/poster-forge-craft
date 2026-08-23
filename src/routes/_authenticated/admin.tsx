@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { LogOut } from "lucide-react";
 import { Logo } from "@/components/rafty/Logo";
 import { useRafty } from "@/lib/rafty/store";
 import * as repo from "@/lib/rafty/repo";
@@ -72,8 +74,9 @@ function timeAgo(iso: string) {
 type Profile = { id: string; email: string; displayName: string };
 
 function AdminPage() {
-  const { ready, isAdmin, user } = useRafty();
+  const { ready, isAdmin, user, signOut } = useRafty();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [trials, setTrials] = useState<TrialUsage[]>([]);
   const [requests, setRequests] = useState<CustomTemplateRequest[]>([]);
@@ -212,6 +215,20 @@ function AdminPage() {
           </Link>
           <span className="rounded-lg bg-primary-soft px-2 py-1 text-xs font-bold">Admin</span>
           <p className="ml-auto truncate text-xs text-muted-foreground">{user?.email}</p>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-xl"
+            aria-label="Sign out"
+            onClick={async () => {
+              await queryClient.cancelQueries();
+              queryClient.clear();
+              await signOut();
+              navigate({ to: "/auth", replace: true });
+            }}
+          >
+            <LogOut className="size-4" />
+          </Button>
         </div>
       </header>
 

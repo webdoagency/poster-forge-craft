@@ -149,6 +149,20 @@ export type BrandContact = {
   website: string;
   address: string;
   social: string;
+  /** Extra named contact blocks, for example one per office or per city.
+   * The first block always mirrors the fields above for older posts. */
+  sets?: ContactSet[];
+};
+
+/** One named contact block a post can pick. */
+export type ContactSet = {
+  id: string;
+  label: string;
+  phones: string[];
+  email: string;
+  website: string;
+  address: string;
+  social: string;
 };
 
 export const emptyContact: BrandContact = {
@@ -157,7 +171,28 @@ export const emptyContact: BrandContact = {
   website: "",
   address: "",
   social: "",
+  sets: [],
 };
+
+/** Contact blocks a post can choose from, always at least the main one. */
+export function contactSets(contact: BrandContact | null | undefined): ContactSet[] {
+  if (!contact) return [];
+  const sets = (contact.sets ?? []).filter((s) => s && s.id);
+  if (sets.length) return sets;
+  const main: ContactSet = {
+    id: "main",
+    label: "Main",
+    phones: contact.phones ?? [],
+    email: contact.email ?? "",
+    website: contact.website ?? "",
+    address: contact.address ?? "",
+    social: contact.social ?? "",
+  };
+  const filled =
+    main.phones.some((p) => p.trim()) ||
+    [main.email, main.website, main.address, main.social].some((v) => v.trim());
+  return filled ? [main] : [];
+}
 
 export type BrandProfile = {
   businessId: string;

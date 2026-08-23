@@ -356,6 +356,11 @@ export type PostContent = {
   services: string[];
   /** User placed extra lines, rendered identically in preview and export. */
   extras?: PostTextItem[];
+  /** Per field wording chosen by the user, for example "Nights" or "Guests".
+   * A numeric value is printed together with its label: 4 -> "4 Nights". */
+  labels?: Partial<Record<string, string>>;
+  /** Which brand contact block this post prints, when contact is shown. */
+  contactSetId?: string | null;
   imageDataUrl: string | null;
   caption: string;
 };

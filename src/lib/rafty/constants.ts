@@ -667,6 +667,81 @@ export const FORMAT_HINTS: Record<ContentFormat, string> = {
 export const clampDuration = (ms: number, spec: FormatSpec) =>
   Math.min(spec.maxDuration, Math.max(spec.minDuration, Math.round(ms / 500) * 500));
 
+/* ----------------------------- output sizes -------------------------------- */
+
+export type SizeOption = {
+  key: string;
+  label: string;
+  note: string;
+  width: number;
+  height: number;
+};
+
+/**
+ * The sizes each network actually renders without cropping. Feeds keep 4:5 as
+ * the tallest safe frame, square is the safest for carousels because every
+ * slide lines up, and vertical formats stay 9:16.
+ */
+export const SIZE_OPTIONS: Record<ContentFormat, SizeOption[]> = {
+  post: [
+    { key: "4:5", label: "4:5", note: "Feed, tallest safe", width: 1080, height: 1350 },
+    { key: "1:1", label: "1:1", note: "Square, works everywhere", width: 1080, height: 1080 },
+    { key: "9:16", label: "9:16", note: "Full screen vertical", width: 1080, height: 1920 },
+    { key: "16:9", label: "16:9", note: "Landscape, LinkedIn", width: 1080, height: 608 },
+  ],
+  carousel: [
+    { key: "1:1", label: "1:1", note: "Square, slides line up", width: 1080, height: 1080 },
+    { key: "4:5", label: "4:5", note: "Taller, more presence", width: 1080, height: 1350 },
+  ],
+  story: [{ key: "9:16", label: "9:16", note: "Full screen", width: 1080, height: 1920 }],
+  video: [
+    { key: "9:16", label: "9:16", note: "Reels, TikTok, Shorts", width: 1080, height: 1920 },
+    { key: "1:1", label: "1:1", note: "Square video", width: 1080, height: 1080 },
+  ],
+};
+
+/** Resolves a chosen size, falling back to the first option of the format. */
+export function sizeFor(format: ContentFormat, key?: string | null): SizeOption {
+  const list = SIZE_OPTIONS[format];
+  return list.find((s) => s.key === key) ?? list[0]!;
+}
+
+/**
+ * Interface safe area. Stories, reels and TikToks cover the top and bottom of
+ * the frame with profile rows, captions and buttons, so content is kept inside
+ * these insets. Values are percentages of the canvas width, matching the
+ * container relative sizing used by every template.
+ */
+export const SAFE_INSETS: Record<ContentFormat, { top: number; bottom: number }> = {
+  post: { top: 0, bottom: 0 },
+  carousel: { top: 0, bottom: 0 },
+  story: { top: 14, bottom: 24 },
+  video: { top: 14, bottom: 28 },
+};
+
+/* ----------------------------- field wording ------------------------------- */
+
+/**
+ * Wording a business can pick per field. Every business names things
+ * differently, so the label is editable instead of hard coded per type.
+ */
+export const FIELD_LABEL_PRESETS: Record<FieldKey, string[]> = {
+  title: ["field.offer", "field.product", "field.property", "field.vehicle", "field.dish"],
+  subject: ["field.destination", "field.model", "field.category", "field.menu", "field.location"],
+  location: ["field.hotel", "field.location", "field.area"],
+  price: ["field.price", "field.financing"],
+  date: ["field.date", "field.validUntil", "field.available", "field.when"],
+  meta1: ["field.nights", "field.rooms", "field.year", "field.guests", "field.days"],
+  meta2: ["field.area", "field.mileage", "field.persons", "field.detail"],
+};
+
+/** A plain number plus its label reads better than the number alone. */
+export function labelledValue(value: string, label?: string): string {
+  const v = (value ?? "").trim();
+  if (!v || !label) return v;
+  return /^\d+([.,]\d+)?$/.test(v) ? `${v} ${label.trim()}` : v;
+}
+
 /* --------------------------- social and scheduling ------------------------- */
 
 /**

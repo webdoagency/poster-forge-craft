@@ -206,9 +206,7 @@ function CreatePage() {
   const [templateId, setTemplateId] = useState<string>(
     existing?.templateId ?? search.template ?? draft?.templateId ?? "",
   );
-  const [sizeKey, setSizeKey] = useState<string>(
-    existing?.content.sizeKey ?? draft?.sizeKey ?? "",
-  );
+  const [sizeKey, setSizeKey] = useState<string>(existing?.content.sizeKey ?? draft?.sizeKey ?? "");
   const [slides, setSlides] = useState<Slide[]>(() => {
     if (!existing && draft?.slides?.length) return draft.slides;
     if (existing?.slides?.length) {
@@ -248,9 +246,7 @@ function CreatePage() {
   const [postId, setPostId] = useState<string | null>(
     isDuplicate ? null : (existing?.id ?? draft?.postId ?? null),
   );
-  const [generated, setGenerated] = useState(
-    existing ? !isDuplicate : Boolean(draft?.generated),
-  );
+  const [generated, setGenerated] = useState(existing ? !isDuplicate : Boolean(draft?.generated));
   const [showAdjust, setShowAdjust] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [newService, setNewService] = useState("");
@@ -412,7 +408,7 @@ function CreatePage() {
 
   /** Saves a typed service to the brand so it never has to be retyped, then
    * selects it on this post. Awaited, so a failed write is reported. */
-  async function useService() {
+  async function saveTypedService() {
     const value = newService.trim();
     if (!value || savingService) return;
     setSavingService(true);
@@ -788,7 +784,7 @@ function CreatePage() {
                     variant="outline"
                     className="h-10 shrink-0 rounded-xl"
                     disabled={savingService || !newService.trim()}
-                    onClick={() => void useService()}
+                    onClick={() => void saveTypedService()}
                   >
                     <Plus className="mr-1.5 size-4" />
                     Save to brand

@@ -263,7 +263,17 @@ function ContactForm({
     const existing = contactSets(value);
     return existing.length
       ? existing
-      : [{ id: "main", label: "Main", phones: [], email: "", website: "", address: "", social: "" }];
+      : [
+          {
+            id: "main",
+            label: "Main",
+            phones: [],
+            email: "",
+            website: "",
+            address: "",
+            social: "",
+          },
+        ];
   });
   const [saving, setSaving] = useState(false);
 

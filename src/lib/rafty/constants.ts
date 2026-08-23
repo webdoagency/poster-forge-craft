@@ -580,7 +580,6 @@ export const CTA_PRESETS = [
   "Limited availability",
 ];
 
-
 export const DEFAULT_BRAND = {
   primary: "#6d4dff",
   secondary: "#b06cf5",

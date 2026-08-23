@@ -316,7 +316,6 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
     [business],
   );
 
-
   const createBrandFn = useCallback(
     async (input: { name: string; type: BusinessType; customType?: string | null }) => {
       const res = await repo.createBrand(input);

@@ -156,11 +156,13 @@ export function generateCaption(input: {
   if (content.additionalText.trim()) extras.unshift(content.additionalText.trim());
   extras.forEach((v) => parts.push(v.replace(/\.$/, "") + "."));
 
-  const cta =
-    content.cta.trim() || DEFAULT_CLOSERS[businessType] || DEFAULT_CLOSERS.other!;
+  const cta = content.cta.trim() || DEFAULT_CLOSERS[businessType] || DEFAULT_CLOSERS.other!;
   parts.push(cta.replace(/\.$/, "") + ".");
 
-  let body = parts.join(" ").replace(/\s{2,}/g, " ").trim();
+  let body = parts
+    .join(" ")
+    .replace(/\s{2,}/g, " ")
+    .trim();
 
   const tags = buildHashtags({
     configured: instructions.hashtags,

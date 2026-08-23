@@ -142,7 +142,6 @@ export const emptyInstructions: ContentInstructions = {
   hashtags: "",
 };
 
-
 /** Reusable brand contact details. Brand scoped, shown only when the user opts in. */
 export type BrandContact = {
   phones: string[];
@@ -324,7 +323,6 @@ export type PostContent = {
   caption: string;
 };
 
-
 /** Safe content nudges. Values are clamped by the adjust controls. */
 export type LayerAdjust = {
   x: number;
@@ -449,4 +447,3 @@ export type DiscoveredItem = {
   postId: string | null;
   createdAt: string;
 };
-

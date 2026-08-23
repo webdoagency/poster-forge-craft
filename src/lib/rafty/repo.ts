@@ -445,7 +445,6 @@ export async function reorderServices(serviceIds: string[]): Promise<WriteResult
   return failed?.error ? { error: failed.error.message } : {};
 }
 
-
 /* -------------------------------- templates ------------------------------- */
 
 type CustomTemplateRow = {
@@ -1233,4 +1232,3 @@ export async function listPostsMissingRender(businessId: string): Promise<string
 }
 
 export const DEFAULTS = DEFAULT_BRAND;
-

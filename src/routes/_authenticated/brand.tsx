@@ -422,7 +422,6 @@ function BrandPage() {
     if (!res.ok) toast.error(res.error ?? "Could not reorder services.");
   }
 
-
   return (
     <div className="mx-auto grid max-w-3xl gap-5">
       <div>
@@ -690,8 +689,8 @@ function BrandPage() {
       <div className="card-soft grid gap-3 p-4">
         <p className="text-sm font-bold">Your usual description</p>
         <p className="text-xs text-muted-foreground">
-          Paste a caption you already use. krijo24 matches its style when writing, and only ever uses
-          this post's real information.
+          Paste a caption you already use. krijo24 matches its style when writing, and only ever
+          uses this post's real information.
         </p>
         <Textarea
           value={current.styleSample}
@@ -721,7 +720,6 @@ function BrandPage() {
           {t("brand.save")}
         </Button>
       </div>
-
 
       <div className="card-soft grid gap-3 p-4">
         <div className="flex items-center justify-between">

@@ -66,6 +66,5 @@ export const PostCanvas = forwardRef<HTMLDivElement, Props>(function PostCanvas(
       })}
       <ExtraTextLayer items={content.extras} brand={brand} />
     </div>
-
   );
 });

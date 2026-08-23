@@ -153,9 +153,7 @@ function CreatePage() {
     if (!itemId || !business || existing || prefilled.current) return;
     prefilled.current = true;
     void (async () => {
-      const item = (await repo.listDiscovered(business.id)).find(
-        (row) => row.id === itemId,
-      );
+      const item = (await repo.listDiscovered(business.id)).find((row) => row.id === itemId);
       if (!item) return;
       const image = item.imageUrl
         ? await loadItemImage({ data: { businessId: business.id, itemId } })
@@ -179,7 +177,6 @@ function CreatePage() {
       await repo.setDiscoveredStatus(itemId, "used");
     })();
   }, [search.item, business, existing, loadItemImage]);
-
 
   const spec = FORMAT_SPECS[format];
   /** Business type only reorders the list, it never removes a template. */
@@ -617,7 +614,6 @@ function CreatePage() {
               </div>
             </div>
           ) : null}
-
 
           {generated ? (
             <div className="grid gap-1.5">

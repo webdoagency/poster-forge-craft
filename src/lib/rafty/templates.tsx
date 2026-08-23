@@ -1991,6 +1991,154 @@ const engines: Engine[] = [
       );
     },
   },
+  /* ---- content forward engines: the picture stays the hero ---- */
+  {
+    id: "clearcenter",
+    label: "Clear Center",
+    tags: ["image_first", "minimal"],
+    render: (ctx) => {
+      const { content, brand } = ctx;
+      return (
+        <div style={{ ...base(brand), color: "#fff" }}>
+          <Img src={content.imageDataUrl} />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(120% 80% at 50% 50%, rgba(0,0,0,0.34) 0%, rgba(0,0,0,0) 62%)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(6),
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "space-between",
+              textAlign: "center",
+            }}
+          >
+            <Logo ctx={ctx} />
+            <AdjustBox
+              ctx={ctx}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: px(2.4),
+                width: "100%",
+              }}
+            >
+              <Kicker ctx={ctx} color="rgba(255,255,255,0.9)" />
+              <Title ctx={ctx} size={9} color="#fff" />
+              <div style={{ display: "flex", justifyContent: "center", width: "100%" }}>
+                <PriceBadge ctx={ctx} tone="light" />
+              </div>
+            </AdjustBox>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: px(1.6),
+              }}
+            >
+              <Chips items={metaItems(content, ctx.businessType)} tone="light" />
+              <ContactLine ctx={ctx} tone="light" />
+            </div>
+          </div>
+        </div>
+      );
+    },
+  },
+  {
+    id: "bottombar",
+    label: "Bottom Bar",
+    tags: ["image_first", "minimal"],
+    render: (ctx) => {
+      const { content, brand } = ctx;
+      return (
+        <div style={{ ...base(brand), color: "#fff" }}>
+          <Img src={content.imageDataUrl} />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(5),
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "flex-end",
+              gap: px(2.4),
+            }}
+          >
+            <AdjustBox
+              ctx={ctx}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: px(2),
+                borderRadius: px(3),
+                padding: px(4),
+                background: `${brand.primary}e6`,
+                backdropFilter: "blur(10px)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: px(2.4) }}>
+                <Logo ctx={ctx} />
+                <div style={{ marginLeft: "auto" }}>
+                  <PriceBadge ctx={ctx} tone="light" />
+                </div>
+              </div>
+              <Title ctx={ctx} size={7} color="#fff" />
+              <Chips items={metaItems(content, ctx.businessType)} tone="light" />
+              <ContactLine ctx={ctx} tone="light" />
+            </AdjustBox>
+          </div>
+        </div>
+      );
+    },
+  },
+  {
+    id: "cornerprice",
+    label: "Corner Price",
+    tags: ["image_first", "minimal"],
+    render: (ctx) => {
+      const { content, brand } = ctx;
+      return (
+        <div style={{ ...base(brand), color: "#fff" }}>
+          <Img src={content.imageDataUrl} />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              padding: px(5.5),
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start" }}>
+              <Logo ctx={ctx} />
+            </div>
+            <AdjustBox
+              ctx={ctx}
+              style={{ display: "flex", alignItems: "flex-end", gap: px(3), width: "100%" }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", gap: px(1.4), flex: 1 }}>
+                <Title ctx={ctx} size={6.4} color="#fff" />
+                <Kicker ctx={ctx} color="rgba(255,255,255,0.88)" />
+                <ContactLine ctx={ctx} tone="light" />
+              </div>
+              <PriceBadge ctx={ctx} tone="dark" />
+            </AdjustBox>
+          </div>
+        </div>
+      );
+    },
+  },
 ];
 
 export const engineIds = [...engines.map((e) => e.id), "custom"];
@@ -2157,6 +2305,9 @@ const ENGINE_STYLE: Record<string, string> = {
   duskframe: "Dusk",
   typeoffer: "Type Offer",
   splitstack: "Split Stack",
+  clearcenter: "Clear Center",
+  bottombar: "Bottom Bar",
+  cornerprice: "Corner Price",
 };
 
 const styleName = (engineId: string) => ENGINE_STYLE[engineId] ?? "Classic";
@@ -2198,6 +2349,9 @@ const ENGINE_SUGGESTED: Partial<Record<string, BusinessType[]>> = {
   duskframe: ["real_estate", "car_dealership"],
   typeoffer: ["retail", "restaurant"],
   splitstack: ["car_dealership", "retail"],
+  clearcenter: ["travel_agency", "restaurant"],
+  bottombar: ["real_estate", "retail"],
+  cornerprice: ["car_dealership", "travel_agency"],
 };
 
 const suggestedForEngine = (engineId: string): BusinessType[] | undefined =>
@@ -2262,6 +2416,10 @@ function buildGlobalTemplates(): Template[] {
     for (let k = 0; k < count; k++) {
       const variant = variants[i % variants.length]!;
       out.push({
+        // Only the first design of each engine is offered. The extra colour
+        // variants stay in the library so older posts keep rendering, but the
+        // picker no longer shows three near identical versions of one layout.
+        hidden: k > 0,
         id: `global_${i + 1}`,
         name: templateName(i + 1, engine.id),
 
@@ -2400,18 +2558,65 @@ function buildFormatTemplates(format: "carousel" | "video" | "story"): Template[
   });
 }
 
+/** Content forward designs: the picture is the message, the brand only adds a
+ * logo, the price and the essentials. Especially for video and story, where a
+ * heavy colour wash would hide the footage. */
+const CLEAN_ENGINE_IDS = ["clearcenter", "bottombar", "cornerprice"];
+
+function buildCleanTemplates(format: ContentFormat, startIndex: number): Template[] {
+  const spec = FORMAT_SPECS[format];
+  return CLEAN_ENGINE_IDS.map((engineId, index) => {
+    const engine = engineMap.get(engineId)!;
+    const variant = variants[index % variants.length]!;
+    const multi = format === "carousel" || format === "video";
+    return {
+      id: `clean_${format}_${index + 1}`,
+      name: templateName(
+        startIndex + index,
+        engine.id,
+        format === "post" ? "" : FORMAT_PREFIX[format],
+      ),
+      engine: engine.id,
+      tags: engine.tags,
+      ...(suggestedForEngine(engine.id) ? { suggestedFor: suggestedForEngine(engine.id) } : {}),
+      variant,
+      scope: "global" as const,
+      businessId: null,
+      archived: false,
+      format,
+      ...(multi
+        ? { slides: { min: spec.minSlides, max: spec.maxSlides, default: spec.defaultSlides } }
+        : {}),
+      ...(format === "video"
+        ? {
+            motion: {
+              minDuration: spec.minDuration,
+              maxDuration: spec.maxDuration,
+              defaultDuration: spec.defaultDuration,
+              transition: "fade" as const,
+            },
+          }
+        : {}),
+    };
+  });
+}
+
 export const globalTemplates: Template[] = [
   ...buildGlobalTemplates(),
   ...buildNewGlobalTemplates(),
   ...buildFormatTemplates("carousel"),
   ...buildFormatTemplates("video"),
   ...buildFormatTemplates("story"),
+  ...buildCleanTemplates("video", 90),
+  ...buildCleanTemplates("story", 90),
+  ...buildCleanTemplates("post", 90),
+  ...buildCleanTemplates("carousel", 90),
 ];
 
 /** Templates available for one format. Custom uploads stay in the post format
  * unless they declare otherwise, since their design is locked to its canvas. */
 export function templatesForFormat(all: Template[], format: ContentFormat): Template[] {
-  return all.filter((tpl) => (tpl.format ?? "post") === format);
+  return all.filter((tpl) => (tpl.format ?? "post") === format && !tpl.hidden);
 }
 
 /** Sorts templates suggested for a business type first, without removing or

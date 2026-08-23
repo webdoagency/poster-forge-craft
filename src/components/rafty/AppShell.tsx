@@ -26,10 +26,10 @@ import {
  * and from a saved post, it is not a daily destination. */
 const nav = [
   { to: "/create", labelKey: "nav.create", icon: Sparkles },
+  { to: "/website", labelKey: "nav.website", icon: Globe },
   { to: "/templates", labelKey: "nav.templates", icon: LayoutTemplate },
   { to: "/posts", labelKey: "nav.posts", icon: Images },
   { to: "/brand", labelKey: "nav.brand", icon: Palette },
-  { to: "/website", labelKey: "nav.website", icon: Globe },
 ] as const;
 
 /** Business chrome. Most accounts have one brand, a switcher only appears
@@ -148,7 +148,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <main className="mx-auto max-w-7xl px-4 pb-28 pt-6 sm:px-6 md:pb-16">{children}</main>
 
       <nav className="glass-panel fixed inset-x-0 bottom-0 z-40 border-x-0 border-b-0 pb-[env(safe-area-inset-bottom)] md:hidden">
-        <div className="grid grid-cols-4">
+        <div className="grid grid-cols-5">
           {nav.map((item) => (
             <Link
               key={item.to}

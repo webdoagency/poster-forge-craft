@@ -215,6 +215,20 @@ function AdminPage() {
           </Link>
           <span className="rounded-lg bg-primary-soft px-2 py-1 text-xs font-bold">Admin</span>
           <p className="ml-auto truncate text-xs text-muted-foreground">{user?.email}</p>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-xl"
+            aria-label="Sign out"
+            onClick={async () => {
+              await queryClient.cancelQueries();
+              queryClient.clear();
+              await signOut();
+              navigate({ to: "/auth", replace: true });
+            }}
+          >
+            <LogOut className="size-4" />
+          </Button>
         </div>
       </header>
 

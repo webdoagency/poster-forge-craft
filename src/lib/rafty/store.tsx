@@ -273,38 +273,49 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
     [business, refresh],
   );
 
+  /** Service writes are awaited, then the brand data is reloaded, so the UI can
+   * only report success when the database actually accepted the write. */
   const addServiceFn = useCallback(
     async (name: string) => {
-      if (!business) return;
-      await repo.addService(business.id, name);
-      refresh();
+      if (!business) return { ok: false, error: "No active brand" };
+      const res = await repo.addService(business.id, name);
+      if (res.error) return { ok: false, error: res.error };
+      setServices(await repo.listServices(business.id));
+      return { ok: true };
     },
-    [business, refresh],
+    [business],
   );
 
   const renameServiceFn = useCallback(
     async (serviceId: string, name: string) => {
-      await repo.renameService(serviceId, name);
-      refresh();
+      const res = await repo.renameService(serviceId, name);
+      if (res.error) return { ok: false, error: res.error };
+      if (business) setServices(await repo.listServices(business.id));
+      return { ok: true };
     },
-    [refresh],
+    [business],
   );
 
   const removeServiceFn = useCallback(
     async (serviceId: string) => {
-      await repo.removeService(serviceId);
-      refresh();
+      const res = await repo.removeService(serviceId);
+      if (res.error) return { ok: false, error: res.error };
+      if (business) setServices(await repo.listServices(business.id));
+      return { ok: true };
     },
-    [refresh],
+    [business],
   );
 
   const reorderServicesFn = useCallback(
     async (serviceIds: string[]) => {
-      await repo.reorderServices(serviceIds);
-      refresh();
+      const res = await repo.reorderServices(serviceIds);
+      if (res.error) return { ok: false, error: res.error };
+      if (business) setServices(await repo.listServices(business.id));
+      return { ok: true };
     },
-    [refresh],
+    [business],
   );
+
 
   const createBrandFn = useCallback(
     async (input: { name: string; type: BusinessType; customType?: string | null }) => {

@@ -564,21 +564,6 @@ function BrandPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="grid gap-1.5">
-            <Label>{t("brand.language")}</Label>
-            <Select value={brand.language} onValueChange={(v) => setLanguage(v as LanguageCode)}>
-              <SelectTrigger className="h-11 rounded-xl bg-card">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {LANGUAGES.map((l) => (
-                  <SelectItem key={l.code} value={l.code}>
-                    {l.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
         </div>
         <div className="flex items-center justify-between rounded-xl border bg-card px-4 py-3">
           <div>

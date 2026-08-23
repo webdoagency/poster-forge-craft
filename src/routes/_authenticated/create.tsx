@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { TemplatePicker } from "@/components/rafty/TemplatePicker";
+import { TextItemsEditor } from "@/components/rafty/TextItemsEditor";
 
 import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
@@ -22,12 +23,13 @@ import { generateCaption } from "@/lib/rafty/caption";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
 import { renderNodeToDataUrl } from "@/lib/rafty/download";
 import { recommendedFirst, templatesForFormat } from "@/lib/rafty/templates";
-import { clampDuration, CTA_PRESETS, FORMAT_SPECS, TYPE_FIELDS } from "@/lib/rafty/constants";
+import { clampDuration, FORMAT_SPECS, TYPE_FIELDS } from "@/lib/rafty/constants";
 import {
   emptyContent,
   type ContentFormat,
   type PostAdjustments,
   type PostContent,
+  type PostTextItem,
   type Slide,
 } from "@/lib/rafty/types";
 import { id as newId, type PostWithContact } from "@/lib/rafty/repo";
@@ -136,6 +138,7 @@ function CreatePage() {
   const [showAdjust, setShowAdjust] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [newService, setNewService] = useState("");
+  const [savingService, setSavingService] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -166,7 +169,7 @@ function CreatePage() {
                   ...slide.content,
                   title: item.title.slice(0, 90),
                   price: item.price,
-                  additional: item.description.slice(0, 160),
+                  additionalText: item.description.slice(0, 160),
                   ...(image?.ok ? { imageDataUrl: image.dataUrl } : {}),
                 },
               }
@@ -247,6 +250,23 @@ function CreatePage() {
     setGenerated(false);
     setShowAdjust(false);
     slideNodes.current = [];
+  }
+
+  /** Saves a typed service to the brand so it never has to be retyped, then
+   * selects it on this post. Awaited, so a failed write is reported. */
+  async function useService() {
+    const value = newService.trim();
+    if (!value || savingService) return;
+    setSavingService(true);
+    const res = await addService(value);
+    setSavingService(false);
+    if (!res.ok) {
+      toast.error(res.error ?? "Could not save that service.");
+      return;
+    }
+    if (!content.services.includes(value)) set({ services: [...content.services, value] });
+    setNewService("");
+    toast.success("Saved to your brand.");
   }
 
   async function onImage(file: File) {
@@ -501,7 +521,7 @@ function CreatePage() {
             <Label>Text on the design (optional)</Label>
             <TextItemsEditor
               items={content.extras ?? []}
-              onChange={(extras) => set({ extras })}
+              onChange={(extras: PostTextItem[]) => set({ extras })}
               newId={() => newId("text")}
             />
           </div>

@@ -20,7 +20,6 @@ import { readFileAsDataUrl } from "@/lib/rafty/file";
 import {
   BUSINESS_TYPES,
   BUSINESS_TYPE_NAMES,
-  CURRENCIES,
   CUSTOM_TYPE_SUGGESTIONS,
   FONT_CATEGORIES,
   FONT_LIBRARY,
@@ -32,7 +31,6 @@ import {
   type ContactSet,
   type BusinessType,
   type ContentInstructions,
-  type CurrencyCode,
 } from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/_authenticated/brand")({

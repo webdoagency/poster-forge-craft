@@ -16,8 +16,13 @@ import {
 } from "@/components/ui/select";
 import { useRafty } from "@/lib/rafty/store";
 import * as repo from "@/lib/rafty/repo";
-import { LANGUAGES, SOCIAL_PLATFORMS } from "@/lib/rafty/constants";
-import type { LanguageCode, SocialConnection, SocialPlatform } from "@/lib/rafty/types";
+import { CURRENCIES, LANGUAGES, SOCIAL_PLATFORMS } from "@/lib/rafty/constants";
+import type {
+  CurrencyCode,
+  LanguageCode,
+  SocialConnection,
+  SocialPlatform,
+} from "@/lib/rafty/types";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({
@@ -45,8 +50,19 @@ const PLATFORM_ICON: Record<string, typeof Instagram> = {
 };
 
 function SettingsPage() {
-  const { user, business, brands, plan, brandSlotsLeft, language, setLanguage, isAdmin, signOut } =
-    useRafty();
+  const {
+    user,
+    business,
+    brand,
+    brands,
+    plan,
+    brandSlotsLeft,
+    language,
+    setLanguage,
+    saveBrand,
+    isAdmin,
+    signOut,
+  } = useRafty();
   const [connections, setConnections] = useState<SocialConnection[]>([]);
   const [labels, setLabels] = useState<Partial<Record<SocialPlatform, string>>>({});
   const [savingPlatform, setSavingPlatform] = useState<SocialPlatform | null>(null);
@@ -176,20 +192,42 @@ function SettingsPage() {
         </p>
       </section>
 
-      <section className="card-soft grid gap-3 p-4">
-        <p className="text-sm font-bold">Language</p>
-        <Select value={language} onValueChange={(v) => setLanguage(v as LanguageCode)}>
-          <SelectTrigger className="h-11 rounded-xl">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {LANGUAGES.map((l) => (
-              <SelectItem key={l.code} value={l.code}>
-                {l.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <section className="card-soft grid gap-3 p-4 sm:grid-cols-2">
+        <div className="grid gap-1.5">
+          <p className="text-sm font-bold">Language</p>
+          <Select value={language} onValueChange={(v) => setLanguage(v as LanguageCode)}>
+            <SelectTrigger className="h-11 rounded-xl">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LANGUAGES.map((l) => (
+                <SelectItem key={l.code} value={l.code}>
+                  {l.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {brand ? (
+          <div className="grid gap-1.5">
+            <p className="text-sm font-bold">Currency on posts</p>
+            <Select
+              value={brand.currency}
+              onValueChange={(v) => void saveBrand({ currency: v as CurrencyCode })}
+            >
+              <SelectTrigger className="h-11 rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CURRENCIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : null}
       </section>
 
       <section className="card-soft grid gap-3 p-4">

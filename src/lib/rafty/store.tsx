@@ -126,6 +126,24 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
     return () => data.subscription.unsubscribe();
   }, [refresh]);
 
+  /**
+   * Plan and approval changes are made by a krijo24 admin, outside this tab.
+   * Re-reading them when the tab becomes visible again means an activated plan
+   * shows up for the customer without asking them to reload.
+   */
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [refresh]);
+
   useEffect(() => {
     let cancelled = false;
     loading.current = true;

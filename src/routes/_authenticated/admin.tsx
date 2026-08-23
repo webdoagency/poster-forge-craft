@@ -73,8 +73,9 @@ function timeAgo(iso: string) {
 type Profile = { id: string; email: string; displayName: string };
 
 function AdminPage() {
-  const { ready, isAdmin, user } = useRafty();
+  const { ready, isAdmin, user, signOut } = useRafty();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [trials, setTrials] = useState<TrialUsage[]>([]);
   const [requests, setRequests] = useState<CustomTemplateRequest[]>([]);

@@ -286,6 +286,26 @@ export type CustomTemplateRequest = {
   createdAt: string;
 };
 
+/**
+ * One extra line of text the user placed on the post. Deliberately tiny:
+ * three sizes, three horizontal and three vertical slots. Everything else is
+ * owned by the template, so a user can never break the design.
+ */
+export type TextSize = "small" | "medium" | "large";
+export type TextAlign = "left" | "center" | "right";
+export type TextBand = "top" | "middle" | "bottom";
+
+export type PostTextItem = {
+  id: string;
+  text: string;
+  size: TextSize;
+  align: TextAlign;
+  band: TextBand;
+};
+
+/** Hard cap so extra text can never take over a design. */
+export const MAX_TEXT_ITEMS = 3;
+
 /** Post text/media content. Field relevance is suggested by business type. */
 export type PostContent = {
   title: string;
@@ -298,9 +318,12 @@ export type PostContent = {
   additionalText: string;
   cta: string;
   services: string[];
+  /** User placed extra lines, rendered identically in preview and export. */
+  extras?: PostTextItem[];
   imageDataUrl: string | null;
   caption: string;
 };
+
 
 /** Safe content nudges. Values are clamped by the adjust controls. */
 export type LayerAdjust = {

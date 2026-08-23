@@ -81,10 +81,11 @@ type Ctx = {
   completeOnboarding: (input: OnboardingInput) => Promise<void>;
   saveBrand: (patch: Partial<BrandProfile>) => Promise<void>;
   renameBusiness: (name: string) => Promise<void>;
-  addService: (name: string) => Promise<void>;
-  renameService: (serviceId: string, name: string) => Promise<void>;
-  removeService: (serviceId: string) => Promise<void>;
-  reorderServices: (serviceIds: string[]) => Promise<void>;
+  addService: (name: string) => Promise<Result>;
+  renameService: (serviceId: string, name: string) => Promise<Result>;
+  removeService: (serviceId: string) => Promise<Result>;
+  reorderServices: (serviceIds: string[]) => Promise<Result>;
+
   createBrand: (input: {
     name: string;
     type: BusinessType;
@@ -272,37 +273,47 @@ export function RaftyProvider({ children }: { children: React.ReactNode }) {
     [business, refresh],
   );
 
+  /** Service writes are awaited, then the brand data is reloaded, so the UI can
+   * only report success when the database actually accepted the write. */
   const addServiceFn = useCallback(
     async (name: string) => {
-      if (!business) return;
-      await repo.addService(business.id, name);
-      refresh();
+      if (!business) return { ok: false, error: "No active brand" };
+      const res = await repo.addService(business.id, name);
+      if (res.error) return { ok: false, error: res.error };
+      setServices(await repo.listServices(business.id));
+      return { ok: true };
     },
-    [business, refresh],
+    [business],
   );
 
   const renameServiceFn = useCallback(
     async (serviceId: string, name: string) => {
-      await repo.renameService(serviceId, name);
-      refresh();
+      const res = await repo.renameService(serviceId, name);
+      if (res.error) return { ok: false, error: res.error };
+      if (business) setServices(await repo.listServices(business.id));
+      return { ok: true };
     },
-    [refresh],
+    [business],
   );
 
   const removeServiceFn = useCallback(
     async (serviceId: string) => {
-      await repo.removeService(serviceId);
-      refresh();
+      const res = await repo.removeService(serviceId);
+      if (res.error) return { ok: false, error: res.error };
+      if (business) setServices(await repo.listServices(business.id));
+      return { ok: true };
     },
-    [refresh],
+    [business],
   );
 
   const reorderServicesFn = useCallback(
     async (serviceIds: string[]) => {
-      await repo.reorderServices(serviceIds);
-      refresh();
+      const res = await repo.reorderServices(serviceIds);
+      if (res.error) return { ok: false, error: res.error };
+      if (business) setServices(await repo.listServices(business.id));
+      return { ok: true };
     },
-    [refresh],
+    [business],
   );
 
   const createBrandFn = useCallback(

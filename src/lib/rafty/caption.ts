@@ -3,8 +3,12 @@ import type { BusinessType, ContentInstructions, CurrencyCode, PostContent } fro
 
 /**
  * Caption writer. Text only, never layout.
- * Deterministic local generator so output is reproducible and the brand's own
- * content instructions stay authoritative for tone and wording.
+ *
+ * Facts come exclusively from this post and this business. The brand's own
+ * saved description (styleSample) is used as a *style* reference only: length,
+ * punctuation, emoji habits and hashtags. Sentences from the sample are never
+ * copied, so krijo24 can never state a fact the user did not enter, and never
+ * borrows another brand's information.
  */
 
 const OPENERS: Partial<Record<BusinessType, string[]>> = {
@@ -57,52 +61,55 @@ const DEFAULT_CLOSERS: Partial<Record<BusinessType, string>> = {
 
 const MAX_LENGTH = 2200;
 
-function toneHint(tone: string): string | null {
-  const value = tone.trim().toLowerCase();
-  if (!value) return null;
-  if (value.includes("playful") || value.includes("fun")) return "!";
-  if (value.includes("formal") || value.includes("professional")) return ".";
-  return null;
-}
+const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
 
-/** Removes any sentence that contains a phrase the brand asked to avoid. */
-function filterAvoided(text: string, avoid: string): string {
-  const banned = avoid
-    .split(/[,\n]/)
-    .map((v) => v.trim().toLowerCase())
-    .filter(Boolean);
-  if (!banned.length) return text;
-  return text
-    .split(/(?<=[.!?])\s+/)
-    .filter((sentence) => !banned.some((word) => sentence.toLowerCase().includes(word)))
-    .join(" ");
-}
+type Style = {
+  /** Sentence ending the brand tends to use. */
+  punctuation: string;
+  /** Emoji the sample uses, reused sparingly at the end of the first line. */
+  emoji: string | null;
+  /** Prefer short captions when the sample is short. */
+  concise: boolean;
+  /** Hashtags found in the sample, used only when none are configured. */
+  hashtags: string[];
+};
 
-function pickPhrase(phrasesUse: string, seed: number): string | null {
-  const options = phrasesUse
-    .split(/[,\n]/)
-    .map((v) => v.trim())
-    .filter(Boolean);
-  if (!options.length) return null;
-  return options[seed % options.length]!;
+/** Reads writing habits out of the brand's own description. Style only. */
+function readStyle(sample: string): Style {
+  const value = sample.trim();
+  if (!value) return { punctuation: ".", emoji: null, concise: false, hashtags: [] };
+
+  const emojiMatch = value.match(EMOJI_RE);
+  const exclamations = (value.match(/!/g) ?? []).length;
+  const sentences = value.split(/(?<=[.!?])\s+/).filter(Boolean);
+  const words = value.split(/\s+/).filter(Boolean).length;
+  const hashtags = (value.match(/#[\p{L}\p{N}_]+/gu) ?? []).slice(0, 12);
+
+  return {
+    punctuation: exclamations >= Math.max(1, sentences.length / 2) ? "!" : ".",
+    emoji: emojiMatch ? emojiMatch[0] : null,
+    concise: words > 0 && words < 45,
+    hashtags,
+  };
 }
 
 function buildHashtags(input: {
-  hashtags: string;
+  configured: string;
+  fromSample: string[];
   subject: string;
   businessName: string;
 }): string[] {
-  const custom = input.hashtags
+  const custom = input.configured
     .split(/[\s,]+/)
     .map((v) => v.trim())
     .filter(Boolean)
     .map((v) => (v.startsWith("#") ? v : `#${v}`));
   if (custom.length) return custom.slice(0, 12);
-  const fallback = [input.subject, input.businessName]
+  if (input.fromSample.length) return input.fromSample;
+  return [input.subject, input.businessName]
     .map((v) => v.replace(/[^a-zA-Z0-9]/g, ""))
     .filter(Boolean)
     .map((v) => `#${v}`);
-  return [...fallback, "#rafty"];
 }
 
 export function generateCaption(input: {
@@ -116,49 +123,50 @@ export function generateCaption(input: {
 }): string {
   const { content, businessType, businessName, currency, instructions } = input;
   const seed = input.seed ?? 0;
-  const punctuation = toneHint(instructions.tone) ?? ".";
+  const style = readStyle(instructions.styleSample);
 
   const title = content.title.trim() || "New offer";
   const openers = OPENERS[businessType] ?? OPENERS.other!;
   const opener = openers[(title.length + seed) % openers.length]!;
-  const parts: string[] = [opener];
+  const parts: string[] = [style.emoji ? `${opener.replace(/\.$/, "")} ${style.emoji}` : opener];
 
   const subject = content.subject.trim();
-  parts.push(subject ? `${title} in ${subject}${punctuation}` : `${title}${punctuation}`);
+  parts.push(
+    subject ? `${title} in ${subject}${style.punctuation}` : `${title}${style.punctuation}`,
+  );
 
   const price = formatPrice(content.price, currency);
   if (price) parts.push(`From ${price}.`);
 
-  [content.meta1, content.meta2, content.location, content.date]
+  const details = [content.meta1, content.meta2, content.location, content.date]
     .map((v) => v.trim())
-    .filter(Boolean)
-    .forEach((v) => parts.push(`${v}.`));
+    .filter(Boolean);
+  // A concise brand gets only the strongest detail, a longer writer gets all.
+  (style.concise ? details.slice(0, 1) : details).forEach((v) => parts.push(`${v}.`));
 
   const services = input.services?.length ? input.services : content.services;
   if (services.length) parts.push(`Includes: ${services.join(", ")}.`);
 
-  if (content.additionalText.trim()) {
-    parts.push(content.additionalText.trim().replace(/\.$/, "") + ".");
-  }
+  // Extra lines the user placed on the design are their own words, so they are
+  // safe to reuse in the caption.
+  const extras = (content.extras ?? [])
+    .map((item) => item.text.trim())
+    .filter(Boolean)
+    .slice(0, style.concise ? 1 : 3);
+  if (content.additionalText.trim()) extras.unshift(content.additionalText.trim());
+  extras.forEach((v) => parts.push(v.replace(/\.$/, "") + "."));
 
-  const usedPhrase = pickPhrase(instructions.phrasesUse, seed);
-  if (usedPhrase) parts.push(usedPhrase.replace(/\.$/, "") + ".");
-
-  const cta =
-    content.cta.trim() ||
-    instructions.ctaStyle.trim() ||
-    DEFAULT_CLOSERS[businessType] ||
-    DEFAULT_CLOSERS.other!;
+  const cta = content.cta.trim() || DEFAULT_CLOSERS[businessType] || DEFAULT_CLOSERS.other!;
   parts.push(cta.replace(/\.$/, "") + ".");
 
-  if (instructions.contact.trim()) parts.push(instructions.contact.trim());
-
-  let body = filterAvoided(parts.join(" "), instructions.phrasesAvoid)
+  let body = parts
+    .join(" ")
     .replace(/\s{2,}/g, " ")
     .trim();
 
   const tags = buildHashtags({
-    hashtags: instructions.hashtags,
+    configured: instructions.hashtags,
+    fromSample: style.hashtags,
     subject,
     businessName,
   });

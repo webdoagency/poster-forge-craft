@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { TemplatePicker } from "@/components/rafty/TemplatePicker";
+import { TextItemsEditor } from "@/components/rafty/TextItemsEditor";
 
 import { AppShell } from "@/components/rafty/AppShell";
 import { PostCanvas } from "@/components/rafty/PostCanvas";
@@ -22,12 +23,13 @@ import { generateCaption } from "@/lib/rafty/caption";
 import { readFileAsDataUrl } from "@/lib/rafty/file";
 import { renderNodeToDataUrl } from "@/lib/rafty/download";
 import { recommendedFirst, templatesForFormat } from "@/lib/rafty/templates";
-import { clampDuration, CTA_PRESETS, FORMAT_SPECS, TYPE_FIELDS } from "@/lib/rafty/constants";
+import { clampDuration, FORMAT_SPECS, TYPE_FIELDS } from "@/lib/rafty/constants";
 import {
   emptyContent,
   type ContentFormat,
   type PostAdjustments,
   type PostContent,
+  type PostTextItem,
   type Slide,
 } from "@/lib/rafty/types";
 import { id as newId, type PostWithContact } from "@/lib/rafty/repo";
@@ -136,6 +138,7 @@ function CreatePage() {
   const [showAdjust, setShowAdjust] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [newService, setNewService] = useState("");
+  const [savingService, setSavingService] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -150,9 +153,7 @@ function CreatePage() {
     if (!itemId || !business || existing || prefilled.current) return;
     prefilled.current = true;
     void (async () => {
-      const item = (await repo.listDiscovered(business.id)).find(
-        (row) => row.id === itemId,
-      );
+      const item = (await repo.listDiscovered(business.id)).find((row) => row.id === itemId);
       if (!item) return;
       const image = item.imageUrl
         ? await loadItemImage({ data: { businessId: business.id, itemId } })
@@ -166,7 +167,7 @@ function CreatePage() {
                   ...slide.content,
                   title: item.title.slice(0, 90),
                   price: item.price,
-                  additional: item.description.slice(0, 160),
+                  additionalText: item.description.slice(0, 160),
                   ...(image?.ok ? { imageDataUrl: image.dataUrl } : {}),
                 },
               }
@@ -176,7 +177,6 @@ function CreatePage() {
       await repo.setDiscoveredStatus(itemId, "used");
     })();
   }, [search.item, business, existing, loadItemImage]);
-
 
   const spec = FORMAT_SPECS[format];
   /** Business type only reorders the list, it never removes a template. */
@@ -247,6 +247,23 @@ function CreatePage() {
     setGenerated(false);
     setShowAdjust(false);
     slideNodes.current = [];
+  }
+
+  /** Saves a typed service to the brand so it never has to be retyped, then
+   * selects it on this post. Awaited, so a failed write is reported. */
+  async function useService() {
+    const value = newService.trim();
+    if (!value || savingService) return;
+    setSavingService(true);
+    const res = await addService(value);
+    setSavingService(false);
+    if (!res.ok) {
+      toast.error(res.error ?? "Could not save that service.");
+      return;
+    }
+    if (!content.services.includes(value)) set({ services: [...content.services, value] });
+    setNewService("");
+    toast.success("Saved to your brand.");
   }
 
   async function onImage(file: File) {
@@ -497,6 +514,46 @@ function CreatePage() {
             ))}
           </div>
 
+          <div className="grid gap-2 border-t pt-4">
+            <Label>Text on the design (optional)</Label>
+            <TextItemsEditor
+              items={content.extras ?? []}
+              onChange={(extras: PostTextItem[]) => set({ extras })}
+              newId={() => newId("text")}
+            />
+          </div>
+
+          {services.length ? (
+            <div className="grid gap-2 border-t pt-4">
+              <Label>{t("create.services")}</Label>
+              <div className="flex flex-wrap gap-2">
+                {services.map((s) => {
+                  const isOn = content.services.includes(s.name);
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() =>
+                        set({
+                          services: isOn
+                            ? content.services.filter((x) => x !== s.name)
+                            : [...content.services, s.name],
+                        })
+                      }
+                      className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${
+                        isOn
+                          ? "border-primary bg-primary-soft text-accent-foreground"
+                          : "border-border bg-card"
+                      }`}
+                    >
+                      {s.name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
           <button
             type="button"
             onClick={() => setMoreOpen((v) => !v)}
@@ -522,73 +579,13 @@ function CreatePage() {
                 ))}
               </div>
 
-              <div className="grid gap-1.5">
-                <Label htmlFor="additional">{t("create.additional")}</Label>
-                <Input
-                  id="additional"
-                  value={content.additionalText}
-                  onChange={(e) => set({ additionalText: e.target.value })}
-                  className="h-11 rounded-xl"
-                />
-              </div>
-
-              <div className="grid gap-1.5">
-                <Label htmlFor="cta">Call to action</Label>
-                <Input
-                  id="cta"
-                  value={content.cta}
-                  onChange={(e) => set({ cta: e.target.value })}
-                  placeholder="Send us a message"
-                  className="h-11 rounded-xl"
-                />
-                <div className="flex flex-wrap gap-2">
-                  {CTA_PRESETS.map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => set({ cta: preset })}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${
-                        content.cta === preset
-                          ? "border-primary bg-primary-soft text-accent-foreground"
-                          : "border-border bg-card text-muted-foreground"
-                      }`}
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               <div className="grid gap-2">
-                <Label>{t("create.services")}</Label>
-                <div className="flex flex-wrap gap-2">
-                  {services.map((s) => {
-                    const isOn = content.services.includes(s.name);
-                    return (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() =>
-                          set({
-                            services: isOn
-                              ? content.services.filter((x) => x !== s.name)
-                              : [...content.services, s.name],
-                          })
-                        }
-                        className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${
-                          isOn
-                            ? "border-primary bg-primary-soft text-accent-foreground"
-                            : "border-border bg-card"
-                        }`}
-                      >
-                        {s.name}
-                      </button>
-                    );
-                  })}
-                </div>
+                <Label htmlFor="new-service">{t("create.addService")}</Label>
                 <div className="flex gap-2">
                   <Input
+                    id="new-service"
                     value={newService}
+                    maxLength={60}
                     onChange={(e) => setNewService(e.target.value)}
                     placeholder={t("create.addService")}
                     className="h-10 rounded-xl"
@@ -596,39 +593,23 @@ function CreatePage() {
                   <Button
                     type="button"
                     variant="outline"
-                    size="icon"
-                    className="size-10 shrink-0 rounded-xl"
-                    aria-label={t("create.addService")}
-                    onClick={() => {
-                      const v = newService.trim();
-                      if (!v) return;
-                      addService(v);
-                      set({ services: [...content.services, v] });
-                      setNewService("");
-                    }}
+                    className="h-10 shrink-0 rounded-xl"
+                    disabled={savingService || !newService.trim()}
+                    onClick={() => void useService()}
                   >
-                    <Plus className="size-4" />
+                    <Plus className="mr-1.5 size-4" />
+                    Save to brand
                   </Button>
                 </div>
               </div>
 
               <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
-                <div>
-                  <p className="text-sm font-semibold">Show brand name</p>
-                  <p className="text-xs text-muted-foreground">
-                    Off by default on the generated design.
-                  </p>
-                </div>
+                <p className="text-sm font-semibold">Show brand name</p>
                 <Switch checked={showBrandName} onCheckedChange={setShowBrandName} />
               </div>
 
               <div className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2.5">
-                <div>
-                  <p className="text-sm font-semibold">Show contact info</p>
-                  <p className="text-xs text-muted-foreground">
-                    Uses the contact details saved in your brand settings.
-                  </p>
-                </div>
+                <p className="text-sm font-semibold">Show contact info</p>
                 <Switch checked={showContact} onCheckedChange={setShowContact} />
               </div>
             </div>

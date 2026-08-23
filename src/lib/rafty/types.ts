@@ -127,22 +127,18 @@ export type BusinessMembership = {
   role: "owner" | "member";
 };
 
-/** Caption guidance owned by the brand and reused on every post. */
+/**
+ * Caption guidance owned by the brand and reused on every post.
+ * styleSample is a real description the business already uses. krijo24 reads
+ * style from it (length, punctuation, emoji, hashtags) and never copies facts.
+ */
 export type ContentInstructions = {
-  tone: string;
-  phrasesUse: string;
-  phrasesAvoid: string;
-  ctaStyle: string;
-  contact: string;
+  styleSample: string;
   hashtags: string;
 };
 
 export const emptyInstructions: ContentInstructions = {
-  tone: "",
-  phrasesUse: "",
-  phrasesAvoid: "",
-  ctaStyle: "",
-  contact: "",
+  styleSample: "",
   hashtags: "",
 };
 
@@ -289,6 +285,26 @@ export type CustomTemplateRequest = {
   createdAt: string;
 };
 
+/**
+ * One extra line of text the user placed on the post. Deliberately tiny:
+ * three sizes, three horizontal and three vertical slots. Everything else is
+ * owned by the template, so a user can never break the design.
+ */
+export type TextSize = "small" | "medium" | "large";
+export type TextAlign = "left" | "center" | "right";
+export type TextBand = "top" | "middle" | "bottom";
+
+export type PostTextItem = {
+  id: string;
+  text: string;
+  size: TextSize;
+  align: TextAlign;
+  band: TextBand;
+};
+
+/** Hard cap so extra text can never take over a design. */
+export const MAX_TEXT_ITEMS = 3;
+
 /** Post text/media content. Field relevance is suggested by business type. */
 export type PostContent = {
   title: string;
@@ -301,6 +317,8 @@ export type PostContent = {
   additionalText: string;
   cta: string;
   services: string[];
+  /** User placed extra lines, rendered identically in preview and export. */
+  extras?: PostTextItem[];
   imageDataUrl: string | null;
   caption: string;
 };
@@ -429,4 +447,3 @@ export type DiscoveredItem = {
   postId: string | null;
   createdAt: string;
 };
-

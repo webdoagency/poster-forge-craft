@@ -1,6 +1,8 @@
 import { forwardRef } from "react";
 import { renderTemplate } from "@/lib/rafty/templates";
+import { ExtraTextLayer } from "./ExtraTextLayer";
 import { FORMAT_SPECS } from "@/lib/rafty/constants";
+
 import type {
   BrandProfile,
   BusinessType,
@@ -62,6 +64,7 @@ export const PostCanvas = forwardRef<HTMLDivElement, Props>(function PostCanvas(
         showContact: showContact ?? false,
         ...(adjustments ? { adjustments } : {}),
       })}
+      <ExtraTextLayer items={content.extras} brand={brand} />
     </div>
   );
 });
